@@ -15,17 +15,13 @@ jobs:
 
       - name: Extract project files
         run: |
-          # تفعيل nullglob لتجنب الأخطاء إذا لم توجد ملفات ZIP
           shopt -s nullglob
-
-          # تخزين كل ملفات ZIP في مصفوفة
           zip_files=(*.zip)
-
           if [ ${#zip_files[@]} -gt 0 ]; then
             for zip in "${zip_files[@]}"; do
-              echo "📦 Extracting $zip..."
-              unzip -o "$zip"
-              rm "$zip"
+              echo "📦 Extracting: $zip"
+              unzip -o -- "$zip"
+              rm -f "$zip"
             done
           else
             echo "⚠️ No ZIP files found, skipping extraction."
@@ -53,16 +49,16 @@ jobs:
 
       - name: Create capacitor config
         run: |
-          cat > capacitor.config.ts << 'EOF'
+          cat > capacitor.config.ts << 'CAPEOF'
           import { CapacitorConfig } from '@capacitor/cli';
           const config: CapacitorConfig = {
-            appId: 'com.centmusic.app',
+            appId: 'com.footballquiz.app',
             appName: 'Football Quiz',
             webDir: 'dist',
             server: { androidScheme: 'https' }
           };
           export default config;
-          EOF
+          CAPEOF
 
       - name: Install Capacitor
         run: npm install @capacitor/core @capacitor/cli @capacitor/android
@@ -76,11 +72,7 @@ jobs:
       - name: Add required Android permissions
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
-
-          # نسخة احتياطية
           cp "$MANIFEST" "${MANIFEST}.backup"
-
-          # إضافة الصلاحيات قبل <application>
           awk '/<application/ {
             print "    <!-- App Permissions -->"
             print "    <uses-permission android:name=\"android.permission.INTERNET\" />"
@@ -94,36 +86,30 @@ jobs:
             print ""
           }
           { print }' "${MANIFEST}.backup" > "$MANIFEST"
-
           echo "✅ Android permissions added"
-          echo "📄 AndroidManifest.xml:"
-          cat "$MANIFEST"
 
       - name: Update app name to Football Quiz
         run: |
           STRINGS="android/app/src/main/res/values/strings.xml"
-
           if [ -f "$STRINGS" ]; then
-            # تحديث اسم التطبيق
             sed -i 's|<string name="app_name">.*</string>|<string name="app_name">Football Quiz</string>|' "$STRINGS"
             sed -i 's|<string name="title_activity_main">.*</string>|<string name="title_activity_main">Football Quiz</string>|' "$STRINGS"
-
-            echo "✅ App name updated to 'Football Quiz'"
-            echo "📄 strings.xml:"
+            sed -i 's|<string name="package_name">.*</string>|<string name="package_name">com.footballquiz.app</string>|' "$STRINGS"
+            sed -i 's|<string name="custom_url_scheme">.*</string>|<string name="custom_url_scheme">com.footballquiz.app</string>|' "$STRINGS"
+            echo "✅ App name updated to Football Quiz"
             cat "$STRINGS"
           else
-            echo "⚠️ strings.xml not found, creating it..."
             mkdir -p android/app/src/main/res/values
-            cat > "$STRINGS" << 'EOF'
+            cat > "$STRINGS" << 'STREOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
               <string name="app_name">Football Quiz</string>
               <string name="title_activity_main">Football Quiz</string>
-              <string name="package_name">com.centmusic.app</string>
-              <string name="custom_url_scheme">com.centmusic.app</string>
+              <string name="package_name">com.footballquiz.app</string>
+              <string name="custom_url_scheme">com.footballquiz.app</string>
           </resources>
-          EOF
-            echo "✅ strings.xml created with app name 'Football Quiz'"
+          STREOF
+            echo "✅ strings.xml created"
           fi
 
       - name: Setup app icon
@@ -140,7 +126,7 @@ jobs:
 
       - name: Fix Kotlin dependencies
         run: |
-          cat >> android/build.gradle << 'EOF'
+          cat >> android/build.gradle << 'KTEOF'
 
           allprojects {
               configurations.all {
@@ -150,7 +136,7 @@ jobs:
                   }
               }
           }
-          EOF
+          KTEOF
 
       - name: Build APK
         run: |
