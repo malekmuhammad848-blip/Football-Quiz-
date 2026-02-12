@@ -15,9 +15,20 @@ jobs:
     
     - name: Extract project files
       run: |
-        if [ -f *.zip ]; then
-          unzip -o *.zip
-          rm *.zip
+        # تفعيل nullglob لتجنب الأخطاء إذا لم توجد ملفات ZIP
+        shopt -s nullglob
+        
+        # تخزين كل ملفات ZIP في مصفوفة
+        zip_files=(*.zip)
+        
+        if [ ${#zip_files[@]} -gt 0 ]; then
+          for zip in "${zip_files[@]}"; do
+            echo "📦 Extracting $zip..."
+            unzip -o "$zip"
+            rm "$zip"
+          done
+        else
+          echo "⚠️ No ZIP files found, skipping extraction."
         fi
     
     - name: Setup Node.js
@@ -46,7 +57,7 @@ jobs:
         import { CapacitorConfig } from '@capacitor/cli';
         const config: CapacitorConfig = {
           appId: 'com.centmusic.app',
-          appName: 'Cent Music',
+          appName: 'Football Quiz',
           webDir: 'dist',
           server: { androidScheme: 'https' }
         };
@@ -88,31 +99,31 @@ jobs:
         echo "📄 AndroidManifest.xml:"
         cat $MANIFEST
       
-    - name: Update app name to Cent Music
+    - name: Update app name to Football Quiz
       run: |
         STRINGS="android/app/src/main/res/values/strings.xml"
         
         if [ -f "$STRINGS" ]; then
           # تحديث اسم التطبيق
-          sed -i 's|<string name="app_name">.*</string>|<string name="app_name">Cent Music</string>|' $STRINGS
-          sed -i 's|<string name="title_activity_main">.*</string>|<string name="title_activity_main">Cent Music</string>|' $STRINGS
+          sed -i 's|<string name="app_name">.*</string>|<string name="app_name">Football Quiz</string>|' $STRINGS
+          sed -i 's|<string name="title_activity_main">.*</string>|<string name="title_activity_main">Football Quiz</string>|' $STRINGS
           
-          echo "✅ App name updated to 'Cent Music'"
+          echo "✅ App name updated to 'Football Quiz'"
           echo "📄 strings.xml:"
           cat $STRINGS
         else
           echo "⚠️ strings.xml not found, creating it..."
           mkdir -p android/app/src/main/res/values
           cat > $STRINGS << 'EOF'
-        <?xml version="1.0" encoding="utf-8"?>
-        <resources>
-            <string name="app_name">Cent Music</string>
-            <string name="title_activity_main">Cent Music</string>
-            <string name="package_name">com.centmusic.app</string>
-            <string name="custom_url_scheme">com.centmusic.app</string>
-        </resources>
-        EOF
-          echo "✅ strings.xml created with app name 'Cent Music'"
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Football Quiz</string>
+    <string name="title_activity_main">Football Quiz</string>
+    <string name="package_name">com.centmusic.app</string>
+    <string name="custom_url_scheme">com.centmusic.app</string>
+</resources>
+EOF
+          echo "✅ strings.xml created with app name 'Football Quiz'"
         fi
       
     - name: Setup app icon
