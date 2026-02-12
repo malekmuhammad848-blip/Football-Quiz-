@@ -2,162 +2,164 @@ name: Extract ZIP and Build APK
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Extract project files
-      run: |
-        # تفعيل nullglob لتجنب الأخطاء إذا لم توجد ملفات ZIP
-        shopt -s nullglob
-        
-        # تخزين كل ملفات ZIP في مصفوفة
-        zip_files=(*.zip)
-        
-        if [ ${#zip_files[@]} -gt 0 ]; then
-          for zip in "${zip_files[@]}"; do
-            echo "📦 Extracting $zip..."
-            unzip -o "$zip"
-            rm "$zip"
-          done
-        else
-          echo "⚠️ No ZIP files found, skipping extraction."
-        fi
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        
-    - name: Install dependencies
-      run: npm install
-      
-    - name: Build web app
-      run: npm run build
-      
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '21'
-        
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-      
-    - name: Create capacitor config
-      run: |
-        cat > capacitor.config.ts << 'EOF'
-        import { CapacitorConfig } from '@capacitor/cli';
-        const config: CapacitorConfig = {
-          appId: 'com.centmusic.app',
-          appName: 'Football Quiz',
-          webDir: 'dist',
-          server: { androidScheme: 'https' }
-        };
-        export default config;
-        EOF
-        
-    - name: Install Capacitor
-      run: npm install @capacitor/core @capacitor/cli @capacitor/android
-        
-    - name: Add Android platform
-      run: npx cap add android
-        
-    - name: Sync Capacitor
-      run: npx cap sync android
-      
-    - name: Add required Android permissions
-      run: |
-        MANIFEST="android/app/src/main/AndroidManifest.xml"
-        
-        # نسخة احتياطية
-        cp $MANIFEST ${MANIFEST}.backup
-        
-        # إضافة الصلاحيات قبل <application>
-        awk '/<application/ { 
-          print "    <!-- App Permissions -->"
-          print "    <uses-permission android:name=\"android.permission.INTERNET\" />"
-          print "    <uses-permission android:name=\"android.permission.RECORD_AUDIO\" />"
-          print "    <uses-permission android:name=\"android.permission.FOREGROUND_SERVICE\" />"
-          print "    <uses-permission android:name=\"android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK\" />"
-          print "    <uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\" />"
-          print "    <uses-permission android:name=\"android.permission.WAKE_LOCK\" />"
-          print "    <uses-permission android:name=\"android.permission.POST_NOTIFICATIONS\" />"
-          print "    <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />"
-          print ""
-        } 
-        { print }' ${MANIFEST}.backup > $MANIFEST
-        
-        echo "✅ Android permissions added"
-        echo "📄 AndroidManifest.xml:"
-        cat $MANIFEST
-      
-    - name: Update app name to Football Quiz
-      run: |
-        STRINGS="android/app/src/main/res/values/strings.xml"
-        
-        if [ -f "$STRINGS" ]; then
-          # تحديث اسم التطبيق
-          sed -i 's|<string name="app_name">.*</string>|<string name="app_name">Football Quiz</string>|' $STRINGS
-          sed -i 's|<string name="title_activity_main">.*</string>|<string name="title_activity_main">Football Quiz</string>|' $STRINGS
-          
-          echo "✅ App name updated to 'Football Quiz'"
-          echo "📄 strings.xml:"
-          cat $STRINGS
-        else
-          echo "⚠️ strings.xml not found, creating it..."
-          mkdir -p android/app/src/main/res/values
-          cat > $STRINGS << 'EOF'
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">Football Quiz</string>
-    <string name="title_activity_main">Football Quiz</string>
-    <string name="package_name">com.centmusic.app</string>
-    <string name="custom_url_scheme">com.centmusic.app</string>
-</resources>
-EOF
-          echo "✅ strings.xml created with app name 'Football Quiz'"
-        fi
-      
-    - name: Setup app icon
-      run: |
-        npm install -g @capacitor/assets
-        mkdir -p resources
-        if [ -f "icon.png" ]; then
-          cp icon.png resources/icon.png
-          echo "✅ Icon found, generating assets..."
-          npx @capacitor/assets generate --android
-        else
-          echo "⚠️ No icon.png found, using default icon"
-        fi
-      
-    - name: Fix Kotlin dependencies
-      run: |
-        echo "" >> android/build.gradle
-        echo "allprojects {" >> android/build.gradle
-        echo "    configurations.all {" >> android/build.gradle
-        echo "        resolutionStrategy {" >> android/build.gradle
-        echo "            force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.22'" >> android/build.gradle
-        echo "            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22'" >> android/build.gradle
-        echo "        }" >> android/build.gradle
-        echo "    }" >> android/build.gradle
-        echo "}" >> android/build.gradle
-      
-    - name: Build APK
-      run: |
-        cd android
-        chmod +x gradlew
-        ./gradlew assembleDebug --stacktrace
-        
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-debug
-        path: android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract project files
+        run: |
+          # تفعيل nullglob لتجنب الأخطاء إذا لم توجد ملفات ZIP
+          shopt -s nullglob
+
+          # تخزين كل ملفات ZIP في مصفوفة
+          zip_files=(*.zip)
+
+          if [ ${#zip_files[@]} -gt 0 ]; then
+            for zip in "${zip_files[@]}"; do
+              echo "📦 Extracting $zip..."
+              unzip -o "$zip"
+              rm "$zip"
+            done
+          else
+            echo "⚠️ No ZIP files found, skipping extraction."
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build web app
+        run: npm run build
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Create capacitor config
+        run: |
+          cat > capacitor.config.ts << 'EOF'
+          import { CapacitorConfig } from '@capacitor/cli';
+          const config: CapacitorConfig = {
+            appId: 'com.centmusic.app',
+            appName: 'Football Quiz',
+            webDir: 'dist',
+            server: { androidScheme: 'https' }
+          };
+          export default config;
+          EOF
+
+      - name: Install Capacitor
+        run: npm install @capacitor/core @capacitor/cli @capacitor/android
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Add required Android permissions
+        run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+
+          # نسخة احتياطية
+          cp "$MANIFEST" "${MANIFEST}.backup"
+
+          # إضافة الصلاحيات قبل <application>
+          awk '/<application/ {
+            print "    <!-- App Permissions -->"
+            print "    <uses-permission android:name=\"android.permission.INTERNET\" />"
+            print "    <uses-permission android:name=\"android.permission.RECORD_AUDIO\" />"
+            print "    <uses-permission android:name=\"android.permission.FOREGROUND_SERVICE\" />"
+            print "    <uses-permission android:name=\"android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK\" />"
+            print "    <uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\" />"
+            print "    <uses-permission android:name=\"android.permission.WAKE_LOCK\" />"
+            print "    <uses-permission android:name=\"android.permission.POST_NOTIFICATIONS\" />"
+            print "    <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />"
+            print ""
+          }
+          { print }' "${MANIFEST}.backup" > "$MANIFEST"
+
+          echo "✅ Android permissions added"
+          echo "📄 AndroidManifest.xml:"
+          cat "$MANIFEST"
+
+      - name: Update app name to Football Quiz
+        run: |
+          STRINGS="android/app/src/main/res/values/strings.xml"
+
+          if [ -f "$STRINGS" ]; then
+            # تحديث اسم التطبيق
+            sed -i 's|<string name="app_name">.*</string>|<string name="app_name">Football Quiz</string>|' "$STRINGS"
+            sed -i 's|<string name="title_activity_main">.*</string>|<string name="title_activity_main">Football Quiz</string>|' "$STRINGS"
+
+            echo "✅ App name updated to 'Football Quiz'"
+            echo "📄 strings.xml:"
+            cat "$STRINGS"
+          else
+            echo "⚠️ strings.xml not found, creating it..."
+            mkdir -p android/app/src/main/res/values
+            cat > "$STRINGS" << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <string name="app_name">Football Quiz</string>
+              <string name="title_activity_main">Football Quiz</string>
+              <string name="package_name">com.centmusic.app</string>
+              <string name="custom_url_scheme">com.centmusic.app</string>
+          </resources>
+          EOF
+            echo "✅ strings.xml created with app name 'Football Quiz'"
+          fi
+
+      - name: Setup app icon
+        run: |
+          npm install -g @capacitor/assets
+          mkdir -p resources
+          if [ -f "icon.png" ]; then
+            cp icon.png resources/icon.png
+            echo "✅ Icon found, generating assets..."
+            npx @capacitor/assets generate --android
+          else
+            echo "⚠️ No icon.png found, using default icon"
+          fi
+
+      - name: Fix Kotlin dependencies
+        run: |
+          cat >> android/build.gradle << 'EOF'
+
+          allprojects {
+              configurations.all {
+                  resolutionStrategy {
+                      force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.22'
+                      force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22'
+                  }
+              }
+          }
+          EOF
+
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
