@@ -52,8 +52,8 @@ jobs:
           cat > capacitor.config.ts << 'CAPEOF'
           import { CapacitorConfig } from '@capacitor/cli';
           const config: CapacitorConfig = {
-            appId: 'com.footballquiz.app',
-            appName: 'Football Quiz',
+            appId: 'com.withdaood.app',
+            appName: 'With Daood',
             webDir: 'dist',
             server: { androidScheme: 'https' }
           };
