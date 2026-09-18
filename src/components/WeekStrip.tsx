@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { todayKey } from "../lib/store";
 import { currentLang, dayNames } from "../lib/i18n";
+import { CheckBadge, CrossBadge } from "./Icons";
 import { cn } from "../utils/cn";
 
 interface Props {
@@ -24,9 +25,9 @@ export function WeekStrip({ answers }: Props) {
         return (
           <motion.div
             key={key}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: i * 0.04 }}
             className="flex flex-1 flex-col items-center gap-1"
           >
             <span
@@ -37,17 +38,20 @@ export function WeekStrip({ answers }: Props) {
             >
               {dayNames[lang][d.getDay()]}
             </span>
-            <span
-              className={cn(
-                "flex size-7 items-center justify-center rounded-full text-xs font-black shadow-sm sm:size-8 sm:text-sm",
-                result === true && "bg-gradient-to-br from-grass-400 to-grass-600 text-white",
-                result === false && "bg-gradient-to-br from-red-400 to-red-600 text-white",
-                result === undefined && "bg-ink/5 text-ink/30 dark:bg-white/10 dark:text-white/30",
-                isToday && result === undefined && "ring-2 ring-grass-500/50",
-              )}
-            >
-              {result === undefined ? d.getDate() : result ? "✓" : "✗"}
-            </span>
+            {result === undefined ? (
+              <span
+                className={cn(
+                  "flex size-7 items-center justify-center rounded-full bg-ink/5 text-xs font-black text-ink/30 sm:size-8 sm:text-sm dark:bg-white/10 dark:text-white/30",
+                  isToday && "ring-2 ring-grass-500/50",
+                )}
+              >
+                {d.getDate()}
+              </span>
+            ) : result ? (
+              <CheckBadge className="size-7 sm:size-8" />
+            ) : (
+              <CrossBadge className="size-7 sm:size-8" />
+            )}
           </motion.div>
         );
       })}

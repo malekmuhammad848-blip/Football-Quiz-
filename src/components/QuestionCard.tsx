@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Timer } from "lucide-react";
 import type { Question } from "../data/questions";
-import { t, currentLang, dayNames } from "../lib/i18n";
+import { t, currentLang } from "../lib/i18n";
+import { CheckBadge, CrossBadge } from "./Icons";
 import { cn } from "../utils/cn";
 
 interface Props {
@@ -43,9 +44,10 @@ export function QuestionCard({ question, selected, onSelect, disabled }: Props) 
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card relative w-full overflow-hidden rounded-3xl p-4 shadow-xl shadow-grass-700/10 sm:p-6"
+      transition={{ duration: 0.25 }}
+      className="glass-card relative w-full overflow-hidden rounded-3xl p-4 shadow-lg shadow-grass-700/10 sm:p-6"
     >
       <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-l from-grass-500 via-gold to-grass-500" />
 
@@ -55,7 +57,7 @@ export function QuestionCard({ question, selected, onSelect, disabled }: Props) 
         </span>
         {!revealed && (
           <span className="flex items-center gap-1.5 text-sm font-bold tabular-nums opacity-70">
-            <Timer className="size-4 animate-pulse" />
+            <Timer className="size-4" />
             {countdown}
           </span>
         )}
@@ -71,19 +73,18 @@ export function QuestionCard({ question, selected, onSelect, disabled }: Props) 
           return (
             <motion.button
               key={i}
-              initial={{ opacity: 0, x: 24 }}
+              initial={{ opacity: 0 }}
               animate={
                 revealed && isSelected && !isAnswer
-                  ? { opacity: 1, x: [0, -6, 6, -4, 4, 0] }
+                  ? { opacity: 1, x: [0, -5, 5, -3, 3, 0] }
                   : { opacity: 1, x: 0 }
               }
-              transition={{ delay: revealed ? 0 : 0.06 * i, duration: revealed ? 0.4 : 0.3 }}
-              whileTap={!revealed ? { scale: 0.97 } : undefined}
-              whileHover={!revealed ? { scale: 1.01 } : undefined}
+              transition={{ delay: revealed ? 0 : 0.05 * i, duration: revealed ? 0.35 : 0.2 }}
+              whileTap={!revealed ? { scale: 0.98 } : undefined}
               disabled={disabled || revealed}
               onClick={() => onSelect(i)}
               className={cn(
-                "flex items-center gap-3 rounded-2xl border px-3.5 py-3 text-right text-sm font-semibold transition-colors sm:px-4 sm:py-3.5 sm:text-base",
+                "flex items-center gap-3 rounded-2xl border px-3.5 py-3 text-right text-sm font-semibold transition-colors duration-150 sm:px-4 sm:py-3.5 sm:text-base",
                 "border-line hover:border-grass-500 hover:bg-grass-500/5",
                 revealed && isSelected && !isAnswer && "border-red-400 bg-red-500/10 text-red-600 dark:text-red-400",
                 revealed && isAnswer && "border-grass-500 bg-grass-500/15 text-grass-700 dark:text-grass-400",
@@ -92,7 +93,7 @@ export function QuestionCard({ question, selected, onSelect, disabled }: Props) 
             >
               <span
                 className={cn(
-                  "flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-black transition-colors sm:size-8 sm:text-sm",
+                  "flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-black transition-colors duration-150 sm:size-8 sm:text-sm",
                   "bg-gradient-to-br from-grass-500 to-grass-700 text-white shadow",
                   revealed && isAnswer && "from-grass-400 to-grass-600",
                   revealed && isSelected && !isAnswer && "from-red-400 to-red-600",
@@ -101,25 +102,14 @@ export function QuestionCard({ question, selected, onSelect, disabled }: Props) 
                 {letters[i]}
               </span>
               <span className="flex-1">{opt}</span>
-              <AnimatePresence>
-                {revealed && isAnswer && (
-                  <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-lg sm:text-xl">
-                    ✅
-                  </motion.span>
-                )}
-                {revealed && isSelected && !isAnswer && (
-                  <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-lg sm:text-xl">
-                    ❌
-                  </motion.span>
-                )}
-              </AnimatePresence>
+              {revealed && isAnswer && <CheckBadge className="size-6 shrink-0 sm:size-7" />}
+              {revealed && isSelected && !isAnswer && (
+                <CrossBadge className="size-6 shrink-0 sm:size-7" />
+              )}
             </motion.button>
           );
         })}
       </div>
-
-      {/* أسماء الأيام تُستخدم في WeekStrip — مرجع للترجمة */}
-      <span className="hidden">{dayNames[isAr ? "ar" : "en"][0]}</span>
     </motion.div>
   );
 }

@@ -37,6 +37,7 @@ import { SettingsSheet } from "./components/SettingsSheet";
 import { StreakOrb } from "./components/StreakOrb";
 import { WeekStrip } from "./components/WeekStrip";
 import { AuthPanel } from "./components/AuthPanel";
+import { BallMark, PadMark, TargetMark } from "./components/Icons";
 
 export default function App() {
   const today = useMemo(() => getQuestionForToday(questions), []);
@@ -54,6 +55,11 @@ export default function App() {
   const [lang, setLangState] = useState<Lang>(() => currentLang());
   const [session, setSession] = useState<Session | null>(null);
   const [reminder, setReminder] = useState(() => isReminderEnabled());
+  const [isDark, setIsDark] = useState(
+    () =>
+      typeof document !== "undefined" &&
+      document.documentElement.classList.contains("dark"),
+  );
 
   // جلسة المستخدم
   useEffect(() => {
@@ -88,13 +94,14 @@ export default function App() {
     initReminderLifecycle();
   }, []);
 
-  // تطبيق الوضع الداكن
+  // الوضع الداكن: مزامنة الحالة مع الصفحة
   useEffect(() => {
     const root = document.documentElement;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const apply = () => {
       const dark = theme === "dark" || (theme === "system" && mq.matches);
       root.classList.toggle("dark", dark);
+      setIsDark(dark);
     };
     apply();
     mq.addEventListener("change", apply);
@@ -118,25 +125,20 @@ export default function App() {
       buzz(result.correct);
       if (result.correct) {
         sound.correct(soundOn);
+        // كونفيتي خفيف (أقل جزيئات = أسرع)
         void confetti({
-          particleCount: 200,
-          spread: 80,
-          origin: { y: 0.6 },
-          colors: ["#10b981", "#fbbf24", "#ffffff", "#34d399"],
+          particleCount: 70,
+          spread: 65,
+          startVelocity: 32,
+          disableForReducedMotion: true,
+          origin: { y: 0.65 },
+          colors: ["#10b981", "#fbbf24", "#ffffff"],
         });
       } else {
         sound.wrong(soundOn);
       }
       if (result.milestone) {
         sound.streak(soundOn, result.stats.streak);
-        setTimeout(() => {
-          void confetti({
-            particleCount: 120,
-            spread: 100,
-            origin: { y: 0.4 },
-            colors: ["#fbbf24", "#f59e0b"],
-          });
-        }, 400);
       }
 
       if (session?.user && supabaseConfigured) {
@@ -175,13 +177,9 @@ export default function App() {
 
   const changeLang = (l: Lang) => {
     setLangState(applyLang(l));
-    // إعادة رسم إجبارية لتطبيق الترجمة في كل المكوّنات
-    window.dispatchEvent(new Event("tiq:lang"));
   };
 
   const toggleQuickTheme = () => {
-    const root = document.documentElement.classList;
-    const isDark = root.contains("dark");
     changeTheme(isDark ? "light" : "dark");
   };
 
@@ -192,7 +190,6 @@ export default function App() {
   };
 
   const alreadyAnswered = selected !== null;
-  const isDarkNow = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
 
   const weekAnswers = useMemo(() => {
     const map: Record<string, boolean> = {};
@@ -205,8 +202,11 @@ export default function App() {
 
   return (
     <div className="pitch-lines flex min-h-dvh flex-col">
-      {/* الشريط العلوي — مضبوط لشاشة الموبايل */}
-      <header className="flex items-center justify-between gap-2 px-3 pt-3 sm:px-8 sm:pt-5">
+      {/* الشريط العلوي — آمن تحت شريط حالة النظام (safe-area) */}
+      <header
+        className="flex items-center justify-between gap-2 px-3 sm:px-8 sm:pt-5"
+        style={{ paddingTop: "max(env(safe-area-inset-top), 12px)" }}
+      >
         <div className="flex min-w-0 items-center gap-2">
           <img src="/icon.png" alt="TiQ" className="size-9 shrink-0 rounded-xl shadow sm:size-11" />
           <div className="min-w-0 leading-tight">
@@ -218,58 +218,50 @@ export default function App() {
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-          {/* زر اللغة */}
           <button
             onClick={() => changeLang(lang === "ar" ? "en" : "ar")}
             aria-label="Language"
-            className="glass-card flex h-9 items-center rounded-full px-2.5 text-xs font-black shadow-sm transition-transform hover:scale-105 sm:h-10 sm:px-3"
+            className="glass-card flex h-9 items-center rounded-full px-2.5 text-xs font-black shadow-sm sm:h-10 sm:px-3"
           >
             {lang === "ar" ? "EN" : "ع"}
           </button>
 
-          {/* زر تبديل سريع للثيم */}
           <button
             onClick={toggleQuickTheme}
             aria-label={t("appearance")}
-            className="glass-card flex h-9 w-9 items-center justify-center rounded-full shadow-sm transition-transform hover:scale-105 sm:h-10 sm:w-10"
+            className="glass-card flex h-9 w-9 items-center justify-center rounded-full shadow-sm sm:h-10 sm:w-10"
           >
-            {isDarkNow ? <Sun className="size-4 sm:size-5" /> : <Moon className="size-4 sm:size-5" />}
+            {isDark ? <Sun className="size-4 sm:size-5" /> : <Moon className="size-4 sm:size-5" />}
           </button>
 
           {alreadyAnswered && (
-            <motion.button
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
+            <button
               onClick={shareResult}
               aria-label="Share"
-              className="glass-card hidden h-9 w-9 items-center justify-center rounded-full shadow-sm transition-transform hover:scale-105 sm:flex sm:h-10 sm:w-10"
+              className="glass-card hidden h-9 w-9 items-center justify-center rounded-full shadow-sm sm:flex sm:h-10 sm:w-10"
             >
               <Share2 className="size-4 sm:size-5" />
-            </motion.button>
+            </button>
           )}
 
           <button
             onClick={() => setSettingsOpen(true)}
             aria-label={t("settings")}
-            className="glass-card flex h-9 w-9 items-center justify-center rounded-full shadow-sm transition-colors hover:bg-ink/5 sm:h-10 sm:w-10"
+            className="glass-card flex h-9 w-9 items-center justify-center rounded-full shadow-sm sm:h-10 sm:w-10"
           >
             <Settings className="size-4 sm:size-5" />
           </button>
         </div>
       </header>
 
-      {/* السلسلة — صف مستقل أسفل الهيدر لتجنب الازدحام */}
+      {/* السلسلة */}
       <div className="mt-3 flex justify-center px-3 sm:mt-4">
         <StreakOrb streak={stats.streak} best={stats.best} />
       </div>
 
       {/* المحتوى */}
       <main className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-5 px-3 py-6 sm:px-8 sm:py-8">
-        <QuestionCard
-          question={today.question}
-          selected={selected}
-          onSelect={handleSelect}
-        />
+        <QuestionCard question={today.question} selected={selected} onSelect={handleSelect} />
 
         {alreadyAnswered && (
           <ResultPanel
@@ -285,25 +277,26 @@ export default function App() {
         {alreadyAnswered && (
           <div className="grid grid-cols-3 gap-2 text-center sm:gap-3">
             {[
-              { label: t("matches"), value: `${stats.playedCount}`, icon: "🎮" },
-              { label: t("goals"), value: `${stats.correctCount}`, icon: "⚽" },
+              { label: t("matches"), value: `${stats.playedCount}`, Icon: PadMark },
+              { label: t("goals"), value: `${stats.correctCount}`, Icon: BallMark },
               {
                 label: t("accuracy"),
                 value: `${Math.round((stats.correctCount / Math.max(stats.playedCount, 1)) * 100)}%`,
-                icon: "🎯",
+                Icon: TargetMark,
               },
-            ].map((s, i) => (
+            ].map(({ label, value, Icon }, i) => (
               <motion.div
-                key={s.label}
-                initial={{ opacity: 0, y: 12 }}
+                key={label}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 * i }}
+                transition={{ delay: 0.08 * i }}
                 className="glass-card rounded-2xl p-2.5 shadow-sm sm:p-3"
               >
-                <p className="text-lg font-black text-grass-700 sm:text-xl dark:text-grass-400">
-                  {s.icon} {s.value}
+                <p className="flex items-center justify-center gap-1.5 text-lg font-black text-grass-700 sm:text-xl dark:text-grass-400">
+                  <Icon className="size-4 sm:size-5" />
+                  {value}
                 </p>
-                <p className="text-[10px] font-bold opacity-60 sm:text-xs">{s.label}</p>
+                <p className="text-[10px] font-bold opacity-60 sm:text-xs">{label}</p>
               </motion.div>
             ))}
           </div>
@@ -316,7 +309,10 @@ export default function App() {
         )}
       </main>
 
-      <footer className="pb-5 text-center">
+      <footer
+        className="pb-4 text-center sm:pb-6"
+        style={{ paddingBottom: "max(env(safe-area-inset-bottom), 16px)" }}
+      >
         <p className="text-xs font-bold opacity-50">{t("madeBy")}</p>
       </footer>
 

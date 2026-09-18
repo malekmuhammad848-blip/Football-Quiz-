@@ -59,10 +59,11 @@ body {
     Tahoma,
     sans-serif;
   -webkit-font-smoothing: antialiased;
-  transition: background-color 0.35s ease, color 0.35s ease;
+  /* انتقال أسرع وأخف للثيم */
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* خلفية الملعب: توهجات وخطوط زخرفية */
+/* خلفية الملعب — مرة واحدة بدون إعادة حساب متكررة */
 .pitch-lines {
   background-image:
     radial-gradient(circle at 15% -5%, color-mix(in oklab, var(--grass-500) 16%, transparent) 0%, transparent 42%),
@@ -77,11 +78,22 @@ body {
     linear-gradient(var(--pitch) 0%, var(--pitch-deep) 100%);
 }
 
-/* بطاقة زجاجية */
+/* بطاقة زجاجية خفيفة — بدون blur ثقيل على الأجهزة الضعيفة */
 .glass-card {
-  background: color-mix(in oklab, var(--surface) 88%, transparent);
-  backdrop-filter: blur(10px);
+  background: color-mix(in oklab, var(--surface) 92%, transparent);
   border: 1px solid var(--line);
+  box-shadow: 0 1px 3px oklch(0 0 0 / 0.05);
+}
+
+/* احترام تفضيل تقليل الحركة */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 ::selection {

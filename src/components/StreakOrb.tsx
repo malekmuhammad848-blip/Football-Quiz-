@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Flame } from "lucide-react";
 import { cn } from "../utils/cn";
+import { FlameMark } from "./Icons";
 
 interface Props {
   streak: number;
@@ -20,29 +20,20 @@ export function StreakOrb({ streak, best }: Props) {
   return (
     <motion.div
       key={pulse}
-      initial={{ scale: 0.9 }}
+      initial={{ scale: 0.94 }}
       animate={{ scale: 1 }}
-      transition={{ type: "spring", stiffness: 300, damping: 15 }}
-      className={cn("relative flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold shadow-lg glass-card")}
+      transition={{ type: "spring", stiffness: 300, damping: 18 }}
+      className={cn("glass-card relative flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold shadow-lg")}
       title={`${streak} / ${best}`}
     >
       <motion.span
-        className="absolute inset-0 rounded-full"
-        animate={{ opacity: [0.15, 0.35, 0.15] }}
-        transition={{ repeat: Infinity, duration: 2 + (1 - heat) * 2 }}
-        style={{
-          background: `radial-gradient(circle, oklch(${0.6 + heat * 0.25} 0.22 45 / ${0.2 + heat * 0.35}) 0%, transparent 70%)`,
-        }}
-      />
-      <motion.span
-        animate={{ rotate: [0, -10, 10, 0], scale: [1, 1.15, 1] }}
-        transition={{ repeat: Infinity, repeatDelay: 2 + (1 - heat) * 4, duration: 0.6 }}
-        className="relative"
-        style={{ color: `oklch(${0.55 + heat * 0.3} 0.22 45)` }}
+        animate={{ scale: [1, 1.18, 1], rotate: [0, -4, 4, 0] }}
+        transition={{ repeat: Infinity, repeatDelay: 2.5 - heat, duration: 0.55 }}
+        className="relative flex"
       >
-        <Flame className="size-4 sm:size-5" />
+        <FlameMark className="size-5 drop-shadow sm:size-6" />
       </motion.span>
-      <span className="relative">{streak}</span>
+      <span className="relative tabular-nums">{streak}</span>
       <span className="relative text-xs font-medium opacity-50">/ {best}</span>
     </motion.div>
   );
