@@ -45,8 +45,10 @@ jobs:
           distribution: "temurin"
           java-version: "21"
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      # الـ runner يتضمن Android SDK مسبقًا — نكتفي بقبول التراخيص
+      # (setup-android@v3 يفشل حاليًا: يحاول تثبيت حزمة tools المهجورة)
+      - name: Accept Android SDK licenses
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
 
       - name: Create Capacitor config
         run: |
