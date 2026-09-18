@@ -24,20 +24,30 @@ export function StreakOrb({ streak, best }: Props) {
       animate={{ scale: 1 }}
       transition={{ type: "spring", stiffness: 300, damping: 15 }}
       className={cn(
-        "relative flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold shadow-sm",
-        "bg-surface text-ink border border-grass-600/20",
+        "relative flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold shadow-lg",
+        "glass-card",
       )}
       title={`سلسلتك الحالية ${streak} — أفضل سلسلة ${best}`}
     >
+      {/* هالة نارية */}
       <motion.span
-        animate={{ rotate: [0, -8, 8, 0] }}
-        transition={{ repeat: Infinity, repeatDelay: 2 + (1 - heat) * 4, duration: 0.5 }}
-        style={{ color: `oklch(${0.55 + heat * 0.3} 0.2 45)` }}
+        className="absolute inset-0 rounded-full"
+        animate={{ opacity: [0.15, 0.35, 0.15] }}
+        transition={{ repeat: Infinity, duration: 2 + (1 - heat) * 2 }}
+        style={{
+          background: `radial-gradient(circle, oklch(${0.6 + heat * 0.25} 0.22 45 / ${0.2 + heat * 0.35}) 0%, transparent 70%)`,
+        }}
+      />
+      <motion.span
+        animate={{ rotate: [0, -10, 10, 0], scale: [1, 1.15, 1] }}
+        transition={{ repeat: Infinity, repeatDelay: 2 + (1 - heat) * 4, duration: 0.6 }}
+        className="relative"
+        style={{ color: `oklch(${0.55 + heat * 0.3} 0.22 45)` }}
       >
         <Flame className="size-5" />
       </motion.span>
-      <span>{streak}</span>
-      <span className="text-xs font-medium opacity-60">/ أفضل {best}</span>
+      <span className="relative">{streak}</span>
+      <span className="relative text-xs font-medium opacity-60">/ أفضل {best}</span>
     </motion.div>
   );
 }

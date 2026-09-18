@@ -1,4 +1,5 @@
 import { Capacitor } from "@capacitor/core";
+import { App } from "@capacitor/app";
 import {
   LocalNotifications,
   type PermissionStatus,
@@ -6,11 +7,13 @@ import {
 
 const REMINDER_ID = 1001;
 const REMINDER_KEY = "fq:dailyReminder";
+const REMINDER_HOUR = 22; // 10 مساءً
+const REMINDER_MINUTE = 0;
 
 /** هل نعمل داخل تطبيق أندرويد/iOS أصلي؟ */
 export const isNative = Capacitor.isNativePlatform();
 
-function atNext(hour: number, minute: number): Date {
+function atNextOccurrence(hour: number, minute: number): Date {
   const now = new Date();
   const next = new Date();
   next.setHours(hour, minute, 0, 0);
@@ -26,7 +29,7 @@ export async function requestPermissions(): Promise<PermissionStatus> {
   return LocalNotifications.requestPermissions();
 }
 
-/** هل التذكير اليومي مفعّل؟ (افتراضيًا: مفعّل بعد منح الإذن) */
+/** هل التذكير اليومي مفعّل؟ (افتراضيًا: مفعّل) */
 export function isReminderEnabled(): boolean {
   try {
     return localStorage.getItem(REMINDER_KEY) !== "off";
@@ -45,9 +48,8 @@ export function setReminderEnabled(on: boolean) {
 }
 
 /**
- * جدولة تذكير يومي عند الساعة 20:00 بسؤال اليوم.
- * على الويب يعمل فقط إذا دعم المتصفح الإشعارات المحلية (محدود) —
- * التجربة الكاملة متاحة في تطبيق الأندرويد (APK).
+ * جدولة تذكير يومي عند الساعة 10 مساءً.
+ * تُستدعى عند فتح التطبيق وعند استئنافه حتى تبقى الموعد دائمًا في المستقبل.
  */
 export async function scheduleDailyReminder(): Promise<boolean> {
   if (!isReminderEnabled()) return false;
@@ -60,9 +62,14 @@ export async function scheduleDailyReminder(): Promise<boolean> {
       notifications: [
         {
           id: REMINDER_ID,
-          title: "⚽ سؤال الكرة اليومي",
-          body: "سؤال جديد بانتظارك! حافظ على سلسلتك 🔥",
-          schedule: { at: atNext(20, 0), allowWhileIdle: true, repeats: true, every: "day" },
+          title: "⚽ TiQ — سؤال الكرة",
+          body: "سؤال الليلة جاهز! افتح التطبيق واحفظ سلسلتك 🔥",
+          schedule: {
+            at: atNextOccurrence(REMINDER_HOUR, REMINDER_MINUTE),
+            allowWhileIdle: true,
+            repeats: true,
+            every: "day",
+          },
           smallIcon: "ic_launcher",
           largeIcon: "ic_launcher",
         },
@@ -80,4 +87,21 @@ export async function cancelReminder(): Promise<void> {
   } catch {
     /* تجاهل */
   }
+}
+
+/**
+ * تهيئة دورة حياة الإشعارات على الأجهزة الأصلية:
+ * - جدولة فورية عند الإقلاع
+ * - إعادة الجدولة عند كل استئناف للتطبيق (النظام قد يلغي المنبهات بعد إعادة التشغيل)
+ * - الاستماع لتفعيل الإشعار (يفتح التطبيق)
+ */
+export function initReminderLifecycle(): void {
+  if (!isNative) return;
+  void scheduleDailyReminder();
+  App.addListener("resume", () => {
+    void scheduleDailyReminder();
+  });
+  App.addListener("appStateChange", (state) => {
+    if (state.isActive) void scheduleDailyReminder();
+  });
 }

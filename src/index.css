@@ -3,33 +3,44 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --pitch: oklch(0.98 0.01 145);
+  color-scheme: light;
+  --pitch: oklch(0.97 0.015 150);
+  --pitch-deep: oklch(0.93 0.03 152);
   --surface: oklch(1 0 0);
   --ink: oklch(0.24 0.05 150);
+  --grass-400: oklch(0.75 0.16 155);
   --grass-500: oklch(0.62 0.17 152);
   --grass-600: oklch(0.55 0.16 152);
-  --grass-700: oklch(0.45 0.13 152);
-  --gold: oklch(0.78 0.15 85);
+  --grass-700: oklch(0.42 0.12 152);
+  --gold: oklch(0.8 0.15 85);
+  --line: oklch(0.24 0.05 150 / 0.08);
 }
 
 .dark {
-  --pitch: oklch(0.2 0.02 155);
-  --surface: oklch(0.26 0.03 155);
-  --ink: oklch(0.93 0.02 145);
-  --grass-500: oklch(0.7 0.17 152);
+  color-scheme: dark;
+  --pitch: oklch(0.19 0.025 158);
+  --pitch-deep: oklch(0.15 0.03 158);
+  --surface: oklch(0.25 0.035 156);
+  --ink: oklch(0.94 0.02 145);
+  --grass-400: oklch(0.8 0.15 155);
+  --grass-500: oklch(0.72 0.16 152);
   --grass-600: oklch(0.62 0.16 152);
   --grass-700: oklch(0.5 0.13 152);
-  --gold: oklch(0.83 0.14 85);
+  --gold: oklch(0.84 0.14 85);
+  --line: oklch(0.94 0.02 145 / 0.1);
 }
 
 @theme inline {
   --color-pitch: var(--pitch);
+  --color-pitch-deep: var(--pitch-deep);
   --color-surface: var(--surface);
   --color-ink: var(--ink);
+  --color-grass-400: var(--grass-400);
   --color-grass-500: var(--grass-500);
   --color-grass-600: var(--grass-600);
   --color-grass-700: var(--grass-700);
   --color-gold: var(--gold);
+  --color-line: var(--line);
 }
 
 html,
@@ -48,17 +59,41 @@ body {
     Tahoma,
     sans-serif;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.35s ease, color 0.35s ease;
 }
 
-/* خلفية خطوط الملعب الزخرفية */
+/* خلفية الملعب: دوائر وخطوط خضراء زخرفية */
 .pitch-lines {
   background-image:
-    radial-gradient(circle at 50% 0%, transparent 0, transparent 60px, color-mix(in oklab, var(--ink) 8%, transparent) 60.5px, transparent 61px),
-    linear-gradient(color-mix(in oklab, var(--ink) 5%, transparent) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 48px;
+    radial-gradient(circle at 15% -5%, color-mix(in oklab, var(--grass-500) 16%, transparent) 0%, transparent 42%),
+    radial-gradient(circle at 110% 108%, color-mix(in oklab, var(--grass-500) 13%, transparent) 0%, transparent 38%),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 72px,
+      var(--line) 72px,
+      var(--line) 73px
+    ),
+    linear-gradient(var(--pitch) 0%, var(--pitch-deep) 100%);
+}
+
+/* بطاقة زجاجية */
+.glass-card {
+  background: color-mix(in oklab, var(--surface) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--line);
 }
 
 ::selection {
   background: var(--grass-500);
   color: white;
+}
+
+/* شريط تمرير رقيق */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--ink) 20%, transparent);
+  border-radius: 8px;
 }

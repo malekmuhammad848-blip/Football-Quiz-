@@ -1,9 +1,9 @@
 {
-  "name": "football-quiz",
+  "name": "tiq",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
-  "description": "سؤال الكرة اليومي — تطبيق كويز كرة قدم تفاعلي",
+  "description": "TiQ — سؤال الكرة اليومي: كويز كرة قدم تفاعلي — تطوير Malek",
   "license": "MIT",
   "scripts": {
     "dev": "vite",
@@ -12,7 +12,9 @@
     "typecheck": "tsc -b --noEmit"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.1",
     "@capacitor/core": "^8.5.2",
+    "@capacitor/haptics": "^8.0.2",
     "@capacitor/local-notifications": "^8.3.1",
     "@supabase/supabase-js": "^2.116.0",
     "canvas-confetti": "^1.9.3",
@@ -29,6 +31,7 @@
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.2",
+    "sharp": "^0.35.4",
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2",
     "vite": "^7.1.5",

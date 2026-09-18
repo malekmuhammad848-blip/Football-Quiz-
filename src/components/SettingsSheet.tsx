@@ -22,13 +22,7 @@ const THEMES: { value: Theme; label: string; icon: typeof Sun }[] = [
   { value: "system", label: "النظام", icon: RotateCcw },
 ];
 
-function Toggle({
-  on,
-  onChange,
-}: {
-  on: boolean;
-  onChange: (v: boolean) => void;
-}) {
+function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
   return (
     <button
       role="switch"
@@ -68,19 +62,22 @@ export function SettingsSheet({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
           />
           <motion.div
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
-            className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md rounded-t-3xl bg-surface p-6 shadow-2xl"
+            className="glass-card fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md rounded-t-3xl bg-surface p-6 shadow-2xl"
           >
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-ink/20" />
 
             <div className="mb-6 flex items-center justify-between">
-              <h3 className="text-lg font-extrabold">الإعدادات</h3>
+              <h3 className="flex items-center gap-2 text-lg font-extrabold">
+                <img src="/icon.png" alt="" className="size-7 rounded-lg" />
+                إعدادات TiQ
+              </h3>
               <button
                 onClick={onClose}
                 aria-label="إغلاق"
@@ -95,11 +92,11 @@ export function SettingsSheet({
               <span className="flex items-center gap-2 font-bold">
                 {reminder ? <Bell className="size-5" /> : <BellOff className="size-5" />}
                 <span>
-                  تذكير يومي (8 مساءً)
+                  تذكير يومي — 10:00 مساءً
                   <span className="block text-xs font-medium opacity-50">
                     {isNative
-                      ? "إشعار على جهازك قبل سؤال اليوم"
-                      : "يعمل بالكامل داخل تطبيق الأندرويد"}
+                      ? "إشعار تلقائي كل يوم حتى بدون فتح التطبيق"
+                      : "يعمل تلقائيًا داخل تطبيق الأندرويد"}
                   </span>
                 </span>
               </span>
@@ -124,10 +121,10 @@ export function SettingsSheet({
                     key={value}
                     onClick={() => onThemeChange(value)}
                     className={cn(
-                      "flex flex-col items-center gap-1 rounded-2xl border px-2 py-3 text-xs font-bold transition-colors",
+                      "flex flex-col items-center gap-1 rounded-2xl border px-2 py-3 text-xs font-bold transition-all",
                       theme === value
-                        ? "border-grass-500 bg-grass-500/10 text-grass-700 dark:text-grass-500"
-                        : "border-ink/10 hover:bg-ink/5",
+                        ? "border-grass-500 bg-grass-500/10 text-grass-700 shadow dark:text-grass-400"
+                        : "border-line hover:bg-ink/5",
                     )}
                   >
                     <Icon className="size-5" />
@@ -144,6 +141,10 @@ export function SettingsSheet({
             >
               🗑️ إعادة تعيين كل التقدّم
             </button>
+
+            <p className="mt-4 text-center text-[11px] font-bold opacity-40">
+              TiQ v1.0 — تطوير Malek ⚽
+            </p>
           </motion.div>
         </>
       )}
