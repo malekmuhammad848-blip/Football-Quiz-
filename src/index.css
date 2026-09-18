@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --pitch: oklch(0.98 0.01 145);
+  --surface: oklch(1 0 0);
+  --ink: oklch(0.24 0.05 150);
+  --grass-500: oklch(0.62 0.17 152);
+  --grass-600: oklch(0.55 0.16 152);
+  --grass-700: oklch(0.45 0.13 152);
+  --gold: oklch(0.78 0.15 85);
+}
+
+.dark {
+  --pitch: oklch(0.2 0.02 155);
+  --surface: oklch(0.26 0.03 155);
+  --ink: oklch(0.93 0.02 145);
+  --grass-500: oklch(0.7 0.17 152);
+  --grass-600: oklch(0.62 0.16 152);
+  --grass-700: oklch(0.5 0.13 152);
+  --gold: oklch(0.83 0.14 85);
+}
+
+@theme inline {
+  --color-pitch: var(--pitch);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-grass-500: var(--grass-500);
+  --color-grass-600: var(--grass-600);
+  --color-grass-700: var(--grass-700);
+  --color-gold: var(--gold);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background-color: var(--pitch);
+  color: var(--ink);
+  font-family:
+    system-ui,
+    "Segoe UI",
+    "Noto Kufi Arabic",
+    Tahoma,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* خلفية خطوط الملعب الزخرفية */
+.pitch-lines {
+  background-image:
+    radial-gradient(circle at 50% 0%, transparent 0, transparent 60px, color-mix(in oklab, var(--ink) 8%, transparent) 60.5px, transparent 61px),
+    linear-gradient(color-mix(in oklab, var(--ink) 5%, transparent) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 48px;
+}
+
+::selection {
+  background: var(--grass-500);
+  color: white;
+}

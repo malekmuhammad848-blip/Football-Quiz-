@@ -1,4 +1,4 @@
-name: Extract ZIP and Build APK
+name: Build Android APK
 
 on:
   push:
@@ -13,7 +13,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Extract project files
+      # استخراج ملفات ZIP القديمة إن وُجدت (للتوافق مع تاريخ المستودع)
+      - name: Extract project files (legacy ZIPs)
         run: |
           shopt -s nullglob
           zip_files=(*.zip)
@@ -24,7 +25,7 @@ jobs:
               rm -f "$zip"
             done
           else
-            echo "⚠️ No ZIP files found, skipping extraction."
+            echo "ℹ️ No ZIP files found — continuing with repository files."
           fi
 
       - name: Setup Node.js
@@ -47,13 +48,13 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Create capacitor config
+      - name: Create Capacitor config
         run: |
           cat > capacitor.config.ts << 'CAPEOF'
-          import { CapacitorConfig } from '@capacitor/cli';
+          import type { CapacitorConfig } from '@capacitor/cli';
           const config: CapacitorConfig = {
-            appId: 'com.withdaood.app',
-            appName: 'With Daood',
+            appId: 'com.footballquiz.app',
+            appName: 'Football Quiz',
             webDir: 'dist',
             server: { androidScheme: 'https' }
           };
@@ -74,43 +75,13 @@ jobs:
           MANIFEST="android/app/src/main/AndroidManifest.xml"
           cp "$MANIFEST" "${MANIFEST}.backup"
           awk '/<application/ {
-            print "    <!-- App Permissions -->"
             print "    <uses-permission android:name=\"android.permission.INTERNET\" />"
-            print "    <uses-permission android:name=\"android.permission.RECORD_AUDIO\" />"
-            print "    <uses-permission android:name=\"android.permission.FOREGROUND_SERVICE\" />"
-            print "    <uses-permission android:name=\"android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK\" />"
-            print "    <uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\" />"
-            print "    <uses-permission android:name=\"android.permission.WAKE_LOCK\" />"
-            print "    <uses-permission android:name=\"android.permission.POST_NOTIFICATIONS\" />"
             print "    <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />"
+            print "    <uses-permission android:name=\"android.permission.WAKE_LOCK\" />"
             print ""
           }
           { print }' "${MANIFEST}.backup" > "$MANIFEST"
           echo "✅ Android permissions added"
-
-      - name: Update app name to Football Quiz
-        run: |
-          STRINGS="android/app/src/main/res/values/strings.xml"
-          if [ -f "$STRINGS" ]; then
-            sed -i 's|<string name="app_name">.*</string>|<string name="app_name">Football Quiz</string>|' "$STRINGS"
-            sed -i 's|<string name="title_activity_main">.*</string>|<string name="title_activity_main">Football Quiz</string>|' "$STRINGS"
-            sed -i 's|<string name="package_name">.*</string>|<string name="package_name">com.footballquiz.app</string>|' "$STRINGS"
-            sed -i 's|<string name="custom_url_scheme">.*</string>|<string name="custom_url_scheme">com.footballquiz.app</string>|' "$STRINGS"
-            echo "✅ App name updated to Football Quiz"
-            cat "$STRINGS"
-          else
-            mkdir -p android/app/src/main/res/values
-            cat > "$STRINGS" << 'STREOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-              <string name="app_name">Football Quiz</string>
-              <string name="title_activity_main">Football Quiz</string>
-              <string name="package_name">com.footballquiz.app</string>
-              <string name="custom_url_scheme">com.footballquiz.app</string>
-          </resources>
-          STREOF
-            echo "✅ strings.xml created"
-          fi
 
       - name: Setup app icon
         run: |
