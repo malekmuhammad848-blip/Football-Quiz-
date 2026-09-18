@@ -1,6 +1,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Bell, BellOff, Moon, RotateCcw, Sun, Volume2, VolumeX, X } from "lucide-react";
 import type { Theme } from "../lib/store";
+import type { Lang } from "../lib/i18n";
+import { t } from "../lib/i18n";
 import { isNative } from "../lib/notifications";
 import { cn } from "../utils/cn";
 
@@ -11,15 +13,17 @@ interface Props {
   onSoundChange: (on: boolean) => void;
   theme: Theme;
   onThemeChange: (t: Theme) => void;
+  lang: Lang;
+  onLangChange: (l: Lang) => void;
   reminder: boolean;
   onReminderChange: (on: boolean) => void;
   onReset: () => void;
 }
 
-const THEMES: { value: Theme; label: string; icon: typeof Sun }[] = [
-  { value: "light", label: "نهاري", icon: Sun },
-  { value: "dark", label: "ليلي", icon: Moon },
-  { value: "system", label: "النظام", icon: RotateCcw },
+const THEMES: { value: Theme; labelKey: string; icon: typeof Sun }[] = [
+  { value: "light", labelKey: "light", icon: Sun },
+  { value: "dark", labelKey: "dark", icon: Moon },
+  { value: "system", labelKey: "system", icon: RotateCcw },
 ];
 
 function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
@@ -49,6 +53,8 @@ export function SettingsSheet({
   onSoundChange,
   theme,
   onThemeChange,
+  lang,
+  onLangChange,
   reminder,
   onReminderChange,
   onReset,
@@ -69,34 +75,54 @@ export function SettingsSheet({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
-            className="glass-card fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md rounded-t-3xl bg-surface p-6 shadow-2xl"
+            className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md rounded-t-3xl bg-surface p-5 shadow-2xl sm:p-6"
           >
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-ink/20" />
 
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-5 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-lg font-extrabold">
                 <img src="/icon.png" alt="" className="size-7 rounded-lg" />
-                إعدادات TiQ
+                {t("settings")}
               </h3>
               <button
                 onClick={onClose}
-                aria-label="إغلاق"
+                aria-label="Close"
                 className="rounded-full p-2 hover:bg-ink/5"
               >
                 <X className="size-5" />
               </button>
             </div>
 
-            {/* التذكير اليومي */}
-            <div className="mb-6 flex items-center justify-between gap-3">
+            {/* اللغة */}
+            <div className="mb-5">
+              <p className="mb-2 font-bold">Language / اللغة</p>
+              <div className="grid grid-cols-2 gap-2">
+                {(["ar", "en"] as const).map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => onLangChange(l)}
+                    className={cn(
+                      "rounded-2xl border py-2.5 text-sm font-black transition-all",
+                      lang === l
+                        ? "border-grass-500 bg-grass-500/10 text-grass-700 shadow dark:text-grass-400"
+                        : "border-line opacity-60 hover:opacity-100",
+                    )}
+                  >
+                    {l === "ar" ? "🇸🇦 العربية" : "🇬🇧 English"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* التذكير */}
+            <div className="mb-5 flex items-center justify-between gap-3">
               <span className="flex items-center gap-2 font-bold">
                 {reminder ? <Bell className="size-5" /> : <BellOff className="size-5" />}
                 <span>
-                  تذكير يومي — 10:00 مساءً
+                  {t("dailyReminder")}
                   <span className="block text-xs font-medium opacity-50">
-                    {isNative
-                      ? "إشعار تلقائي كل يوم حتى بدون فتح التطبيق"
-                      : "يعمل تلقائيًا داخل تطبيق الأندرويد"}
+                    {t("reminderTime")}
+                    {isNative ? "" : " — APK"}
                   </span>
                 </span>
               </span>
@@ -104,19 +130,19 @@ export function SettingsSheet({
             </div>
 
             {/* الصوت */}
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-5 flex items-center justify-between">
               <span className="flex items-center gap-2 font-bold">
                 {soundOn ? <Volume2 className="size-5" /> : <VolumeX className="size-5" />}
-                المؤثرات الصوتية
+                {t("sound")}
               </span>
               <Toggle on={soundOn} onChange={onSoundChange} />
             </div>
 
-            {/* الثيم */}
-            <div className="mb-6">
-              <p className="mb-2 font-bold">المظهر</p>
+            {/* المظهر */}
+            <div className="mb-5">
+              <p className="mb-2 font-bold">{t("appearance")}</p>
               <div className="grid grid-cols-3 gap-2">
-                {THEMES.map(({ value, label, icon: Icon }) => (
+                {THEMES.map(({ value, labelKey, icon: Icon }) => (
                   <button
                     key={value}
                     onClick={() => onThemeChange(value)}
@@ -128,7 +154,7 @@ export function SettingsSheet({
                     )}
                   >
                     <Icon className="size-5" />
-                    {label}
+                    {t(labelKey)}
                   </button>
                 ))}
               </div>
@@ -139,11 +165,11 @@ export function SettingsSheet({
               onClick={onReset}
               className="w-full rounded-2xl border border-red-300 px-4 py-3 font-bold text-red-600 transition-colors hover:bg-red-50 dark:border-red-500/40 dark:hover:bg-red-500/10"
             >
-              🗑️ إعادة تعيين كل التقدّم
+              {t("resetProgress")}
             </button>
 
-            <p className="mt-4 text-center text-[11px] font-bold opacity-40">
-              TiQ v1.0 — تطوير Malek ⚽
+            <p className="mt-3 text-center text-[11px] font-bold opacity-40">
+              {t("version")} — {t("madeBy")}
             </p>
           </motion.div>
         </>

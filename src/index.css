@@ -62,7 +62,7 @@ body {
   transition: background-color 0.35s ease, color 0.35s ease;
 }
 
-/* خلفية الملعب: دوائر وخطوط خضراء زخرفية */
+/* خلفية الملعب: توهجات وخطوط زخرفية */
 .pitch-lines {
   background-image:
     radial-gradient(circle at 15% -5%, color-mix(in oklab, var(--grass-500) 16%, transparent) 0%, transparent 42%),
@@ -89,7 +89,6 @@ body {
   color: white;
 }
 
-/* شريط تمرير رقيق */
 ::-webkit-scrollbar {
   width: 8px;
 }

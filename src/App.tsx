@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import confetti from "canvas-confetti";
-import { Settings, Share2 } from "lucide-react";
+import { Moon, Settings, Share2, Sun } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Session } from "@supabase/supabase-js";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { questions } from "./data/questions";
-import { phrases, pick } from "./data/phrases";
+import { phraseSets, pick } from "./data/phrases";
 import { sound } from "./lib/sound";
+import { applyLang, currentLang, t, type Lang } from "./lib/i18n";
 import {
   getQuestionForToday,
   getStats,
@@ -23,14 +24,19 @@ import {
 } from "./lib/store";
 import { supabaseConfigured } from "./lib/supabase";
 import { auth, profile } from "./lib/backend";
-import { isNative, isReminderEnabled, initReminderLifecycle, scheduleDailyReminder, setReminderEnabled } from "./lib/notifications";
+import {
+  isNative,
+  isReminderEnabled,
+  initReminderLifecycle,
+  scheduleDailyReminder,
+  setReminderEnabled,
+} from "./lib/notifications";
 import { QuestionCard } from "./components/QuestionCard";
 import { ResultPanel } from "./components/ResultPanels";
 import { SettingsSheet } from "./components/SettingsSheet";
 import { StreakOrb } from "./components/StreakOrb";
 import { WeekStrip } from "./components/WeekStrip";
 import { AuthPanel } from "./components/AuthPanel";
-import { cn } from "./utils/cn";
 
 export default function App() {
   const today = useMemo(() => getQuestionForToday(questions), []);
@@ -45,6 +51,7 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [soundOn, setSoundOn] = useState(() => getSoundEnabled());
   const [theme, setThemeState] = useState<Theme>(() => getTheme());
+  const [lang, setLangState] = useState<Lang>(() => currentLang());
   const [session, setSession] = useState<Session | null>(null);
   const [reminder, setReminder] = useState(() => isReminderEnabled());
 
@@ -56,7 +63,7 @@ export default function App() {
     return () => sub.unsubscribe();
   }, []);
 
-  // عند تسجيل الدخول: دمج الإحصائيات السحابية مع المحلية ثم رفع الدمج
+  // مزامنة الإحصائيات عند تسجيل الدخول
   useEffect(() => {
     if (!session?.user || !supabaseConfigured) return;
     let cancelled = false;
@@ -76,18 +83,28 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user?.id]);
 
-  // الإشعارات: جدولة فورية + إعادة جدولة عند الاستئناف (حتى يصل الإشعار يوميًا 10 مساءً)
+  // الإشعارات: جدولة فورية + إعادة جدولة عند الاستئناف
   useEffect(() => {
     initReminderLifecycle();
   }, []);
 
-  const buzz = useCallback(
-    (correct: boolean) => {
-      if (!isNative) return;
-      void Haptics.impact({ style: correct ? ImpactStyle.Medium : ImpactStyle.Heavy });
-    },
-    [],
-  );
+  // تطبيق الوضع الداكن
+  useEffect(() => {
+    const root = document.documentElement;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const apply = () => {
+      const dark = theme === "dark" || (theme === "system" && mq.matches);
+      root.classList.toggle("dark", dark);
+    };
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, [theme]);
+
+  const buzz = useCallback((correct: boolean) => {
+    if (!isNative) return;
+    void Haptics.impact({ style: correct ? ImpactStyle.Medium : ImpactStyle.Heavy });
+  }, []);
 
   const handleSelect = useCallback(
     (index: number) => {
@@ -96,7 +113,7 @@ export default function App() {
       const result = recordAnswer(today.dateKey, index, today.question.answer);
       setStats(result.stats);
       setMilestone(result.milestone);
-      setPhrase(pick(result.correct ? phrases.win : phrases.lose));
+      setPhrase(pick(phraseSets[currentLang()][result.correct ? "win" : "lose"]));
 
       buzz(result.correct);
       if (result.correct) {
@@ -132,12 +149,12 @@ export default function App() {
 
   const shareResult = () => {
     const emoji = selected === today.question.answer ? "✅" : "❌";
-    const text = `⚽ TiQ — سؤال اليوم\n${emoji} ${today.question.q}\n🔥 سلسلتي: ${stats.streak} يوم\nجرّب أنت أيضًا!`;
+    const text = `⚽ TiQ — ${t("todayQuestion")}\n${emoji} ${today.question.q}\n🔥 ${t("myStreak")}: ${stats.streak} ${t("day")}\n${t("shareBody")}`;
     if (navigator.share) {
-      void navigator.share({ title: "TiQ ⚽", text });
+      void navigator.share({ title: t("shareTitle"), text });
     } else {
       void navigator.clipboard?.writeText(text);
-      alert("تم نسخ النتيجة! 📋");
+      alert(t("copied"));
     }
   };
 
@@ -151,9 +168,21 @@ export default function App() {
     setSoundEnabled(on);
   };
 
-  const changeTheme = (t: Theme) => {
-    setThemeState(t);
-    setTheme(t);
+  const changeTheme = (th: Theme) => {
+    setThemeState(th);
+    setTheme(th);
+  };
+
+  const changeLang = (l: Lang) => {
+    setLangState(applyLang(l));
+    // إعادة رسم إجبارية لتطبيق الترجمة في كل المكوّنات
+    window.dispatchEvent(new Event("tiq:lang"));
+  };
+
+  const toggleQuickTheme = () => {
+    const root = document.documentElement.classList;
+    const isDark = root.contains("dark");
+    changeTheme(isDark ? "light" : "dark");
   };
 
   const changeReminder = (on: boolean) => {
@@ -163,8 +192,8 @@ export default function App() {
   };
 
   const alreadyAnswered = selected !== null;
+  const isDarkNow = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
 
-  // خريطة نتائج آخر 7 أيام لشريط الأسبوع
   const weekAnswers = useMemo(() => {
     const map: Record<string, boolean> = {};
     const correctIndex = today.question.answer;
@@ -176,46 +205,66 @@ export default function App() {
 
   return (
     <div className="pitch-lines flex min-h-dvh flex-col">
-      {/* الشريط العلوي */}
-      <header className="flex items-center justify-between px-5 pt-5 sm:px-8">
-        <motion.div
-          initial={{ opacity: 0, x: -16 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="flex items-center gap-2.5"
-        >
-          <img src="/icon.png" alt="TiQ" className="size-11 rounded-2xl shadow-lg" />
-          <div className="leading-tight">
-            <h1 className="bg-gradient-to-l from-grass-600 to-gold bg-clip-text text-xl font-black text-transparent dark:from-grass-400 dark:to-gold">
+      {/* الشريط العلوي — مضبوط لشاشة الموبايل */}
+      <header className="flex items-center justify-between gap-2 px-3 pt-3 sm:px-8 sm:pt-5">
+        <div className="flex min-w-0 items-center gap-2">
+          <img src="/icon.png" alt="TiQ" className="size-9 shrink-0 rounded-xl shadow sm:size-11" />
+          <div className="min-w-0 leading-tight">
+            <h1 className="bg-gradient-to-l from-grass-600 to-gold bg-clip-text text-lg font-black text-transparent sm:text-xl dark:from-grass-400 dark:to-gold">
               TiQ
             </h1>
-            <p className="text-[11px] font-bold opacity-60">سؤال الكرة اليومي</p>
+            <p className="truncate text-[10px] font-bold opacity-60 sm:text-[11px]">{t("tagline")}</p>
           </div>
-        </motion.div>
-        <div className="flex items-center gap-3">
-          <StreakOrb streak={stats.streak} best={stats.best} />
+        </div>
+
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          {/* زر اللغة */}
+          <button
+            onClick={() => changeLang(lang === "ar" ? "en" : "ar")}
+            aria-label="Language"
+            className="glass-card flex h-9 items-center rounded-full px-2.5 text-xs font-black shadow-sm transition-transform hover:scale-105 sm:h-10 sm:px-3"
+          >
+            {lang === "ar" ? "EN" : "ع"}
+          </button>
+
+          {/* زر تبديل سريع للثيم */}
+          <button
+            onClick={toggleQuickTheme}
+            aria-label={t("appearance")}
+            className="glass-card flex h-9 w-9 items-center justify-center rounded-full shadow-sm transition-transform hover:scale-105 sm:h-10 sm:w-10"
+          >
+            {isDarkNow ? <Sun className="size-4 sm:size-5" /> : <Moon className="size-4 sm:size-5" />}
+          </button>
+
           {alreadyAnswered && (
             <motion.button
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               onClick={shareResult}
-              aria-label="شارك نتيجتك"
-              className="glass-card rounded-full p-2.5 shadow-sm transition-transform hover:scale-105"
+              aria-label="Share"
+              className="glass-card hidden h-9 w-9 items-center justify-center rounded-full shadow-sm transition-transform hover:scale-105 sm:flex sm:h-10 sm:w-10"
             >
-              <Share2 className="size-5" />
+              <Share2 className="size-4 sm:size-5" />
             </motion.button>
           )}
+
           <button
             onClick={() => setSettingsOpen(true)}
-            aria-label="الإعدادات"
-            className="glass-card rounded-full p-2.5 shadow-sm transition-colors hover:bg-ink/5"
+            aria-label={t("settings")}
+            className="glass-card flex h-9 w-9 items-center justify-center rounded-full shadow-sm transition-colors hover:bg-ink/5 sm:h-10 sm:w-10"
           >
-            <Settings className="size-5" />
+            <Settings className="size-4 sm:size-5" />
           </button>
         </div>
       </header>
 
+      {/* السلسلة — صف مستقل أسفل الهيدر لتجنب الازدحام */}
+      <div className="mt-3 flex justify-center px-3 sm:mt-4">
+        <StreakOrb streak={stats.streak} best={stats.best} />
+      </div>
+
       {/* المحتوى */}
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-5 px-5 py-8 sm:px-8">
+      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-5 px-3 py-6 sm:px-8 sm:py-8">
         <QuestionCard
           question={today.question}
           selected={selected}
@@ -226,7 +275,7 @@ export default function App() {
           <ResultPanel
             question={today.question}
             selected={selected}
-            phrase={phrase || "إجابة اليوم محفوظة ✅"}
+            phrase={phrase || t("savedAnswer")}
             milestone={milestone}
           />
         )}
@@ -234,12 +283,12 @@ export default function App() {
         <WeekStrip answers={weekAnswers} />
 
         {alreadyAnswered && (
-          <div className="grid grid-cols-3 gap-3 text-center">
+          <div className="grid grid-cols-3 gap-2 text-center sm:gap-3">
             {[
-              { label: "المباريات", value: `${stats.playedCount}`, icon: "🎮" },
-              { label: "أهداف", value: `${stats.correctCount}`, icon: "⚽" },
+              { label: t("matches"), value: `${stats.playedCount}`, icon: "🎮" },
+              { label: t("goals"), value: `${stats.correctCount}`, icon: "⚽" },
               {
-                label: "الدقة",
+                label: t("accuracy"),
                 value: `${Math.round((stats.correctCount / Math.max(stats.playedCount, 1)) * 100)}%`,
                 icon: "🎯",
               },
@@ -249,12 +298,12 @@ export default function App() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 * i }}
-                className="glass-card rounded-2xl p-3 shadow-sm"
+                className="glass-card rounded-2xl p-2.5 shadow-sm sm:p-3"
               >
-                <p className="text-xl font-black text-grass-700 dark:text-grass-400">
+                <p className="text-lg font-black text-grass-700 sm:text-xl dark:text-grass-400">
                   {s.icon} {s.value}
                 </p>
-                <p className="text-xs font-bold opacity-60">{s.label}</p>
+                <p className="text-[10px] font-bold opacity-60 sm:text-xs">{s.label}</p>
               </motion.div>
             ))}
           </div>
@@ -263,16 +312,12 @@ export default function App() {
         {supabaseConfigured && <AuthPanel session={session} />}
 
         {alreadyAnswered && (
-          <p className={cn("text-center text-sm font-bold opacity-50")}>
-            🗓️ سؤال جديد عند منتصف الليل — استعد!
-          </p>
+          <p className="text-center text-sm font-bold opacity-50">{t("backTomorrow")}</p>
         )}
       </main>
 
-      <footer className="pb-6 text-center">
-        <p className="text-xs font-bold opacity-50">
-          صُنع بحب ⚽ TiQ — تطوير <span className="text-grass-600 dark:text-grass-400">Malek</span>
-        </p>
+      <footer className="pb-5 text-center">
+        <p className="text-xs font-bold opacity-50">{t("madeBy")}</p>
       </footer>
 
       <SettingsSheet
@@ -282,6 +327,8 @@ export default function App() {
         onSoundChange={changeSound}
         theme={theme}
         onThemeChange={changeTheme}
+        lang={lang}
+        onLangChange={changeLang}
         reminder={reminder}
         onReminderChange={changeReminder}
         onReset={handleReset}

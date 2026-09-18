@@ -1,5 +1,4 @@
 import type { Question } from "../data/questions";
-import { phrases as phraseData } from "../data/phrases";
 
 /** مفاتيح التخزين المحلي */
 const KEYS = {
@@ -128,8 +127,17 @@ export function recordAnswer(
   history[dateKey] = selectedIndex;
   write(KEYS.history, history);
 
-  const milestone = phraseData.streakMilestones[streak] ?? null;
-  return { correct, stats: { streak, best, correctCount, playedCount }, milestone };
+  // المراحل التشجيعية تُعرض عبر i18n في مكان الاستهلاك
+  return { correct, stats: { streak, best, correctCount, playedCount }, milestone: milestoneKey(streak) };
+}
+
+/** مفتاح المرحلة (3/7/14/30) لترجمتها في الواجهة */
+function milestoneKey(streak: number): string | null {
+  if (streak === 3) return "m3";
+  if (streak === 7) return "m7";
+  if (streak === 14) return "m14";
+  if (streak === 30) return "m30";
+  return null;
 }
 
 export function getSoundEnabled(): boolean {

@@ -23,13 +23,9 @@ export function StreakOrb({ streak, best }: Props) {
       initial={{ scale: 0.9 }}
       animate={{ scale: 1 }}
       transition={{ type: "spring", stiffness: 300, damping: 15 }}
-      className={cn(
-        "relative flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold shadow-lg",
-        "glass-card",
-      )}
-      title={`سلسلتك الحالية ${streak} — أفضل سلسلة ${best}`}
+      className={cn("relative flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold shadow-lg glass-card")}
+      title={`${streak} / ${best}`}
     >
-      {/* هالة نارية */}
       <motion.span
         className="absolute inset-0 rounded-full"
         animate={{ opacity: [0.15, 0.35, 0.15] }}
@@ -44,10 +40,10 @@ export function StreakOrb({ streak, best }: Props) {
         className="relative"
         style={{ color: `oklch(${0.55 + heat * 0.3} 0.22 45)` }}
       >
-        <Flame className="size-5" />
+        <Flame className="size-4 sm:size-5" />
       </motion.span>
       <span className="relative">{streak}</span>
-      <span className="relative text-xs font-medium opacity-60">/ أفضل {best}</span>
+      <span className="relative text-xs font-medium opacity-50">/ {best}</span>
     </motion.div>
   );
 }

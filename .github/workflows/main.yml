@@ -92,13 +92,20 @@ jobs:
         run: |
           npm install -g @capacitor/assets
           mkdir -p resources
-          if [ -f "icon.png" ]; then
+          # استخدام الأيقونة عالية الدقة (1024px) لتوليد كل مقاسات الأندرويد
+          if [ -f "resources-icon-1024.png" ]; then
+            cp resources-icon-1024.png resources/icon.png
+            echo "✅ 1024px icon found, generating all Android asset sizes..."
+          elif [ -f "icon.png" ]; then
             cp icon.png resources/icon.png
-            echo "✅ Icon found, generating assets..."
-            npx @capacitor/assets generate --android
+            echo "✅ Legacy icon.png found"
+          elif [ -f "public/icon.png" ]; then
+            cp public/icon.png resources/icon.png
+            echo "✅ public/icon.png found"
           else
-            echo "⚠️ No icon.png found, using default icon"
+            echo "⚠️ No icon found, using default"
           fi
+          npx @capacitor/assets generate --android
 
       - name: Fix Kotlin dependencies
         run: |
