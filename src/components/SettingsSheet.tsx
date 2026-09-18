@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Moon, RotateCcw, Sun, Volume2, VolumeX, X } from "lucide-react";
+import { Bell, BellOff, Moon, RotateCcw, Sun, Volume2, VolumeX, X } from "lucide-react";
 import type { Theme } from "../lib/store";
+import { isNative } from "../lib/notifications";
 import { cn } from "../utils/cn";
 
 interface Props {
@@ -10,6 +11,8 @@ interface Props {
   onSoundChange: (on: boolean) => void;
   theme: Theme;
   onThemeChange: (t: Theme) => void;
+  reminder: boolean;
+  onReminderChange: (on: boolean) => void;
   onReset: () => void;
 }
 
@@ -19,6 +22,32 @@ const THEMES: { value: Theme; label: string; icon: typeof Sun }[] = [
   { value: "system", label: "النظام", icon: RotateCcw },
 ];
 
+function Toggle({
+  on,
+  onChange,
+}: {
+  on: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <button
+      role="switch"
+      aria-checked={on}
+      onClick={() => onChange(!on)}
+      className={cn(
+        "relative h-7 w-12 shrink-0 rounded-full transition-colors",
+        on ? "bg-grass-500" : "bg-ink/20",
+      )}
+    >
+      <motion.span
+        layout
+        className="absolute top-0.5 size-6 rounded-full bg-white shadow"
+        style={{ right: on ? 2 : 22 }}
+      />
+    </button>
+  );
+}
+
 export function SettingsSheet({
   open,
   onClose,
@@ -26,6 +55,8 @@ export function SettingsSheet({
   onSoundChange,
   theme,
   onThemeChange,
+  reminder,
+  onReminderChange,
   onReset,
 }: Props) {
   return (
@@ -59,27 +90,29 @@ export function SettingsSheet({
               </button>
             </div>
 
+            {/* التذكير اليومي */}
+            <div className="mb-6 flex items-center justify-between gap-3">
+              <span className="flex items-center gap-2 font-bold">
+                {reminder ? <Bell className="size-5" /> : <BellOff className="size-5" />}
+                <span>
+                  تذكير يومي (8 مساءً)
+                  <span className="block text-xs font-medium opacity-50">
+                    {isNative
+                      ? "إشعار على جهازك قبل سؤال اليوم"
+                      : "يعمل بالكامل داخل تطبيق الأندرويد"}
+                  </span>
+                </span>
+              </span>
+              <Toggle on={reminder} onChange={onReminderChange} />
+            </div>
+
             {/* الصوت */}
             <div className="mb-6 flex items-center justify-between">
               <span className="flex items-center gap-2 font-bold">
                 {soundOn ? <Volume2 className="size-5" /> : <VolumeX className="size-5" />}
                 المؤثرات الصوتية
               </span>
-              <button
-                role="switch"
-                aria-checked={soundOn}
-                onClick={() => onSoundChange(!soundOn)}
-                className={cn(
-                  "relative h-7 w-12 rounded-full transition-colors",
-                  soundOn ? "bg-grass-500" : "bg-ink/20",
-                )}
-              >
-                <motion.span
-                  layout
-                  className="absolute top-0.5 size-6 rounded-full bg-white shadow"
-                  style={{ right: soundOn ? 2 : 22 }}
-                />
-              </button>
+              <Toggle on={soundOn} onChange={onSoundChange} />
             </div>
 
             {/* الثيم */}

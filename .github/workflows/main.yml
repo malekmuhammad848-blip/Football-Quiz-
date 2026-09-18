@@ -78,10 +78,13 @@ jobs:
             print "    <uses-permission android:name=\"android.permission.INTERNET\" />"
             print "    <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />"
             print "    <uses-permission android:name=\"android.permission.WAKE_LOCK\" />"
+            print "    <uses-permission android:name=\"android.permission.POST_NOTIFICATIONS\" />"
+            print "    <uses-permission android:name=\"android.permission.SCHEDULE_EXACT_ALARM\" />"
+            print "    <uses-permission android:name=\"android.permission.RECEIVE_BOOT_COMPLETED\" />"
             print ""
           }
           { print }' "${MANIFEST}.backup" > "$MANIFEST"
-          echo "✅ Android permissions added"
+          echo "✅ Android permissions added (incl. notifications + reminders)"
 
       - name: Setup app icon
         run: |

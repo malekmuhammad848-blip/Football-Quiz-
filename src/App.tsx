@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import confetti from "canvas-confetti";
 import { Settings } from "lucide-react";
+import type { Session } from "@supabase/supabase-js";
 import { questions } from "./data/questions";
 import { phrases, pick } from "./data/phrases";
 import { sound } from "./lib/sound";
@@ -18,10 +19,19 @@ import {
   type Stats,
   type Theme,
 } from "./lib/store";
+import { supabaseConfigured } from "./lib/supabase";
+import { auth, profile } from "./lib/backend";
+import {
+  isNative,
+  isReminderEnabled,
+  scheduleDailyReminder,
+  setReminderEnabled,
+} from "./lib/notifications";
 import { QuestionCard } from "./components/QuestionCard";
 import { ResultPanel } from "./components/ResultPanels";
 import { SettingsSheet } from "./components/SettingsSheet";
-import { StreakOrb } from "./components/StreakOrb";
+import { StreakOrb } from ".//components/StreakOrb";
+import { AuthPanel } from "./components/AuthPanel";
 import { cn } from "./utils/cn";
 
 export default function App() {
@@ -37,19 +47,44 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [soundOn, setSoundOn] = useState(() => getSoundEnabled());
   const [theme, setThemeState] = useState<Theme>(() => getTheme());
+  const [session, setSession] = useState<Session | null>(null);
+  const [reminder, setReminder] = useState(() => isReminderEnabled());
 
-  // تطبيق الثيم
+  // جلسة المستخدم
   useEffect(() => {
-    const root = document.documentElement;
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const apply = () => {
-      const dark = theme === "dark" || (theme === "system" && mq.matches);
-      root.classList.toggle("dark", dark);
+    if (!supabaseConfigured) return;
+    void auth.getSession().then(setSession);
+    const sub = auth.onChange(setSession);
+    return () => sub.unsubscribe();
+  }, []);
+
+  // عند تسجيل الدخول: دمج الإحصائيات السحابية مع المحلية ثم رفع الدمج
+  useEffect(() => {
+    if (!session?.user || !supabaseConfigured) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const merged = await profile.pullAndMerge(stats, session.user);
+        if (cancelled) return;
+        setStats(merged);
+        await profile.pushStats(session.user, merged);
+      } catch {
+        /* المزامنة اختيارية — لا تعطل التطبيق */
+      }
+    })();
+    return () => {
+      cancelled = true;
     };
-    apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
-  }, [theme]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.id]);
+
+  // طلب إذن الإشعارات وجدولة التذكير عند أول تشغيل (الأهم على الأندرويد)
+  useEffect(() => {
+    if (isNative && isReminderEnabled()) {
+      void scheduleDailyReminder();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-dep
+  }, []);
 
   const handleSelect = useCallback(
     (index: number) => {
@@ -72,8 +107,19 @@ export default function App() {
         sound.wrong(soundOn);
       }
       if (result.milestone) sound.streak(soundOn, result.stats.streak);
+
+      // مزامنة مع السحابة إن وُجدت جلسة
+      if (session?.user && supabaseConfigured) {
+        void profile.pushStats(session.user, result.stats);
+        void profile.saveDailyAnswer(
+          session.user,
+          today.dateKey,
+          index,
+          result.correct,
+        );
+      }
     },
-    [selected, today, soundOn],
+    [selected, today, soundOn, session],
   );
 
   const handleReset = () => {
@@ -91,6 +137,12 @@ export default function App() {
     setTheme(t);
   };
 
+  const changeReminder = (on: boolean) => {
+    setReminder(on);
+    setReminderEnabled(on);
+    if (on) void scheduleDailyReminder();
+  };
+
   const alreadyAnswered = selected !== null;
 
   return (
@@ -102,6 +154,9 @@ export default function App() {
           <div className="leading-tight">
             <h1 className="text-lg font-black">سؤال الكرة</h1>
             <p className="text-xs opacity-60">{today.dateKey}</p>
+            {!supabaseConfigured && (
+              <p className="text-[10px] opacity-40">وضع محلي (بدون مزامنة)</p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -138,7 +193,12 @@ export default function App() {
             {[
               { label: "الأداء", value: `${stats.playedCount}` },
               { label: "صحيحة", value: `${stats.correctCount}` },
-              { label: "الدقة", value: `${Math.round((stats.correctCount / Math.max(stats.playedCount, 1)) * 100)}%` },
+              {
+                label: "الدقة",
+                value: `${Math.round(
+                  (stats.correctCount / Math.max(stats.playedCount, 1)) * 100,
+                )}%`,
+              },
             ].map((s) => (
               <div
                 key={s.label}
@@ -152,6 +212,8 @@ export default function App() {
             ))}
           </div>
         )}
+
+        {supabaseConfigured && <AuthPanel session={session} />}
 
         {alreadyAnswered && (
           <p className={cn("text-center text-sm opacity-50")}>
@@ -171,6 +233,8 @@ export default function App() {
         onSoundChange={changeSound}
         theme={theme}
         onThemeChange={changeTheme}
+        reminder={reminder}
+        onReminderChange={changeReminder}
         onReset={handleReset}
       />
     </div>
