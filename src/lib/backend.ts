@@ -115,6 +115,19 @@ export async function setDisplayName(user: User, name: string): Promise<void> {
   if (error) throw error;
 }
 
+/** تحديث الاسم بجلسة حالية (من شاشة البروفايل) — فشل صامت إن غير مسجل */
+export const authServiceExtra = {
+  async updateDisplayName(name: string) {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) return;
+    try {
+      await setDisplayName(data.session.user, name);
+    } catch {
+      /* الاسم المحلي يكفي */
+    }
+  },
+};
+
 /** رفع التقدم (الحقول المدعومة في المخطط) */
 export async function pushProgress(user: User, p: Progress): Promise<void> {
   const { error } = await supabase
@@ -145,6 +158,28 @@ export async function pullProfile(user: User): Promise<Partial<Progress> | null>
     correctCount: row.correct_count,
     playedCount: row.played_count,
   };
+}
+
+/** صف لوحة الترتيب الأسبوعي */
+export interface LeaderRow {
+  user_id: string;
+  display_name: string;
+  streak: number;
+  best: number;
+  correct_count: number;
+  played_count: number;
+  pos: number;
+}
+
+/** جلب لوحة الترتيب الأسبوعي (يتطلب جلسة) */
+export async function fetchWeeklyLeaderboard(): Promise<LeaderRow[]> {
+  const { data, error } = await supabase
+    .from("weekly_leaderboard")
+    .select("*")
+    .order("pos", { ascending: true })
+    .limit(50);
+  if (error) throw error;
+  return (data ?? []) as LeaderRow[];
 }
 
 /** حفظ إجابة يومية (upsert آمن للتكرار) */

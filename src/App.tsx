@@ -3,6 +3,7 @@
  *  ============================================================ */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence } from "framer-motion";
 import { GraduationCap } from "lucide-react";
 import { APP } from "./core/config";
 import { dayKey, daysBetween } from "./core/date";
@@ -31,6 +32,7 @@ import { TrainingMode } from "./components/TrainingMode";
 import { AuthPanel } from "./components/AuthPanel";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { NamePrompt } from "./components/NamePrompt";
+import { ProfileScreen } from "./components/ProfileScreen";
 import { Badge, Button } from "./components/ui/primitives";
 import { initAuthUrlOpen, displayNameOf } from "./lib/backend";
 
@@ -52,6 +54,7 @@ export default function App() {
   const [unlockToast, setUnlockToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [namePromptDone, setNamePromptDone] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   // سؤال اليوم — ثابت لكل المستخدمين، يُعاد حسابه عند تغيير اللغة
   const daily = useMemo(() => getDailyQuestion(new Date(), lang), [lang]);
@@ -183,6 +186,16 @@ export default function App() {
 
   const lvl = levelFor(progress.xp);
 
+  // اسم اللاعب المعروض: الحساب أولًا ثم المحلي
+  const playerName = useMemo(() => {
+    const meta = (session?.user.user_metadata ?? {}) as Record<string, unknown>;
+    const cloud =
+      (meta.display_name as string | undefined) ??
+      (meta.full_name as string | undefined) ??
+      (meta.name as string | undefined);
+    return cloud?.trim() || prefs.playerName.trim() || "Player";
+  }, [session, prefs.playerName]);
+
   // ——— تدفق الدخول ———
   // 1) شاشة الترحيب: تظهر لمن لم يدخل ولم يختر الضيف
   const showWelcome = supabaseConfigured && !session && !prefs.guest;
@@ -197,7 +210,14 @@ export default function App() {
 
   return (
     <div className="pitch-lines flex min-h-dvh flex-col">
-      <AppHeader lang={lang} isDark={isDark} onToggleLang={toggleLang} onOpenSettings={() => setSettingsOpen(true)} />
+      <AppHeader
+        lang={lang}
+        isDark={isDark}
+        playerName={playerName}
+        onToggleLang={toggleLang}
+        onOpenSettings={() => setSettingsOpen(true)}
+        onOpenProfile={() => setProfileOpen(true)}
+      />
 
       {/* السلسلة + شارة المزامنة */}
       <div className="mt-3 flex flex-wrap items-center justify-center gap-2 px-3">
@@ -271,6 +291,10 @@ export default function App() {
       {unlockToast && <UnlockToast achievementId={unlockToast} lang={lang} />}
 
       <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} onReset={handleReset} />
+
+      <AnimatePresence>
+        {profileOpen && <ProfileScreen session={session} onClose={() => setProfileOpen(false)} />}
+      </AnimatePresence>
     </div>
   );
 }

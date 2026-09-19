@@ -15,6 +15,7 @@ const DEFAULTS: Prefs = {
   reminder: true,
   haptics: true,
   guest: false,
+  playerName: "",
 };
 
 function load(): Prefs {
@@ -35,6 +36,7 @@ interface PrefsStore extends Store<Prefs> {
   setReminder(on: boolean): void;
   setHaptics(on: boolean): void;
   setGuest(guest: boolean): void;
+  setPlayerName(name: string): void;
   isDark(): boolean;
   toggleDark(): void;
 }
@@ -73,6 +75,9 @@ export const prefsStore: PrefsStore = (() => {
     },
     setGuest(guest) {
       this.replace({ ...base.getState(), guest });
+    },
+    setPlayerName(playerName) {
+      this.replace({ ...base.getState(), playerName: playerName.trim().slice(0, 24) });
     },
     isDark() {
       const { theme } = base.getState();

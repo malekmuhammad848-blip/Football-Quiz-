@@ -56,6 +56,8 @@ export interface Prefs {
   haptics: boolean;
   /** دخل كضيف — يخفي شاشة الترحيب */
   guest: boolean;
+  /** اسم اللاعب المحلي (للضيف أو قبل مزامنة الحساب) */
+  playerName: string;
 }
 
 /** نتيجة تسجيل إجابة */

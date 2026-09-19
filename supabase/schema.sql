@@ -71,3 +71,18 @@ create policy "users update own answers"
 -- 5) فهرس مفيد
 create index if not exists daily_answers_user_day_idx
   on public.daily_answers (user_id, answer_day desc);
+
+-- 6) لوحة الترتيب الأسبوعي (محسوبة من profiles)
+create or replace view public.weekly_leaderboard
+with (security_invoker = true) as
+select
+  p.id           as user_id,
+  coalesce(p.display_name, split_part(p.email, '@', 1)) as display_name,
+  p.streak,
+  p.best,
+  p.correct_count,
+  p.played_count,
+  rank() over (order by p.correct_count desc, p.streak desc) as pos
+from public.profiles p;
+
+grant select on public.weekly_leaderboard to authenticated;
