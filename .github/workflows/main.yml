@@ -13,7 +13,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # استخراج ملفات ZIP القديمة إن وُجدت (للتوافق مع تاريخ المستودع)
       - name: Extract project files (legacy ZIPs)
         run: |
           shopt -s nullglob
@@ -37,6 +36,9 @@ jobs:
         run: npm install
 
       - name: Build web app
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: npm run build
 
       - name: Setup Java
@@ -45,8 +47,6 @@ jobs:
           distribution: "temurin"
           java-version: "21"
 
-      # الـ runner يتضمن Android SDK مسبقًا — نكتفي بقبول التراخيص
-      # (setup-android@v3 يفشل حاليًا: يحاول تثبيت حزمة tools المهجورة)
       - name: Accept Android SDK licenses
         run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
 
@@ -63,7 +63,7 @@ jobs:
           export default config;
           CAPEOF
 
-      - name: Install Capacitor (v7 stack — compatible with compileSdk 35 / AGP 8.7)
+      - name: Install Capacitor (v7 stack)
         run: |
           npm install --legacy-peer-deps \
             @capacitor/core@7.4.4 @capacitor/cli@7.4.4 @capacitor/android@7.4.4 \
@@ -90,22 +90,18 @@ jobs:
             print ""
           }
           { print }' "${MANIFEST}.backup" > "$MANIFEST"
-          echo "✅ Android permissions added (incl. notifications + reminders)"
+          echo "✅ Android permissions added"
 
       - name: Setup app icon
         run: |
           npm install -g @capacitor/assets
           mkdir -p resources
-          # استخدام الأيقونة عالية الدقة (1024px) لتوليد كل مقاسات الأندرويد
           if [ -f "resources-icon-1024.png" ]; then
             cp resources-icon-1024.png resources/icon.png
-            echo "✅ 1024px icon found, generating all Android asset sizes..."
           elif [ -f "icon.png" ]; then
             cp icon.png resources/icon.png
-            echo "✅ Legacy icon.png found"
           elif [ -f "public/icon.png" ]; then
             cp public/icon.png resources/icon.png
-            echo "✅ public/icon.png found"
           else
             echo "⚠️ No icon found, using default"
           fi
