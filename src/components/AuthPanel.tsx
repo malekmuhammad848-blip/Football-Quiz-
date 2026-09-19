@@ -5,11 +5,12 @@
 import { useState } from "react";
 import { CloudUpload, LogIn, LogOut, Mail, UserPlus } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
-import { authService } from "../lib/backend";
+import { authService, signInWithGoogle } from "../lib/backend";
 import { prefsStore } from "../stores/prefsStore";
 import { t, type Lang } from "../lib/i18n";
 import { cn } from "../utils/cn";
 import { Button } from "./ui/primitives";
+import { GoogleLogo } from "./WelcomeScreen";
 
 interface Props {
   session: Session | null;
@@ -18,17 +19,43 @@ interface Props {
 
 type Mode = "signin" | "signup";
 
+/** ترجمة أخطاء Supabase الشائعة للعربية */
+function translateError(msg: string, lang: Lang): string {
+  const ar = lang === "ar";
+  if (msg.includes("Invalid login credentials"))
+    return ar ? "البريد أو كلمة المرور غير صحيحة" : msg;
+  if (msg.includes("Email not confirmed"))
+    return ar ? "يرجى تأكيد بريدك الإلكتروني أولاً" : msg;
+  if (msg.includes("User already registered"))
+    return ar ? "هذا البريد مسجّل بالفعل، جرّب تسجيل الدخول" : msg;
+  if (msg.includes("Password should be at least"))
+    return ar ? "كلمة المرور يجب أن تكون 6 أحرف على الأقل" : msg;
+  if (msg.includes("Unable to validate email"))
+    return ar ? "صيغة البريد الإلكتروني غير صحيحة" : msg;
+  if (msg.includes("rate limit") || msg.includes("too many"))
+    return ar ? "طلبات كثيرة، انتظر دقيقة ثم حاول مجدداً" : msg;
+  return msg;
+}
+
 export function AuthPanel({ session, lang }: Props) {
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<"email" | "google" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
+  const handleGoogle = async () => {
+    setBusy("google");
+    setError(null);
+    const res = await signInWithGoogle();
+    if (res.error) setError(translateError(res.error, lang));
+    setBusy(null);
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setBusy(true);
+    setBusy("email");
     setError(null);
     setNotice(null);
     try {
@@ -40,18 +67,19 @@ export function AuthPanel({ session, lang }: Props) {
         const { error } = await authService.signIn(email.trim(), password);
         if (error) throw error;
       }
-      // نجاح الدخول يلغي وضع الضيف
       prefsStore.setGuest(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t(lang, "unexpectedError"));
+      const msg = err instanceof Error ? err.message : t(lang, "unexpectedError");
+      setError(translateError(msg, lang));
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   };
 
   if (session) {
     const name =
       (session.user.user_metadata?.display_name as string | undefined) ??
+      (session.user.user_metadata?.full_name as string | undefined) ??
       session.user.email?.split("@")[0] ??
       "Player";
     return (
@@ -81,11 +109,12 @@ export function AuthPanel({ session, lang }: Props) {
 
   return (
     <div className="glass-card rounded-2xl p-4 sm:p-5">
+      {/* تبديل تسجيل دخول / حساب جديد */}
       <div className="mb-4 flex rounded-2xl bg-ink/5 p-1 text-xs font-bold sm:text-sm dark:bg-white/10">
         {(["signin", "signup"] as const).map((m) => (
           <button
             key={m}
-            onClick={() => setMode(m)}
+            onClick={() => { setMode(m); setError(null); setNotice(null); }}
             className={cn(
               "flex-1 rounded-xl py-2 transition-colors",
               mode === m ? "bg-surface text-grass-700 shadow-sm dark:text-grass-400" : "opacity-60",
@@ -96,6 +125,27 @@ export function AuthPanel({ session, lang }: Props) {
         ))}
       </div>
 
+      {/* زر Google */}
+      <button
+        onClick={() => void handleGoogle()}
+        disabled={busy !== null}
+        className={cn(
+          "mb-4 flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-line bg-surface font-bold text-sm shadow-sm transition-all hover:shadow-md",
+          busy === "google" && "opacity-60",
+        )}
+      >
+        <GoogleLogo className="size-4.5" />
+        {busy === "google" ? t(lang, "busy") : t(lang, "continueGoogle")}
+      </button>
+
+      {/* فاصل */}
+      <div className="mb-4 flex items-center gap-2 text-xs font-bold opacity-40">
+        <div className="h-px flex-1 bg-current" />
+        <span>{lang === "ar" ? "أو بالبريد" : "or with email"}</span>
+        <div className="h-px flex-1 bg-current" />
+      </div>
+
+      {/* نموذج البريد */}
       <form onSubmit={submit} className="space-y-3">
         <label className="block">
           <span className="mb-1 block text-xs font-bold opacity-70">{t(lang, "email")}</span>
@@ -130,12 +180,12 @@ export function AuthPanel({ session, lang }: Props) {
           </div>
         </label>
 
-        {error && <p className="text-xs font-bold text-red-500">{error}</p>}
-        {notice && <p className="text-xs font-bold text-grass-600 dark:text-grass-400">{notice}</p>}
+        {error && <p className="rounded-lg bg-red-50 p-2 text-xs font-bold text-red-600 dark:bg-red-950/40 dark:text-red-400">{error}</p>}
+        {notice && <p className="rounded-lg bg-grass-50 p-2 text-xs font-bold text-grass-700 dark:bg-grass-950/40 dark:text-grass-400">{notice}</p>}
 
-        <Button type="submit" disabled={busy} className="w-full">
-          <UserPlus className="size-4" />
-          {busy ? t(lang, "busy") : mode === "signin" ? t(lang, "login") : t(lang, "createAccount")}
+        <Button type="submit" disabled={busy !== null} className="w-full">
+          {mode === "signin" ? <LogIn className="size-4" /> : <UserPlus className="size-4" />}
+          {busy === "email" ? t(lang, "busy") : mode === "signin" ? t(lang, "login") : t(lang, "createAccount")}
         </Button>
       </form>
     </div>

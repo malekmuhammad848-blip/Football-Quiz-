@@ -13,7 +13,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # استخراج ملفات ZIP القديمة إن وُجدت (للتوافق مع تاريخ المستودع)
       - name: Extract project files (legacy ZIPs)
         run: |
           shopt -s nullglob
@@ -37,6 +36,9 @@ jobs:
         run: npm install
 
       - name: Build web app
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: npm run build
 
       - name: Setup Java
@@ -45,8 +47,6 @@ jobs:
           distribution: "temurin"
           java-version: "21"
 
-      # الـ runner يتضمن Android SDK مسبقًا — نكتفي بقبول التراخيص
-      # (setup-android@v3 يفشل حاليًا: يحاول تثبيت حزمة tools المهجورة)
       - name: Accept Android SDK licenses
         run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
 
@@ -63,7 +63,7 @@ jobs:
           export default config;
           CAPEOF
 
-      - name: Install Capacitor (v7 stack — compatible with compileSdk 35 / AGP 8.7)
+      - name: Install Capacitor (v7 stack)
         run: |
           npm install --legacy-peer-deps \
             @capacitor/core@7.4.4 @capacitor/cli@7.4.4 @capacitor/android@7.4.4 \
@@ -76,10 +76,12 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Add required Android permissions
+      - name: Add permissions + deep link to AndroidManifest
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
           cp "$MANIFEST" "${MANIFEST}.backup"
+
+          # 1) أضف الصلاحيات قبل <application>
           awk '/<application/ {
             print "    <uses-permission android:name=\"android.permission.INTERNET\" />"
             print "    <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />"
@@ -90,22 +92,46 @@ jobs:
             print ""
           }
           { print }' "${MANIFEST}.backup" > "$MANIFEST"
-          echo "✅ Android permissions added (incl. notifications + reminders)"
+
+          # 2) أضف intent-filter للـ deep link (com.malek.tiq://login-callback)
+          #    داخل الـ activity الرئيسية مباشرةً قبل </activity>
+          python3 - <<'PYEOF'
+          import re
+
+          with open("android/app/src/main/AndroidManifest.xml", "r") as f:
+              content = f.read()
+
+          deep_link_filter = """
+                  <intent-filter android:autoVerify="true">
+                      <action android:name="android.intent.action.VIEW" />
+                      <category android:name="android.intent.category.DEFAULT" />
+                      <category android:name="android.intent.category.BROWSABLE" />
+                      <data android:scheme="com.malek.tiq" android:host="login-callback" />
+                  </intent-filter>"""
+
+          # أضف قبل إغلاق الـ activity الأولى
+          if "com.malek.tiq" not in content:
+              content = content.replace("</activity>", deep_link_filter + "\n        </activity>", 1)
+
+          with open("android/app/src/main/AndroidManifest.xml", "w") as f:
+              f.write(content)
+
+          print("✅ Deep link intent-filter added")
+          PYEOF
+
+          echo "✅ Manifest updated"
+          grep -A5 "com.malek.tiq" "$MANIFEST" || echo "(deep link already present)"
 
       - name: Setup app icon
         run: |
           npm install -g @capacitor/assets
           mkdir -p resources
-          # استخدام الأيقونة عالية الدقة (1024px) لتوليد كل مقاسات الأندرويد
           if [ -f "resources-icon-1024.png" ]; then
             cp resources-icon-1024.png resources/icon.png
-            echo "✅ 1024px icon found, generating all Android asset sizes..."
           elif [ -f "icon.png" ]; then
             cp icon.png resources/icon.png
-            echo "✅ Legacy icon.png found"
           elif [ -f "public/icon.png" ]; then
             cp public/icon.png resources/icon.png
-            echo "✅ public/icon.png found"
           else
             echo "⚠️ No icon found, using default"
           fi

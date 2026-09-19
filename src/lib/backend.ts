@@ -39,12 +39,21 @@ export const authService = {
   },
 };
 
-/** مخطط التطبيق الأصلي (appId = custom scheme في Capacitor) */
+/** مخطط التطبيق الأصلي */
 const NATIVE_REDIRECT = "com.malek.tiq://login-callback";
 
 /**
+ * الـ redirect URL للويب — نفس الصفحة الحالية
+ * هذا يضمن أن Supabase يعيد التوجيه للموقع الصحيح بعد Google OAuth
+ */
+function getWebRedirectUrl(): string {
+  if (typeof window === "undefined") return "";
+  return window.location.origin + window.location.pathname;
+}
+
+/**
  * تسجيل الدخول عبر Google:
- * - الويب: إعادة توجيه قياسية عبر Supabase OAuth.
+ * - الويب: إعادة توجيه قياسية مع redirectTo صريح.
  * - الأصلي (APK): فتح متصفح النظام بـ PKCE ثم التقاط الرابط العميق.
  */
 export async function signInWithGoogle(): Promise<{ error?: string }> {
@@ -52,14 +61,26 @@ export async function signInWithGoogle(): Promise<{ error?: string }> {
     if (Capacitor.isNativePlatform()) {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { skipBrowserRedirect: true, redirectTo: NATIVE_REDIRECT },
+        options: {
+          skipBrowserRedirect: true,
+          redirectTo: NATIVE_REDIRECT,
+          queryParams: { access_type: "offline", prompt: "consent" },
+        },
       });
       if (error) return { error: error.message };
       if (!data.url) return { error: "no-url" };
       await Browser.open({ url: data.url });
       return {};
     }
-    const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
+
+    // الويب
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: getWebRedirectUrl(),
+        queryParams: { access_type: "offline", prompt: "consent" },
+      },
+    });
     return error ? { error: error.message } : {};
   } catch (e) {
     return { error: e instanceof Error ? e.message : "google-signin-failed" };
@@ -74,12 +95,10 @@ export function initAuthUrlOpen(): void {
       const u = new URL(url);
       const code = u.searchParams.get("code");
       if (code) {
-        // تدفق PKCE
         await supabase.auth.exchangeCodeForSession(code);
         return;
       }
       if (url.includes("access_token=")) {
-        // تدفق implicit — استخراج الرموز من الجزء السفلي
         const hash = new URLSearchParams(url.split("#")[1] ?? "");
         const access = hash.get("access_token");
         const refresh = hash.get("refresh_token");
@@ -93,7 +112,7 @@ export function initAuthUrlOpen(): void {
   });
 }
 
-/** اسم العرض إن وُجد (Google يملأه تلقائيًا) */
+/** اسم العرض إن وُجد */
 export function displayNameOf(user: User): string | null {
   const m = (user.user_metadata ?? {}) as Record<string, unknown>;
   const name =
@@ -104,7 +123,7 @@ export function displayNameOf(user: User): string | null {
   return name && name.trim() ? name.trim() : null;
 }
 
-/** حفظ اسم اللاعب: في الحساب + جدول الملفات */
+/** حفظ اسم اللاعب */
 export async function setDisplayName(user: User, name: string): Promise<void> {
   const clean = name.trim().slice(0, 24);
   await supabase.auth.updateUser({ data: { display_name: clean } });
@@ -115,7 +134,6 @@ export async function setDisplayName(user: User, name: string): Promise<void> {
   if (error) throw error;
 }
 
-/** تحديث الاسم بجلسة حالية (من شاشة البروفايل) — فشل صامت إن غير مسجل */
 export const authServiceExtra = {
   async updateDisplayName(name: string) {
     const { data } = await supabase.auth.getSession();
@@ -128,7 +146,7 @@ export const authServiceExtra = {
   },
 };
 
-/** رفع التقدم (الحقول المدعومة في المخطط) */
+/** رفع التقدم */
 export async function pushProgress(user: User, p: Progress): Promise<void> {
   const { error } = await supabase
     .from("profiles")
@@ -143,7 +161,7 @@ export async function pushProgress(user: User, p: Progress): Promise<void> {
   if (error) throw error;
 }
 
-/** جلب بيانات البروفايل للدمج */
+/** جلب بيانات البروفايل */
 export async function pullProfile(user: User): Promise<Partial<Progress> | null> {
   const { data } = await supabase
     .from("profiles")
@@ -160,7 +178,6 @@ export async function pullProfile(user: User): Promise<Partial<Progress> | null>
   };
 }
 
-/** صف لوحة الترتيب الأسبوعي */
 export interface LeaderRow {
   user_id: string;
   display_name: string;
@@ -171,7 +188,6 @@ export interface LeaderRow {
   pos: number;
 }
 
-/** جلب لوحة الترتيب الأسبوعي (يتطلب جلسة) */
 export async function fetchWeeklyLeaderboard(): Promise<LeaderRow[]> {
   const { data, error } = await supabase
     .from("weekly_leaderboard")
@@ -182,7 +198,6 @@ export async function fetchWeeklyLeaderboard(): Promise<LeaderRow[]> {
   return (data ?? []) as LeaderRow[];
 }
 
-/** حفظ إجابة يومية (upsert آمن للتكرار) */
 export async function saveDailyAnswer(user: User, dateKey: string, selected: number, isCorrect: boolean): Promise<void> {
   const { error } = await supabase.from("daily_answers").upsert(
     { user_id: user.id, answer_day: dateKey, selected, is_correct: isCorrect },
@@ -191,7 +206,6 @@ export async function saveDailyAnswer(user: User, dateKey: string, selected: num
   if (error) throw error;
 }
 
-/** مزامنة كاملة: جلب ← دمج في المتجر ← رفع */
 export async function syncProgress(user: User, merge: (remote: Partial<Progress>) => void, current: Progress): Promise<void> {
   const remote = await pullProfile(user);
   if (remote) merge(remote);
