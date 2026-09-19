@@ -1,60 +1,61 @@
-import { useEffect, useState } from "react";
+/** ============================================================
+ *  QuestionCard — بطاقة سؤال اليوم
+ *  ============================================================ */
+
 import { motion } from "framer-motion";
 import { Timer } from "lucide-react";
-import type { Question } from "../data/questions";
-import { t, currentLang } from "../lib/i18n";
-import { CheckBadge, CrossBadge } from "./Icons";
+import type { LocalizedQuestion } from "../domain/types";
+import { t, type TKey, type Lang } from "../lib/i18n";
 import { cn } from "../utils/cn";
+import { Badge } from "./ui/primitives";
+import { CheckBadge, CrossBadge } from "./Icons";
 
 interface Props {
-  question: Question;
+  question: LocalizedQuestion;
   selected: number | null;
   onSelect: (index: number) => void;
+  lang: Lang;
+  countdown: string;
   disabled?: boolean;
 }
 
-const LETTERS = ["أ", "ب", "ج", "د"];
-const LETTERS_EN = ["A", "B", "C", "D"];
-const DAY_MS = 86_400_000;
+const LETTERS: Record<Lang, string[]> = {
+  ar: ["أ", "ب", "ج", "د"],
+  en: ["A", "B", "C", "D"],
+};
 
-function useCountdown() {
-  const [left, setLeft] = useState(DAY_MS);
-  useEffect(() => {
-    const tick = () => {
-      const now = new Date();
-      const midnight = new Date(now);
-      midnight.setHours(24, 0, 0, 0);
-      setLeft(midnight.getTime() - now.getTime());
-    };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, []);
-  const h = Math.max(0, Math.floor(left / 3_600_000));
-  const m = Math.max(0, Math.floor((left % 3_600_000) / 60_000));
-  const s = Math.max(0, Math.floor((left % 60_000) / 1000));
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
+const CATEGORY_KEY: Record<LocalizedQuestion["category"], TKey> = {
+  history: "catHistory",
+  worldcup: "catWorldcup",
+  clubs: "catClubs",
+  players: "catPlayers",
+  legends: "catLegends",
+  arab: "catArab",
+};
 
-export function QuestionCard({ question, selected, onSelect, disabled }: Props) {
-  const countdown = useCountdown();
+const DIFFICULTY_KEY: Record<LocalizedQuestion["difficulty"], TKey> = {
+  easy: "difficultyEasy",
+  medium: "difficultyMedium",
+  hard: "difficultyHard",
+};
+
+export function QuestionCard({ question, selected, onSelect, lang, countdown, disabled }: Props) {
   const revealed = selected !== null;
-  const isAr = currentLang() === "ar";
-  const letters = isAr ? LETTERS : LETTERS_EN;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
+    <motion.section
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25 }}
+      transition={{ duration: 0.22 }}
       className="glass-card relative w-full overflow-hidden rounded-3xl p-4 shadow-lg shadow-grass-700/10 sm:p-6"
     >
       <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-l from-grass-500 via-gold to-grass-500" />
 
-      <div className="mb-4 flex items-center justify-between">
-        <span className="rounded-full bg-grass-500/10 px-3 py-1 text-xs font-black text-grass-700 dark:text-grass-400">
-          {t("todayQuestion")}
-        </span>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Badge tone="grass">{t(lang, CATEGORY_KEY[question.category])}</Badge>
+          <Badge tone="gold">{t(lang, DIFFICULTY_KEY[question.difficulty])}</Badge>
+        </div>
         {!revealed && (
           <span className="flex items-center gap-1.5 text-sm font-bold tabular-nums opacity-70">
             <Timer className="size-4" />
@@ -65,7 +66,7 @@ export function QuestionCard({ question, selected, onSelect, disabled }: Props) 
 
       <h2 className="text-lg leading-8 font-extrabold sm:text-2xl sm:leading-9">{question.q}</h2>
 
-      <div className="mt-5 grid gap-2.5 sm:mt-6 sm:gap-3">
+      <div className="mt-4 grid gap-2.5 sm:mt-5 sm:gap-3">
         {question.options.map((opt, i) => {
           const isSelected = selected === i;
           const isAnswer = i === question.answer;
@@ -73,18 +74,18 @@ export function QuestionCard({ question, selected, onSelect, disabled }: Props) 
           return (
             <motion.button
               key={i}
-              initial={{ opacity: 0 }}
+              initial={{ opacity: 0, y: 6 }}
               animate={
                 revealed && isSelected && !isAnswer
-                  ? { opacity: 1, x: [0, -5, 5, -3, 3, 0] }
-                  : { opacity: 1, x: 0 }
+                  ? { opacity: 1, y: 0, x: [0, -5, 5, -3, 3, 0] }
+                  : { opacity: 1, y: 0, x: 0 }
               }
-              transition={{ delay: revealed ? 0 : 0.05 * i, duration: revealed ? 0.35 : 0.2 }}
-              whileTap={!revealed ? { scale: 0.98 } : undefined}
+              transition={{ delay: revealed ? 0 : 0.04 * i, duration: revealed ? 0.35 : 0.18 }}
+              whileTap={!revealed ? { scale: 0.985 } : undefined}
               disabled={disabled || revealed}
               onClick={() => onSelect(i)}
               className={cn(
-                "flex items-center gap-3 rounded-2xl border px-3.5 py-3 text-right text-sm font-semibold transition-colors duration-150 sm:px-4 sm:py-3.5 sm:text-base",
+                "flex items-center gap-3 rounded-2xl border px-3.5 py-3 text-start text-sm font-semibold transition-colors duration-150 sm:px-4 sm:py-3.5 sm:text-base",
                 "border-line hover:border-grass-500 hover:bg-grass-500/5",
                 revealed && isSelected && !isAnswer && "border-red-400 bg-red-500/10 text-red-600 dark:text-red-400",
                 revealed && isAnswer && "border-grass-500 bg-grass-500/15 text-grass-700 dark:text-grass-400",
@@ -99,17 +100,15 @@ export function QuestionCard({ question, selected, onSelect, disabled }: Props) 
                   revealed && isSelected && !isAnswer && "from-red-400 to-red-600",
                 )}
               >
-                {letters[i]}
+                {LETTERS[lang][i]}
               </span>
               <span className="flex-1">{opt}</span>
               {revealed && isAnswer && <CheckBadge className="size-6 shrink-0 sm:size-7" />}
-              {revealed && isSelected && !isAnswer && (
-                <CrossBadge className="size-6 shrink-0 sm:size-7" />
-              )}
+              {revealed && isSelected && !isAnswer && <CrossBadge className="size-6 shrink-0 sm:size-7" />}
             </motion.button>
           );
         })}
       </div>
-    </motion.div>
+    </motion.section>
   );
 }

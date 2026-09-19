@@ -1,334 +1,255 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import confetti from "canvas-confetti";
-import { Moon, Settings, Share2, Sun } from "lucide-react";
-import { motion } from "framer-motion";
-import type { Session } from "@supabase/supabase-js";
-import { Haptics, ImpactStyle } from "@capacitor/haptics";
-import { questions } from "./data/questions";
-import { phraseSets, pick } from "./data/phrases";
-import { sound } from "./lib/sound";
-import { applyLang, currentLang, t, type Lang } from "./lib/i18n";
-import {
-  getQuestionForToday,
-  getStats,
-  getSoundEnabled,
-  getTheme,
-  getHistory,
-  hasAnsweredToday,
-  recordAnswer,
-  resetAll,
-  setSoundEnabled,
-  setTheme,
-  type Stats,
-  type Theme,
-} from "./lib/store";
+/** ============================================================
+ *  TiQ App — الجذر
+ *  ============================================================ */
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { GraduationCap } from "lucide-react";
+import { APP } from "./core/config";
+import { dayKey, daysBetween } from "./core/date";
+import { getDailyQuestion, localizeQuestion } from "./domain/dailyEngine";
+import { fnv1a } from "./core/date";
+import { QUESTIONS } from "./data/questions";
+import { levelFor } from "./domain/progression";
+import { useProgress, usePrefs, useSession, useMidnightCountdown, useIsDark, useLang } from "./hooks/useAppStores";
+import { prefsStore } from "./stores/prefsStore";
+import { progressStore } from "./stores/progressStore";
 import { supabaseConfigured } from "./lib/supabase";
-import { auth, profile } from "./lib/backend";
-import {
-  isNative,
-  isReminderEnabled,
-  initReminderLifecycle,
-  scheduleDailyReminder,
-  setReminderEnabled,
-} from "./lib/notifications";
+import { pullProfile, pushProgress, saveDailyAnswer, type Session } from "./lib/backend";
+import { sfx, buzz, celebrate } from "./lib/feedback";
+import { initReminderLifecycle, isNative, scheduleDailyReminder, cancelReminder } from "./lib/notifications";
+import { pickPhrase, t } from "./lib/i18n";
+import { AppHeader } from "./components/AppHeader";
 import { QuestionCard } from "./components/QuestionCard";
 import { ResultPanel } from "./components/ResultPanels";
 import { SettingsSheet } from "./components/SettingsSheet";
 import { StreakOrb } from "./components/StreakOrb";
 import { WeekStrip } from "./components/WeekStrip";
+import { StatsGrid } from "./components/StatsGrid";
+import { LevelBar } from "./components/LevelBar";
+import { AchievementsPanel, UnlockToast } from "./components/AchievementsPanel";
+import { TrainingMode } from "./components/TrainingMode";
 import { AuthPanel } from "./components/AuthPanel";
-import { BallMark, PadMark, TargetMark } from "./components/Icons";
+import { Badge, Button } from "./components/ui/primitives";
+
+const STREAK_MILESTONES = [3, 7, 14, 30, 50, 100] as const;
 
 export default function App() {
-  const today = useMemo(() => getQuestionForToday(questions), []);
-  const history = useMemo(getHistory, []);
+  const prefs = usePrefs();
+  const lang = useLang();
+  const isDark = useIsDark();
+  const progress = useProgress();
+  const session: Session | null = useSession();
+  const countdown = useMidnightCountdown();
 
-  const [stats, setStats] = useState<Stats>(() => getStats());
-  const [selected, setSelected] = useState<number | null>(() =>
-    hasAnsweredToday(today.dateKey) ? (history[today.dateKey] ?? null) : null,
-  );
-  const [phrase, setPhrase] = useState("");
-  const [milestone, setMilestone] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [soundOn, setSoundOn] = useState(() => getSoundEnabled());
-  const [theme, setThemeState] = useState<Theme>(() => getTheme());
-  const [lang, setLangState] = useState<Lang>(() => currentLang());
-  const [session, setSession] = useState<Session | null>(null);
-  const [reminder, setReminder] = useState(() => isReminderEnabled());
-  const [isDark, setIsDark] = useState(
-    () =>
-      typeof document !== "undefined" &&
-      document.documentElement.classList.contains("dark"),
-  );
+  const [training, setTraining] = useState(false);
+  const [phrase, setPhrase] = useState("");
+  const [xpGained, setXpGained] = useState(0);
+  const [leveledUp, setLeveledUp] = useState(false);
+  const [unlockToast, setUnlockToast] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // جلسة المستخدم
+  // سؤال اليوم — ثابت لكل المستخدمين، يُعاد حسابه عند تغيير اللغة
+  const daily = useMemo(() => getDailyQuestion(new Date(), lang), [lang]);
+
+  // الإجابة المحفوظة لهذا اليوم (إن وجدت)
+  const savedSelection = useMemo(() => {
+    if (progress.todayQuestionId === daily.question.id && progress.lastAnswered === daily.dateKey) {
+      return progress.history[daily.dateKey] ?? null;
+    }
+    return null;
+  }, [progress, daily]);
+
+  const selected = training ? null : savedSelection;
+
+  // دورة حياة الإشعارات — يقرأ التفضيل لحظة التنفيذ
   useEffect(() => {
-    if (!supabaseConfigured) return;
-    void auth.getSession().then(setSession);
-    const sub = auth.onChange(setSession);
-    return () => sub.unsubscribe();
+    initReminderLifecycle(
+      () => prefsStore.getState().reminder,
+      () => prefsStore.getState().lang,
+    );
   }, []);
 
-  // مزامنة الإحصائيات عند تسجيل الدخول
+  // جدولة/إلغاء فوري عند تغيير التفضيل
+  useEffect(() => {
+    if (!isNative) return;
+    if (prefs.reminder) void scheduleDailyReminder(prefs.lang);
+    else void cancelReminder();
+  }, [prefs.reminder, prefs.lang]);
+
+  // مزامنة سحابية عند تسجيل الدخول: جلب ← دمج
   useEffect(() => {
     if (!session?.user || !supabaseConfigured) return;
-    let cancelled = false;
+    let alive = true;
     void (async () => {
       try {
-        const merged = await profile.pullAndMerge(stats, session.user);
-        if (cancelled) return;
-        setStats(merged);
-        await profile.pushStats(session.user, merged);
+        const remote = await pullProfile(session.user);
+        if (!alive || !remote) return;
+        progressStore.hydrate(remote);
+        await pushProgress(session.user, progressStore.getState());
       } catch {
         /* المزامنة اختيارية */
       }
     })();
     return () => {
-      cancelled = true;
+      alive = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.user?.id]);
+  }, [session?.user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // الإشعارات: جدولة فورية + إعادة جدولة عند الاستئناف
-  useEffect(() => {
-    initReminderLifecycle();
-  }, []);
-
-  // الوضع الداكن: مزامنة الحالة مع الصفحة
-  useEffect(() => {
-    const root = document.documentElement;
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const apply = () => {
-      const dark = theme === "dark" || (theme === "system" && mq.matches);
-      root.classList.toggle("dark", dark);
-      setIsDark(dark);
-    };
-    apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
-  }, [theme]);
-
-  const buzz = useCallback((correct: boolean) => {
-    if (!isNative) return;
-    void Haptics.impact({ style: correct ? ImpactStyle.Medium : ImpactStyle.Heavy });
+  const showUnlockToast = useCallback((id: string) => {
+    setUnlockToast(id);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setUnlockToast(null), 3200);
   }, []);
 
   const handleSelect = useCallback(
     (index: number) => {
       if (selected !== null) return;
-      setSelected(index);
-      const result = recordAnswer(today.dateKey, index, today.question.answer);
-      setStats(result.stats);
-      setMilestone(result.milestone);
-      setPhrase(pick(phraseSets[currentLang()][result.correct ? "win" : "lose"]));
+      const correct = index === daily.question.answer;
 
-      buzz(result.correct);
-      if (result.correct) {
-        sound.correct(soundOn);
-        // كونفيتي خفيف (أقل جزيئات = أسرع)
-        void confetti({
-          particleCount: 70,
-          spread: 65,
-          startVelocity: 32,
-          disableForReducedMotion: true,
-          origin: { y: 0.65 },
-          colors: ["#10b981", "#fbbf24", "#ffffff"],
-        });
-      } else {
-        sound.wrong(soundOn);
-      }
-      if (result.milestone) {
-        sound.streak(soundOn, result.stats.streak);
+      const result = progressStore.answer({
+        dateKey: daily.dateKey,
+        questionId: daily.question.id,
+        selected: index,
+        correct,
+        difficulty: daily.question.difficulty,
+      });
+
+      setXpGained(correct ? result.after.xp - result.before.xp : 0);
+      setLeveledUp(result.leveledUp);
+      setPhrase(pickPhrase(lang, correct));
+
+      if (prefs.sound) (correct ? sfx.correct : sfx.wrong)();
+      if (prefs.haptics && isNative) void buzz(correct ? "medium" : "heavy");
+      if (correct) void celebrate(undefined, result.leveledUp);
+      if (prefs.sound && result.leveledUp) setTimeout(() => sfx.levelUp(), 350);
+
+      const newUnlock = result.newUnlocks[0];
+      if (newUnlock) {
+        if (prefs.sound) setTimeout(() => sfx.unlock(), 500);
+        showUnlockToast(newUnlock.id);
       }
 
+      // مزامنة سحابية (غير حاجزة)
       if (session?.user && supabaseConfigured) {
-        void profile.pushStats(session.user, result.stats);
-        void profile.saveDailyAnswer(session.user, today.dateKey, index, result.correct);
+        void pushProgress(session.user, result.after).catch(() => undefined);
+        void saveDailyAnswer(session.user, daily.dateKey, index, correct).catch(() => undefined);
       }
     },
-    [selected, today, soundOn, session, buzz],
+    [selected, daily, lang, prefs.sound, prefs.haptics, session, showUnlockToast],
   );
 
-  const shareResult = () => {
-    const emoji = selected === today.question.answer ? "✅" : "❌";
-    const text = `⚽ TiQ — ${t("todayQuestion")}\n${emoji} ${today.question.q}\n🔥 ${t("myStreak")}: ${stats.streak} ${t("day")}\n${t("shareBody")}`;
-    if (navigator.share) {
-      void navigator.share({ title: t("shareTitle"), text });
-    } else {
-      void navigator.clipboard?.writeText(text);
-      alert(t("copied"));
+  /**
+   * نتائج آخر 7 أيام بدقة: نعيد بناء سؤال كل يوم تاريخيًا
+   * ونقارن الخيار المحفوظ بالإجابة الصحيحة.
+   */
+  const weekResults = useMemo(() => {
+    const results: Record<string, boolean> = {};
+    const today = new Date();
+    for (const key of Object.keys(progress.history)) {
+      const age = daysBetween(key, dayKey(today));
+      if (age < 0 || age > 90) continue;
+      const q = QUESTIONS[fnv1a(key) % QUESTIONS.length];
+      if (!q) continue;
+      // الخيار المحفوظ كان بترتيب معروض بنفس بذرة اليوم
+      const lq = localizeQuestion(q, lang, fnv1a(key) ^ 0x9e3779b9);
+      const sel = progress.history[key];
+      if (typeof sel === "number") results[key] = sel === lq.answer;
     }
-  };
+    return results;
+  }, [progress.history, lang]);
+
+  const milestone = useMemo(() => {
+    const hit = STREAK_MILESTONES.find((m) => m === progress.streak);
+    return hit ? (`m${hit}` as const) : null;
+  }, [progress.streak]);
+
+  const toggleLang = () => prefsStore.setLang(lang === "ar" ? "en" : "ar");
 
   const handleReset = () => {
-    resetAll();
+    progressStore.reset();
+    setSettingsOpen(false);
     location.reload();
   };
 
-  const changeSound = (on: boolean) => {
-    setSoundOn(on);
-    setSoundEnabled(on);
-  };
-
-  const changeTheme = (th: Theme) => {
-    setThemeState(th);
-    setTheme(th);
-  };
-
-  const changeLang = (l: Lang) => {
-    setLangState(applyLang(l));
-  };
-
-  const toggleQuickTheme = () => {
-    changeTheme(isDark ? "light" : "dark");
-  };
-
-  const changeReminder = (on: boolean) => {
-    setReminder(on);
-    setReminderEnabled(on);
-    if (on) void scheduleDailyReminder();
-  };
-
-  const alreadyAnswered = selected !== null;
-
-  const weekAnswers = useMemo(() => {
-    const map: Record<string, boolean> = {};
-    const correctIndex = today.question.answer;
-    for (const [day, sel] of Object.entries(history)) {
-      if (typeof sel === "number") map[day] = sel === correctIndex;
-    }
-    return map;
-  }, [history, today]);
+  const lvl = levelFor(progress.xp);
 
   return (
     <div className="pitch-lines flex min-h-dvh flex-col">
-      {/* الشريط العلوي — آمن تحت شريط حالة النظام (safe-area) */}
-      <header
-        className="flex items-center justify-between gap-2 px-3 sm:px-8 sm:pt-5"
-        style={{ paddingTop: "max(env(safe-area-inset-top), 12px)" }}
-      >
-        <div className="flex min-w-0 items-center gap-2">
-          <img src="/icon.png" alt="TiQ" className="size-9 shrink-0 rounded-xl shadow sm:size-11" />
-          <div className="min-w-0 leading-tight">
-            <h1 className="bg-gradient-to-l from-grass-600 to-gold bg-clip-text text-lg font-black text-transparent sm:text-xl dark:from-grass-400 dark:to-gold">
-              TiQ
-            </h1>
-            <p className="truncate text-[10px] font-bold opacity-60 sm:text-[11px]">{t("tagline")}</p>
-          </div>
-        </div>
+      <AppHeader lang={lang} isDark={isDark} onToggleLang={toggleLang} onOpenSettings={() => setSettingsOpen(true)} />
 
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-          <button
-            onClick={() => changeLang(lang === "ar" ? "en" : "ar")}
-            aria-label="Language"
-            className="glass-card flex h-9 items-center rounded-full px-2.5 text-xs font-black shadow-sm sm:h-10 sm:px-3"
-          >
-            {lang === "ar" ? "EN" : "ع"}
-          </button>
-
-          <button
-            onClick={toggleQuickTheme}
-            aria-label={t("appearance")}
-            className="glass-card flex h-9 w-9 items-center justify-center rounded-full shadow-sm sm:h-10 sm:w-10"
-          >
-            {isDark ? <Sun className="size-4 sm:size-5" /> : <Moon className="size-4 sm:size-5" />}
-          </button>
-
-          {alreadyAnswered && (
-            <button
-              onClick={shareResult}
-              aria-label="Share"
-              className="glass-card hidden h-9 w-9 items-center justify-center rounded-full shadow-sm sm:flex sm:h-10 sm:w-10"
-            >
-              <Share2 className="size-4 sm:size-5" />
-            </button>
-          )}
-
-          <button
-            onClick={() => setSettingsOpen(true)}
-            aria-label={t("settings")}
-            className="glass-card flex h-9 w-9 items-center justify-center rounded-full shadow-sm sm:h-10 sm:w-10"
-          >
-            <Settings className="size-4 sm:size-5" />
-          </button>
-        </div>
-      </header>
-
-      {/* السلسلة */}
-      <div className="mt-3 flex justify-center px-3 sm:mt-4">
-        <StreakOrb streak={stats.streak} best={stats.best} />
+      {/* السلسلة + شارة المزامنة */}
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-2 px-3">
+        <StreakOrb streak={progress.streak} best={progress.best} lang={lang} />
+        {supabaseConfigured && (
+          <Badge tone={session ? "grass" : "neutral"} className="hidden sm:inline-flex">
+            {session ? t(lang, "cloudSynced") : t(lang, "localOnly")}
+          </Badge>
+        )}
       </div>
 
-      {/* المحتوى */}
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-5 px-3 py-6 sm:px-8 sm:py-8">
-        <QuestionCard question={today.question} selected={selected} onSelect={handleSelect} />
-
-        {alreadyAnswered && (
-          <ResultPanel
-            question={today.question}
-            selected={selected}
-            phrase={phrase || t("savedAnswer")}
-            milestone={milestone}
+      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 px-3 py-5 sm:gap-5 sm:px-8 sm:py-7">
+        {training ? (
+          <TrainingMode
+            lang={lang}
+            soundOn={prefs.sound}
+            hapticsOn={prefs.haptics}
+            onExit={() => setTraining(false)}
           />
-        )}
+        ) : (
+          <>
+            <QuestionCard
+              question={daily.question}
+              selected={selected}
+              onSelect={handleSelect}
+              lang={lang}
+              countdown={countdown}
+            />
 
-        <WeekStrip answers={weekAnswers} />
+            {selected !== null && (
+              <ResultPanel
+                question={daily.question}
+                selected={selected}
+                phrase={phrase || t(lang, "savedAnswer")}
+                milestone={milestone}
+                xpGained={xpGained}
+                leveledUp={leveledUp}
+                levelName={lvl.name}
+                lang={lang}
+              />
+            )}
 
-        {alreadyAnswered && (
-          <div className="grid grid-cols-3 gap-2 text-center sm:gap-3">
-            {[
-              { label: t("matches"), value: `${stats.playedCount}`, Icon: PadMark },
-              { label: t("goals"), value: `${stats.correctCount}`, Icon: BallMark },
-              {
-                label: t("accuracy"),
-                value: `${Math.round((stats.correctCount / Math.max(stats.playedCount, 1)) * 100)}%`,
-                Icon: TargetMark,
-              },
-            ].map(({ label, value, Icon }, i) => (
-              <motion.div
-                key={label}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.08 * i }}
-                className="glass-card rounded-2xl p-2.5 shadow-sm sm:p-3"
-              >
-                <p className="flex items-center justify-center gap-1.5 text-lg font-black text-grass-700 sm:text-xl dark:text-grass-400">
-                  <Icon className="size-4 sm:size-5" />
-                  {value}
-                </p>
-                <p className="text-[10px] font-bold opacity-60 sm:text-xs">{label}</p>
-              </motion.div>
-            ))}
-          </div>
-        )}
+            <WeekStrip results={weekResults} lang={lang} />
 
-        {supabaseConfigured && <AuthPanel session={session} />}
+            <LevelBar progress={progress} lang={lang} />
 
-        {alreadyAnswered && (
-          <p className="text-center text-sm font-bold opacity-50">{t("backTomorrow")}</p>
+            <StatsGrid played={progress.playedCount} correct={progress.correctCount} lang={lang} />
+
+            <AchievementsPanel progress={progress} lang={lang} />
+
+            <Button variant="ghost" onClick={() => setTraining(true)} className="w-full">
+              <GraduationCap className="size-4" />
+              {t(lang, "train")} — {t(lang, "trainDesc")}
+            </Button>
+
+            {supabaseConfigured && <AuthPanel session={session} lang={lang} />}
+
+            {selected !== null && (
+              <p className="text-center text-sm font-bold opacity-50">{t(lang, "backTomorrow")}</p>
+            )}
+          </>
         )}
       </main>
 
-      <footer
-        className="pb-4 text-center sm:pb-6"
-        style={{ paddingBottom: "max(env(safe-area-inset-bottom), 16px)" }}
-      >
-        <p className="text-xs font-bold opacity-50">{t("madeBy")}</p>
+      <footer className="pb-4 text-center" style={{ paddingBottom: "max(env(safe-area-inset-bottom), 16px)" }}>
+        <p className="text-xs font-bold opacity-50">
+          {APP.name} v{APP.version} — {t(lang, "madeBy")}
+        </p>
       </footer>
 
-      <SettingsSheet
-        open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
-        soundOn={soundOn}
-        onSoundChange={changeSound}
-        theme={theme}
-        onThemeChange={changeTheme}
-        lang={lang}
-        onLangChange={changeLang}
-        reminder={reminder}
-        onReminderChange={changeReminder}
-        onReset={handleReset}
-      />
+      {unlockToast && <UnlockToast achievementId={unlockToast} lang={lang} />}
+
+      <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} onReset={handleReset} />
     </div>
   );
 }

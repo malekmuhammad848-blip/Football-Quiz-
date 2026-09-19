@@ -1,43 +1,36 @@
-export type Lang = "ar" | "en";
+/** ============================================================
+ *  i18n — ترجمة مطبَّعة: المفاتيح معروفة في وقت الكتابة
+ *  ============================================================ */
 
-const KEY = "fq:lang";
+import type { Lang } from "../domain/types";
 
-export function getLang(): Lang {
-  try {
-    const v = localStorage.getItem(KEY);
-    if (v === "en" || v === "ar") return v;
-  } catch {
-    /* تجاهل */
-  }
-  return "ar";
-}
+export type { Lang };
 
-export function setLang(l: Lang) {
-  try {
-    localStorage.setItem(KEY, l);
-  } catch {
-    /* تجاهل */
-  }
-}
+export const LANGS: { value: Lang; label: string; flag: string }[] = [
+  { value: "ar", label: "العربية", flag: "🇸🇦" },
+  { value: "en", label: "English", flag: "🇬🇧" },
+];
 
-const ar: Record<string, string> = {
+/** مفاتيح معروفة — إضافة مفتاح هنا يُلزم كل القواميس بتوفيره */
+const ar = {
   tagline: "سؤال الكرة اليومي",
   todayQuestion: "سؤال اليوم",
-  matches: "المباريات",
+  matches: "مباريات",
   goals: "أهداف",
-  accuracy: "الدقة",
-  backTomorrow: "🗓️ سؤال جديد عند منتصف الليل — استعد!",
-  savedAnswer: "إجابة اليوم محفوظة ✅",
+  accuracy: "دقة",
+  backTomorrow: "سؤال جديد عند منتصف الليل — استعد!",
+  savedAnswer: "إجابة اليوم محفوظة",
   correctAnswerIs: "الإجابة الصحيحة",
   settings: "الإعدادات",
   dailyReminder: "التذكير اليومي",
   reminderTime: "10:00 مساءً",
   sound: "المؤثرات الصوتية",
+  haptics: "الاهتزاز",
   appearance: "المظهر",
   light: "نهاري",
   dark: "ليلي",
   system: "النظام",
-  resetProgress: "🗑️ إعادة تعيين كل التقدّم",
+  resetProgress: "إعادة تعيين كل التقدّم",
   signIn: "تسجيل الدخول",
   signUp: "حساب جديد",
   email: "البريد الإلكتروني",
@@ -45,41 +38,94 @@ const ar: Record<string, string> = {
   login: "دخول",
   createAccount: "إنشاء الحساب",
   logout: "خروج",
-  welcomeBack: "مرحبًا بك مجددًا ⚽",
+  welcomeBack: "مرحبًا بعودتك",
   busy: "جارٍ...",
   accountCreated: "تم إنشاء الحساب! تحقق من بريدك إن لزم ثم سجّل الدخول.",
   unexpectedError: "حدث خطأ غير متوقع",
   madeBy: "تطوير Malek",
-  copied: "تم نسخ النتيجة! 📋",
+  copied: "تم نسخ النتيجة",
   shareTitle: "TiQ ⚽",
   shareBody: "جرّب أنت أيضًا!",
   myStreak: "سلسلتي",
   day: "يوم",
-  m3: "٣ أيام متتالية — في قمة لياقتك! 🔥",
-  m7: "أسبوع كامل! كابتن الفريق 🧢",
-  m14: "أسبوعان! لاعب محترف ⭐",
-  m30: "شهر كامل! أسطورة المتابعة 👑",
-  version: "TiQ v2.0",
-};
+  week: "آخر 7 أيام",
+  achievements: "الإنجازات",
+  achievementsLocked: "قفل",
+  level: "المستوى",
+  xp: "نقاط الخبرة",
+  levelUp: "ترقية!",
+  newLevel: "وصلت إلى المستوى",
+  train: "وضع التدريب",
+  trainDesc: "أسئلة سريعة متتالية — بلا مؤثر على سلسلتك",
+  trainStart: "ابدأ التدريب",
+  trainQuit: "إنهاء التدريب",
+  trainScore: "نتيجتك",
+  trainOf: "من",
+  trainNext: "التالي",
+  question: "سؤال",
+  difficultyEasy: "سهل",
+  difficultyMedium: "متوسط",
+  difficultyHard: "صعب",
+  catHistory: "تاريخ وقوانين",
+  catWorldcup: "كأس العالم",
+  catClubs: "أندية",
+  catPlayers: "لاعبون ومدربون",
+  catLegends: "أساطير",
+  catArab: "كرة عربية",
+  close: "إغلاق",
+  cloudSynced: "مزامنة سحابية نشطة",
+  localOnly: "وضع محلي — سجّل الدخول للمزامنة",
+  // عبارات النتائج
+  win0: "هدف عالمي!",
+  win1: "قراءة رائعة للكرة!",
+  win2: "ذهبية! عين النسر!",
+  win3: "أسطورة! استمر هكذا!",
+  win4: "كرة ساحرة! كفو!",
+  lose0: "لا بأس، الكرة هكذا!",
+  lose1: "محاولة شريفة، حاول غدًا!",
+  lose2: "الكرة مستديرة دائمًا!",
+  lose3: "أخطاء المدرب تصنع البطولات!",
+  // مراحل السلسلة
+  m3: "3 أيام متتالية — في قمة لياقتك!",
+  m7: "أسبوع كامل! كابتن الفريق",
+  m14: "أسبوعان! لاعب محترف",
+  m30: "شهر كامل! أسطورة المتابعة",
+  m50: "50 يومًا! نادٍ من العيار الثقيل",
+  m100: "100 يوم! خارفة التاريخ",
+  // الإنجازات
+  achFirstGoal: "أول هدف — إجابة صحيحة أولى",
+  achFiveCorrect: "خماسية — 5 إجابات صحيحة",
+  achTwentyCorrect: "العلامة العشرين — 20 إجابة صحيحة",
+  achStreak3: "شرارة — سلسلة 3 أيام",
+  achStreak7: "اشتعال — سلسلة أسبوع",
+  achStreak30: "وحيب — سلسلة شهر",
+  achVeteran10: "محارب قديم — 10 مباريات",
+  achVeteran50: "الخمسين — 50 مباراة",
+  achLevelPro: "محترف — بلوغ المستوى 3",
+  achLevelLegend: "الأسطورة — بلوغ المستوى الأقصى",
+} as const;
 
-const en: Record<string, string> = {
+export type TKey = keyof typeof ar;
+
+const en: Record<TKey, string> = {
   tagline: "Daily Football Question",
   todayQuestion: "Today's Question",
   matches: "Matches",
   goals: "Goals",
   accuracy: "Accuracy",
-  backTomorrow: "🗓️ New question at midnight — get ready!",
-  savedAnswer: "Today's answer saved ✅",
+  backTomorrow: "New question at midnight — get ready!",
+  savedAnswer: "Today's answer saved",
   correctAnswerIs: "Correct answer",
   settings: "Settings",
   dailyReminder: "Daily reminder",
   reminderTime: "10:00 PM",
   sound: "Sound effects",
+  haptics: "Haptics",
   appearance: "Appearance",
   light: "Light",
   dark: "Dark",
   system: "System",
-  resetProgress: "🗑️ Reset all progress",
+  resetProgress: "Reset all progress",
   signIn: "Sign in",
   signUp: "Sign up",
   email: "Email",
@@ -87,53 +133,91 @@ const en: Record<string, string> = {
   login: "Sign in",
   createAccount: "Create account",
   logout: "Log out",
-  welcomeBack: "Welcome back ⚽",
+  welcomeBack: "Welcome back",
   busy: "Working...",
   accountCreated: "Account created! Verify your email if needed, then sign in.",
   unexpectedError: "Unexpected error",
   madeBy: "Made by Malek",
-  copied: "Result copied! 📋",
+  copied: "Result copied",
   shareTitle: "TiQ ⚽",
   shareBody: "Try it too!",
   myStreak: "My streak",
   day: "days",
-  m3: "3 days straight — peak form! 🔥",
-  m7: "Full week! Team captain 🧢",
-  m14: "Two weeks! Pro player ⭐",
-  m30: "Full month! Legend 👑",
-  version: "TiQ v2.0",
+  week: "Last 7 days",
+  achievements: "Achievements",
+  achievementsLocked: "Locked",
+  level: "Level",
+  xp: "XP",
+  levelUp: "Level up!",
+  newLevel: "You reached level",
+  train: "Training Mode",
+  trainDesc: "Quick-fire questions — no effect on your streak",
+  trainStart: "Start training",
+  trainQuit: "End training",
+  trainScore: "Your score",
+  trainOf: "of",
+  trainNext: "Next",
+  question: "Question",
+  difficultyEasy: "Easy",
+  difficultyMedium: "Medium",
+  difficultyHard: "Hard",
+  catHistory: "History & Laws",
+  catWorldcup: "World Cup",
+  catClubs: "Clubs",
+  catPlayers: "Players & Coaches",
+  catLegends: "Legends",
+  catArab: "Arab Football",
+  close: "Close",
+  cloudSynced: "Cloud sync active",
+  localOnly: "Local mode — sign in to sync",
+  win0: "World-class strike!",
+  win1: "Great reading of the game!",
+  win2: "Golden! Eagle eye!",
+  win3: "Legend! Keep it up!",
+  win4: "Magic touch! Brilliant!",
+  lose0: "Never mind, football is like that!",
+  lose1: "Fair attempt — try tomorrow!",
+  lose2: "The ball is always round!",
+  lose3: "Coaches' mistakes make championships!",
+  m3: "3 days straight — peak form!",
+  m7: "A full week! Team captain",
+  m14: "Two weeks! Pro player",
+  m30: "A full month! Follow-up legend",
+  m50: "50 days! Heavyweight club",
+  m100: "100 days! History maker",
+  achFirstGoal: "First Goal — your first correct answer",
+  achFiveCorrect: "High Five — 5 correct answers",
+  achTwentyCorrect: "Twenty Up — 20 correct answers",
+  achStreak3: "Spark — 3-day streak",
+  achStreak7: "On Fire — week-long streak",
+  achStreak30: "Immortal — month-long streak",
+  achVeteran10: "Veteran — 10 matches",
+  achVeteran50: "Half Century — 50 matches",
+  achLevelPro: "Pro — reach Level 3",
+  achLevelLegend: "The Legend — max level",
 };
 
-const dicts: Record<Lang, Record<string, string>> = { ar, en };
+const dicts: Record<Lang, Record<TKey, string>> = { ar, en };
 
-let current: Lang = getLang();
-
-export function currentLang(): Lang {
-  return current;
+export function t(lang: Lang, key: TKey): string {
+  return dicts[lang][key];
 }
 
-export function t(key: string): string {
-  return dicts[current][key] ?? ar[key] ?? key;
-}
-
-/** تُستدعى عند التبديل — تحفظ وتحدّث الاتجاه فورًا */
-export function applyLang(l: Lang): Lang {
-  current = l;
-  setLang(l);
-  if (typeof document !== "undefined") {
-    document.documentElement.lang = l;
-    document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
-  }
-  return l;
-}
-
-// تطبيق الاتجاه عند الإقلاع
-if (typeof document !== "undefined") {
-  document.documentElement.lang = current;
-  document.documentElement.dir = current === "ar" ? "rtl" : "ltr";
+/** جملة ذات معاملات: tr("{x}/{y}", { x: 2, y: 5 }) */
+export function tr(template: string, params: Record<string, string | number>): string {
+  return Object.entries(params).reduce(
+    (s, [k, v]) => s.replaceAll(`{${k}}`, String(v)),
+    template,
+  );
 }
 
 export const dayNames: Record<Lang, string[]> = {
   ar: ["أحد", "اثنين", "ثلاثاء", "أربعاء", "خميس", "جمعة", "سبت"],
   en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
 };
+
+export function pickPhrase(lang: Lang, correct: boolean): string {
+  const keys = correct ? ["win0", "win1", "win2", "win3", "win4"] : ["lose0", "lose1", "lose2", "lose3"];
+  const i = Math.floor(Math.random() * keys.length);
+  return t(lang, keys[i]! as TKey);
+}

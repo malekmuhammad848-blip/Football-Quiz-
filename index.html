@@ -14,14 +14,26 @@
     <meta property="og:type" content="website" />
     <title>⚽ TiQ — سؤال الكرة اليومي</title>
     <script>
-      // تطبيق الوضع الداكن قبل الرسم لمنع الوميض
+      // تطبيق الوضع الداكن قبل الرسم لمنع الوميض (متوافق مع tiq:prefs v3)
       (function () {
         try {
-          var t = JSON.parse(localStorage.getItem("fq:theme") || '"system"');
-          var dark =
-            t === "dark" ||
-            (t === "system" &&
-              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          var dark = null;
+          var prefsRaw = localStorage.getItem("tiq:prefs");
+          if (prefsRaw) {
+            var theme = (JSON.parse(prefsRaw) || {}).theme;
+            if (theme === "dark") dark = true;
+            else if (theme === "light") dark = false;
+          } else {
+            var old = localStorage.getItem("fq:theme");
+            if (old) {
+              var t = JSON.parse(old);
+              if (t === "dark") dark = true;
+              else if (t === "light") dark = false;
+            }
+          }
+          if (dark === null) {
+            dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          }
           if (dark) document.documentElement.classList.add("dark");
         } catch (e) {}
       })();
