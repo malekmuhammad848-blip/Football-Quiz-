@@ -63,13 +63,12 @@ jobs:
           export default config;
           CAPEOF
 
-      - name: Install Capacitor
-        run: npm install @capacitor/core@8.5.2 @capacitor/cli@7.4.4 @capacitor/android@7.4.4
-
-      # تثبيت إضافات Capacitor بإصدارات متوافقة مع compileSdk 35 وAGP 8.7
-      # (@capacitor/browser v8 يسحب androidx.browser:1.9 التي تطلب SDK 36 + AGP 8.9)
-      - name: Install compatible Capacitor plugins
-        run: npm install @capacitor/browser@7 @capacitor/haptics@7 @capacitor/local-notifications@7 @capacitor/app@7 || true
+      - name: Install Capacitor (v7 stack — compatible with compileSdk 35 / AGP 8.7)
+        run: |
+          npm install --legacy-peer-deps \
+            @capacitor/core@7.4.4 @capacitor/cli@7.4.4 @capacitor/android@7.4.4 \
+            @capacitor/app@7.2.0 @capacitor/browser@7.0.2 @capacitor/haptics@7.0.2 \
+            @capacitor/local-notifications@7.0.3
 
       - name: Add Android platform
         run: npx cap add android
