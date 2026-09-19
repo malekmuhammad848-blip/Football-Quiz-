@@ -125,6 +125,30 @@ jobs:
           }
           KTEOF
 
+      # توقيع ثابت — نفس المفتاح في كل بناء حتى يبقى SHA-1 ثابتًا لـ Google Sign-In
+      - name: Apply stable signing key
+        run: |
+          cat >> android/app/build.gradle << 'SIGEOF'
+
+          android {
+              signingConfigs {
+                  tiqKey {
+                      storeFile file("../../tiq-release.keystore")
+                      storePassword "TiQ-Malek-2026"
+                      keyAlias "tiq"
+                      keyPassword "TiQ-Malek-2026"
+                  }
+              }
+              buildTypes {
+                  debug {
+                      signingConfig signingConfigs.tiqKey
+                  }
+              }
+          }
+          SIGEOF
+          keytool -list -v -keystore tiq-release.keystore -alias tiq -storepass TiQ-Malek-2026 2>/dev/null | grep "SHA1:" | head -1 || true
+          echo "✅ Stable signing key applied"
+
       - name: Build APK
         run: |
           cd android
