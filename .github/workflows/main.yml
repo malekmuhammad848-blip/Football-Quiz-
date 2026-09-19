@@ -67,8 +67,8 @@ jobs:
         run: |
           npm install --legacy-peer-deps \
             @capacitor/core@7.4.4 @capacitor/cli@7.4.4 @capacitor/android@7.4.4 \
-            @capacitor/app@7.2.0 @capacitor/browser@7.0.2 @capacitor/haptics@7.0.2 \
-            @capacitor/local-notifications@7.0.3
+            @capacitor/app@7.1.2 @capacitor/browser@7.0.5 @capacitor/haptics@7.0.5 \
+            @capacitor/local-notifications@7.0.7
 
       - name: Add Android platform
         run: npx cap add android
