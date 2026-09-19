@@ -11,13 +11,15 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const url = import.meta.env.VITE_SUPABASE_URL || SUPABASE_URL;
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || SUPABASE_ANON_KEY;
 
-/** هل التكامل مهيأ؟ دائماً true الآن */
+/** دائماً true — Supabase مهيّأ */
 export const supabaseConfigured = true;
 
 export const supabase = createClient(url, anonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: false,
+    // true = يلتقط رمز OAuth من URL تلقائياً بعد redirect (ضروري للويب)
+    detectSessionInUrl: true,
+    flowType: "pkce",
   },
 });
