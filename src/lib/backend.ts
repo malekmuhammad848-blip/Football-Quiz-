@@ -1,6 +1,6 @@
-/** ============================================================
- *  Backend service — المصادقة ومزامنة التقدم (Supabase)
- *  ============================================================ */
+/**
+ * Backend service — المصادقة ومزامنة التقدم + البيانات الديناميكية (Supabase)
+ */
 
 import { Capacitor } from "@capacitor/core";
 import { Browser } from "@capacitor/browser";
@@ -144,6 +144,16 @@ export const authServiceExtra = {
       /* الاسم المحلي يكفي */
     }
   },
+  async updateAvatarTag(avatarId: string, tagId: string) {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) return null;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ avatar_id: avatarId, tag_id: tagId })
+      .eq("id", data.session.user.id);
+    if (error) return null;
+    return true;
+  },
 };
 
 /** رفع التقدم */
@@ -210,4 +220,238 @@ export async function syncProgress(user: User, merge: (remote: Partial<Progress>
   const remote = await pullProfile(user);
   if (remote) merge(remote);
   await pushProgress(user, current);
+}
+
+/* ============================================================
+ * البيانات الديناميكية — كل المحتوى يأتي من Supabase مباشرة
+ * ============================================================ */
+
+// ——— الفعاليات ———
+export interface EventRow {
+  id: string;
+  kind: "tournament" | "challenge" | "reward" | "season";
+  title_ar: string;
+  title_en: string;
+  desc_ar: string | null;
+  desc_en: string | null;
+  emoji: string;
+  accent: string;
+  starts_at: string;
+  ends_at: string;
+  reward_ar: string | null;
+  reward_en: string | null;
+  cta_label_ar: string | null;
+  cta_label_en: string | null;
+}
+
+export async function fetchActiveEvents(): Promise<EventRow[]> {
+  const now = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+    .eq("active", true)
+    .lte("starts_at", now)
+    .gte("ends_at", now)
+    .order("starts_at", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as EventRow[];
+}
+
+// ——— التخصيص: أفاتارات وتاغات ———
+export interface AvatarOption {
+  id: string;
+  label_ar: string;
+  label_en: string;
+  emoji: string;
+  min_xp: number;
+  sort: number;
+}
+
+export interface TagOption {
+  id: string;
+  label_ar: string;
+  label_en: string;
+  emoji: string;
+  min_xp: number;
+  sort: number;
+}
+
+export async function fetchAvatarCatalog(): Promise<AvatarOption[]> {
+  const { data, error } = await supabase
+    .from("avatar_catalog")
+    .select("*")
+    .order("sort", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as AvatarOption[];
+}
+
+export async function fetchTagCatalog(): Promise<TagOption[]> {
+  const { data, error } = await supabase
+    .from("tag_catalog")
+    .select("*")
+    .order("sort", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as TagOption[];
+}
+
+export interface MyProfileRow {
+  avatar_id: string | null;
+  tag_id: string | null;
+}
+
+export async function fetchMyProfileMeta(userId: string): Promise<MyProfileRow | null> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("avatar_id, tag_id")
+    .eq("id", userId)
+    .maybeSingle();
+  return (data as MyProfileRow | null) ?? null;
+}
+
+// ——— الترجيح ———
+export interface PenaltyQuestionRow {
+  id: string;
+  difficulty: "easy" | "medium" | "hard";
+  ar_q: string;
+  ar_a: string;
+  ar_b: string;
+  ar_c: string;
+  ar_d: string;
+  en_q: string;
+  en_a: string;
+  en_b: string;
+  en_c: string;
+  en_d: string;
+  correct: number;
+}
+
+export interface PenaltyRoomRow {
+  id: string;
+  status: "waiting" | "shooting" | "finished" | "abandoned";
+  p1: string;
+  p1_name: string;
+  p1_score: number;
+  p1_answer: number | null;
+  p2: string | null;
+  p2_name: string | null;
+  p2_score: number;
+  p2_answer: number | null;
+  question_id: string | null;
+  round: number;
+  total_rounds: number;
+  deadline: string | null;
+  winner: string | null;
+}
+
+export type RoomQuestion = {
+  id: string;
+  difficulty: "easy" | "medium" | "hard";
+  q: string;
+  options: [string, string, string, string];
+  correct: number; // 1-based
+};
+
+export async function fetchPenaltyQuestion(id: string, lang: "ar" | "en"): Promise<RoomQuestion | null> {
+  const { data, error } = await supabase
+    .from("penalty_questions")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const row = data as PenaltyQuestionRow;
+  return {
+    id: row.id,
+    difficulty: row.difficulty,
+    q: lang === "ar" ? row.ar_q : row.en_q,
+    options:
+      lang === "ar"
+        ? [row.ar_a, row.ar_b, row.ar_c, row.ar_d]
+        : [row.en_a, row.en_b, row.en_c, row.en_d],
+    correct: row.correct,
+  };
+}
+
+/** دخول قائمة الانتظار أو إنشاء غرفة */
+export async function joinQueue(playerName: string): Promise<string> {
+  const { data, error } = await supabase.rpc("join_penalty_queue", { p_name: playerName });
+  if (error) throw error;
+  return data as string;
+}
+
+/** بدء مباراة ضد حاسوب TiQ */
+export async function startBotMatch(playerName: string): Promise<string> {
+  const { data, error } = await supabase.rpc("start_bot_match", { p_name: playerName });
+  if (error) throw error;
+  return data as string;
+}
+
+/** تسديد */
+export async function takeShot(roomId: string, answer: number, timeMs: number): Promise<void> {
+  const { error } = await supabase.rpc("take_penalty_shot", {
+    room_id: roomId,
+    answer,
+    time_ms: timeMs,
+  });
+  if (error) throw error;
+}
+
+/** الاشتراك في تحديثات غرفة بالزمن الحقيقي */
+export function subscribeRoom(
+  roomId: string,
+  onUpdate: (room: PenaltyRoomRow) => void,
+): () => void {
+  const channel = supabase
+    .channel(`room:${roomId}`)
+    .on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table: "penalty_rooms", filter: `id=eq.${roomId}` },
+      (payload) => onUpdate(payload.new as PenaltyRoomRow),
+    )
+    .subscribe();
+  return () => {
+    void supabase.removeChannel(channel);
+  };
+}
+
+/** جلب حالة الغرفة مرة واحدة (fallback إن تعطل الـ Realtime) */
+export async function fetchRoom(roomId: string): Promise<PenaltyRoomRow | null> {
+  const { data } = await supabase.from("penalty_rooms").select("*").eq("id", roomId).maybeSingle();
+  return (data as PenaltyRoomRow | null) ?? null;
+}
+
+export interface PenaltyStatRow {
+  wins: number;
+  losses: number;
+  shots: number;
+  goals: number;
+}
+
+export async function fetchMyPenaltyStats(userId: string): Promise<PenaltyStatRow | null> {
+  const { data } = await supabase
+    .from("penalty_stats")
+    .select("wins, losses, shots, goals")
+    .eq("user_id", userId)
+    .maybeSingle();
+  return (data as PenaltyStatRow | null) ?? null;
+}
+
+export interface PenaltyLeaderRow {
+  user_id: string;
+  display_name: string;
+  wins: number;
+  losses: number;
+  shots: number;
+  goals: number;
+  goal_rate: number;
+}
+
+export async function fetchPenaltyLeaders(): Promise<PenaltyLeaderRow[]> {
+  const { data, error } = await supabase
+    .from("penalty_leaderboard")
+    .select("*")
+    .order("wins", { ascending: true })
+    .limit(20);
+  if (error) throw error;
+  return (data ?? []) as PenaltyLeaderRow[];
 }

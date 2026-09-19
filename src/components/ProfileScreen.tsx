@@ -3,29 +3,43 @@
  *  أفاتار بإطار الدوري + شارات مقفولة بتلميحات + إحصائيات + حالة الدوري.
  *  ============================================================ */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Check, Lock, Pencil, Trophy, X } from "lucide-react";
+import { Check, Lock, Pencil, Shirt, Trophy, X } from "lucide-react";
 import { levelFor } from "../domain/progression";
 import { leagueFor, nextLeague, leagueProgress, leagueName, LEAGUES } from "../domain/leagues";
 import { BADGES } from "../domain/badges";
 import { ACHIEVEMENT_ICONS } from "./Icons";
 import { useProgress, usePrefs } from "../hooks/useAppStores";
 import { prefsStore } from "../stores/prefsStore";
-import { authService, authServiceExtra, type Session } from "../lib/backend";
+import {
+  authService,
+  authServiceExtra,
+  fetchAvatarCatalog,
+  fetchMyPenaltyStats,
+  fetchMyProfileMeta,
+  fetchTagCatalog,
+  type AvatarOption,
+  type PenaltyStatRow,
+  type Session,
+  type TagOption,
+} from "../lib/backend";
 import { t } from "../lib/i18n";
 import { supabaseConfigured } from "../lib/supabase";
 import { cn } from "../utils/cn";
 import { Button, ProgressBar } from "./ui/primitives";
 import { Avatar } from "./Avatar";
 import { LeaderboardSheet } from "./LeaderboardSheet";
+import { CustomizeSheet } from "./CustomizeSheet";
 
 interface Props {
   session: Session | null;
   onClose: () => void;
+  /** الوضع المدمج داخل تبويب الملف (بلا خلفية ثابتة) */
+  embedded?: boolean;
 }
 
-export function ProfileScreen({ session, onClose }: Props) {
+export function ProfileScreen({ session, onClose, embedded = false }: Props) {
   const progress = useProgress();
   const prefs = usePrefs();
   const lang = prefs.lang;
@@ -33,6 +47,35 @@ export function ProfileScreen({ session, onClose }: Props) {
   const [editing, setEditing] = useState(false);
   const [draftName, setDraftName] = useState("");
   const [boardOpen, setBoardOpen] = useState(false);
+  const [customizeOpen, setCustomizeOpen] = useState(false);
+  const [avatarId, setAvatarId] = useState<string | null>(null);
+  const [tagId, setTagId] = useState<string | null>(null);
+  const [penStats, setPenStats] = useState<PenaltyStatRow | null>(null);
+  const [avatars, setAvatars] = useState<AvatarOption[]>([]);
+  const [tags, setTags] = useState<TagOption[]>([]);
+
+  // بيانات التخصيص + الترجيح من Supabase
+  useEffect(() => {
+    if (!session) return;
+    let alive = true;
+    void (async () => {
+      const [meta, ps, av, tg] = await Promise.all([
+        fetchMyProfileMeta(session.user.id).catch(() => null),
+        fetchMyPenaltyStats(session.user.id).catch(() => null),
+        fetchAvatarCatalog().catch(() => []),
+        fetchTagCatalog().catch(() => []),
+      ]);
+      if (!alive) return;
+      setAvatarId(meta?.avatar_id ?? null);
+      setTagId(meta?.tag_id ?? null);
+      setPenStats(ps);
+      setAvatars(av);
+      setTags(tg);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [session?.user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const lvl = levelFor(progress.xp);
   const league = leagueFor(progress.xp);
@@ -48,7 +91,21 @@ export function ProfileScreen({ session, onClose }: Props) {
     return cloud?.trim() || prefs.playerName.trim() || session?.user.email?.split("@")[0] || "Player";
   }, [session, prefs.playerName]);
 
-  const rankName = useMemo(() => `${leagueName(league, lang)} · ${lvl.name}`, [league, lang, lvl.name]);
+  const rankName = useMemo(() => {
+    const tag = tags.find((x) => x.id === tagId);
+    const tagName = tag ? `${tag.emoji} ${lang === "ar" ? tag.label_ar : tag.label_en}` : null;
+    return `${leagueName(league, lang)} · ${lvl.name}${tagName ? ` · ${tagName}` : ""}`;
+  }, [league, lang, lvl.name, tags, tagId]);
+
+  const avatarEmoji = useMemo(() => {
+    const av = avatars.find((x) => x.id === avatarId);
+    return av?.emoji ?? null;
+  }, [avatars, avatarId]);
+
+  const winRate =
+    penStats && penStats.wins + penStats.losses > 0
+      ? Math.round((penStats.wins / (penStats.wins + penStats.losses)) * 100)
+      : null;
 
   const startEdit = () => {
     setDraftName(displayName);
@@ -65,27 +122,32 @@ export function ProfileScreen({ session, onClose }: Props) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
+      initial={embedded ? false : { opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 24 }}
+      exit={embedded ? undefined : { opacity: 0, y: 24 }}
       transition={{ type: "spring", damping: 30, stiffness: 300 }}
-      className="fixed inset-0 z-50 overflow-y-auto bg-[#070d09] text-white"
-      style={{ paddingBottom: "max(env(safe-area-inset-bottom), 24px)" }}
+      className={cn(
+        "text-white",
+        embedded ? "w-full" : "fixed inset-0 z-50 overflow-y-auto bg-[#070d09]",
+      )}
+      style={embedded ? undefined : { paddingBottom: "max(env(safe-area-inset-bottom), 24px)" }}
     >
-      {/* شريط علوي */}
-      <div
-        className="sticky top-0 z-10 flex items-center justify-between bg-[#070d09]/90 px-4 backdrop-blur-sm"
-        style={{ paddingTop: "max(env(safe-area-inset-top), 12px)", paddingBottom: 12 }}
-      >
-        <h2 className="text-lg font-black">{t(lang, "profile")}</h2>
-        <button
-          onClick={onClose}
-          aria-label="Close"
-          className="rounded-full bg-white/10 p-2 transition-colors hover:bg-white/20"
+      {/* شريط علوي (في الوضع المنبثق فقط) */}
+      {!embedded && (
+        <div
+          className="sticky top-0 z-10 flex items-center justify-between bg-[#070d09]/90 px-4 backdrop-blur-sm"
+          style={{ paddingTop: "max(env(safe-area-inset-top), 12px)", paddingBottom: 12 }}
         >
-          <X className="size-5" />
-        </button>
-      </div>
+          <h2 className="text-lg font-black">{t(lang, "profile")}</h2>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="rounded-full bg-white/10 p-2 transition-colors hover:bg-white/20"
+          >
+            <X className="size-5" />
+          </button>
+        </div>
+      )}
 
       <div className="mx-auto w-full max-w-md space-y-5 px-4 pt-2">
         {/* ——— الترويسة الشخصية ——— */}
@@ -96,8 +158,22 @@ export function ProfileScreen({ session, onClose }: Props) {
           />
 
           <div className="relative mx-auto w-fit">
-            <Avatar name={displayName} size="xl" ring />
+            <Avatar name={displayName} size="xl" ring xp={progress.xp} emojiOverride={avatarEmoji ?? undefined} />
           </div>
+
+          {/* شارة التاغ الديناميكية */}
+          {(() => {
+            const tag = tags.find((x) => x.id === tagId);
+            if (!tag) return null;
+            return (
+              <div className="relative mx-auto mt-3 w-fit">
+                <span className="inline-flex items-center gap-1 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-black text-gold">
+                  <span>{tag.emoji}</span>
+                  {lang === "ar" ? tag.label_ar : tag.label_en}
+                </span>
+              </div>
+            );
+          })()}
 
           {editing ? (
             <div className="mx-auto mt-4 flex max-w-xs items-center gap-2">
@@ -130,6 +206,17 @@ export function ProfileScreen({ session, onClose }: Props) {
             </>
           )}
 
+          {/* زر التخصيص — الأفاتار والتاغات من Supabase */}
+          {session && (
+            <button
+              onClick={() => setCustomizeOpen(true)}
+              className="mx-auto mt-2 flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-3.5 py-1.5 text-xs font-black text-gold transition-colors hover:bg-gold/20"
+            >
+              <Shirt className="size-3.5" />
+              {t(lang, "customizeBtn")}
+            </button>
+          )}
+
           {/* تقدم الدوري */}
           {next && (
             <div className="mt-5">
@@ -157,6 +244,11 @@ export function ProfileScreen({ session, onClose }: Props) {
             },
             { label: t(lang, "accuracyRate"), value: `${accuracy}%`, tone: "text-grass-400" },
             { label: t(lang, "trophies"), value: `${progress.unlocked.length}`, tone: "text-cyan-300" },
+            {
+              label: t(lang, "penaltyWinRate"),
+              value: winRate === null ? "—" : `${winRate}%`,
+              tone: "text-fuchsia-300",
+            },
           ].map((s, i) => (
             <motion.div
               key={s.label}
@@ -278,6 +370,20 @@ export function ProfileScreen({ session, onClose }: Props) {
       </div>
 
       <LeaderboardSheet open={boardOpen} onClose={() => setBoardOpen(false)} session={session} lang={lang} />
+
+      {session && (
+        <CustomizeSheet
+          open={customizeOpen}
+          onClose={() => setCustomizeOpen(false)}
+          session={session}
+          xp={progress.xp}
+          lang={lang}
+          onSaved={(a, tg) => {
+            setAvatarId(a);
+            setTagId(tg);
+          }}
+        />
+      )}
     </motion.div>
   );
 }

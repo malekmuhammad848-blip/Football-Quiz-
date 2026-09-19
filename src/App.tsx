@@ -18,7 +18,7 @@ import { supabaseConfigured } from "./lib/supabase";
 import { pullProfile, pushProgress, saveDailyAnswer, type Session } from "./lib/backend";
 import { sfx, buzz, celebrate } from "./lib/feedback";
 import { initReminderLifecycle, isNative, scheduleDailyReminder, cancelReminder } from "./lib/notifications";
-import { pickPhrase, t } from "./lib/i18n";
+import { pickPhrase, t, type Lang } from "./lib/i18n";
 import { AppHeader } from "./components/AppHeader";
 import { QuestionCard } from "./components/QuestionCard";
 import { ResultPanel } from "./components/ResultPanels";
@@ -33,6 +33,9 @@ import { AuthPanel } from "./components/AuthPanel";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { NamePrompt } from "./components/NamePrompt";
 import { ProfileScreen } from "./components/ProfileScreen";
+import { PenaltyArena } from "./components/PenaltyArena";
+import { EventsScreen } from "./components/EventsScreen";
+import { TabBar, type TabId } from "./components/TabBar";
 import { Badge, Button } from "./components/ui/primitives";
 import { initAuthUrlOpen, displayNameOf } from "./lib/backend";
 
@@ -55,6 +58,8 @@ export default function App() {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [namePromptDone, setNamePromptDone] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [tab, setTab] = useState<TabId>("today");
+  const [penaltyAuthPrompt, setPenaltyAuthPrompt] = useState(false);
 
   // سؤال اليوم — ثابت لكل المستخدمين، يُعاد حسابه عند تغيير اللغة
   const daily = useMemo(() => getDailyQuestion(new Date(), lang), [lang]);
@@ -216,7 +221,7 @@ export default function App() {
         playerName={playerName}
         onToggleLang={toggleLang}
         onOpenSettings={() => setSettingsOpen(true)}
-        onOpenProfile={() => setProfileOpen(true)}
+        onOpenProfile={() => setTab("profile")}
       />
 
       {/* السلسلة + شارة المزامنة */}
@@ -230,7 +235,18 @@ export default function App() {
       </div>
 
       <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 px-3 py-5 sm:gap-5 sm:px-8 sm:py-7">
-        {training ? (
+        {tab === "penalty" ? (
+          <PenaltyArena session={session} lang={lang} onRequireAuth={() => setPenaltyAuthPrompt(true)} />
+        ) : tab === "events" ? (
+          <EventsScreen lang={lang} />
+        ) : tab === "profile" ? (
+          <ProfileTab
+            session={session}
+            lang={lang}
+            onOpenLegacyProfile={() => setProfileOpen(true)}
+            onGoToday={() => setTab("today")}
+          />
+        ) : training ? (
           <TrainingMode
             lang={lang}
             soundOn={prefs.sound}
@@ -288,6 +304,10 @@ export default function App() {
         </p>
       </footer>
 
+      {/* شريط التنقل السفلي */}
+      <div className="h-20" /> {/* مساحة للتبويبات الثابتة */}
+      <TabBar active={tab} onChange={setTab} lang={lang} />
+
       {unlockToast && <UnlockToast achievementId={unlockToast} lang={lang} />}
 
       <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} onReset={handleReset} />
@@ -295,6 +315,39 @@ export default function App() {
       <AnimatePresence>
         {profileOpen && <ProfileScreen session={session} onClose={() => setProfileOpen(false)} />}
       </AnimatePresence>
+
+      {/* تنبيه تسجيل الدخول من الترجيح */}
+      {penaltyAuthPrompt && !session && (
+        <AuthPanel session={null} lang={lang} />)
+      }
+    </div>
+  );
+}
+
+/** تبويب الملف — يلفّ ProfileScreen المحتوى في الصفحة الرئيسية */
+function ProfileTab({
+  session,
+  lang,
+  onOpenLegacyProfile,
+  onGoToday,
+}: {
+  session: Session | null;
+  lang: Lang;
+  onOpenLegacyProfile: () => void;
+  onGoToday: () => void;
+}) {
+  return (
+    <div className="space-y-4">
+      {!session && (
+        <div className="rounded-3xl border border-gold/25 bg-gradient-to-b from-gold/10 to-transparent p-5 text-center">
+          <p className="text-sm font-bold text-white/70">{t(lang, "noCloud")}</p>
+          <p className="mt-1 text-xs font-medium text-white/45">{t(lang, "guestNote")}</p>
+          <Button variant="gold" onClick={onGoToday} className="mt-3">
+            {t(lang, "tabToday")}
+          </Button>
+        </div>
+      )}
+      <ProfileScreen session={session} onClose={onOpenLegacyProfile} embedded />
     </div>
   );
 }
