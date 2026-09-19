@@ -6,6 +6,7 @@ import { useState } from "react";
 import { CloudUpload, LogIn, LogOut, Mail, UserPlus } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
 import { authService } from "../lib/backend";
+import { prefsStore } from "../stores/prefsStore";
 import { t, type Lang } from "../lib/i18n";
 import { cn } from "../utils/cn";
 import { Button } from "./ui/primitives";
@@ -39,6 +40,8 @@ export function AuthPanel({ session, lang }: Props) {
         const { error } = await authService.signIn(email.trim(), password);
         if (error) throw error;
       }
+      // نجاح الدخول يلغي وضع الضيف
+      prefsStore.setGuest(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : t(lang, "unexpectedError"));
     } finally {

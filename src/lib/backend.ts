@@ -2,6 +2,9 @@
  *  Backend service — المصادقة ومزامنة التقدم (Supabase)
  *  ============================================================ */
 
+import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
+import { App as CapApp } from "@capacitor/app";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 import type { Progress } from "../domain/types";
@@ -35,6 +38,82 @@ export const authService = {
     return data.subscription;
   },
 };
+
+/** مخطط التطبيق الأصلي (appId = custom scheme في Capacitor) */
+const NATIVE_REDIRECT = "com.malek.tiq://login-callback";
+
+/**
+ * تسجيل الدخول عبر Google:
+ * - الويب: إعادة توجيه قياسية عبر Supabase OAuth.
+ * - الأصلي (APK): فتح متصفح النظام بـ PKCE ثم التقاط الرابط العميق.
+ */
+export async function signInWithGoogle(): Promise<{ error?: string }> {
+  try {
+    if (Capacitor.isNativePlatform()) {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { skipBrowserRedirect: true, redirectTo: NATIVE_REDIRECT },
+      });
+      if (error) return { error: error.message };
+      if (!data.url) return { error: "no-url" };
+      await Browser.open({ url: data.url });
+      return {};
+    }
+    const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
+    return error ? { error: error.message } : {};
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "google-signin-failed" };
+  }
+}
+
+/** التقاط الرابط العميق عند العودة من المتصفح (أندرويد فقط) */
+export function initAuthUrlOpen(): void {
+  if (!Capacitor.isNativePlatform()) return;
+  void CapApp.addListener("appUrlOpen", async ({ url }) => {
+    try {
+      const u = new URL(url);
+      const code = u.searchParams.get("code");
+      if (code) {
+        // تدفق PKCE
+        await supabase.auth.exchangeCodeForSession(code);
+        return;
+      }
+      if (url.includes("access_token=")) {
+        // تدفق implicit — استخراج الرموز من الجزء السفلي
+        const hash = new URLSearchParams(url.split("#")[1] ?? "");
+        const access = hash.get("access_token");
+        const refresh = hash.get("refresh_token");
+        if (access && refresh) {
+          await supabase.auth.setSession({ access_token: access, refresh_token: refresh });
+        }
+      }
+    } catch {
+      /* رابط غير معروف — تجاهل */
+    }
+  });
+}
+
+/** اسم العرض إن وُجد (Google يملأه تلقائيًا) */
+export function displayNameOf(user: User): string | null {
+  const m = (user.user_metadata ?? {}) as Record<string, unknown>;
+  const name =
+    (m.display_name as string | undefined) ??
+    (m.full_name as string | undefined) ??
+    (m.name as string | undefined) ??
+    null;
+  return name && name.trim() ? name.trim() : null;
+}
+
+/** حفظ اسم اللاعب: في الحساب + جدول الملفات */
+export async function setDisplayName(user: User, name: string): Promise<void> {
+  const clean = name.trim().slice(0, 24);
+  await supabase.auth.updateUser({ data: { display_name: clean } });
+  const { error } = await supabase
+    .from("profiles")
+    .update({ display_name: clean })
+    .eq("id", user.id);
+  if (error) throw error;
+}
 
 /** رفع التقدم (الحقول المدعومة في المخطط) */
 export async function pushProgress(user: User, p: Progress): Promise<void> {

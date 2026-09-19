@@ -29,7 +29,10 @@ import { LevelBar } from "./components/LevelBar";
 import { AchievementsPanel, UnlockToast } from "./components/AchievementsPanel";
 import { TrainingMode } from "./components/TrainingMode";
 import { AuthPanel } from "./components/AuthPanel";
+import { WelcomeScreen } from "./components/WelcomeScreen";
+import { NamePrompt } from "./components/NamePrompt";
 import { Badge, Button } from "./components/ui/primitives";
+import { initAuthUrlOpen, displayNameOf } from "./lib/backend";
 
 const STREAK_MILESTONES = [3, 7, 14, 30, 50, 100] as const;
 
@@ -48,6 +51,7 @@ export default function App() {
   const [leveledUp, setLeveledUp] = useState(false);
   const [unlockToast, setUnlockToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [namePromptDone, setNamePromptDone] = useState(false);
 
   // سؤال اليوم — ثابت لكل المستخدمين، يُعاد حسابه عند تغيير اللغة
   const daily = useMemo(() => getDailyQuestion(new Date(), lang), [lang]);
@@ -61,6 +65,11 @@ export default function App() {
   }, [progress, daily]);
 
   const selected = training ? null : savedSelection;
+
+  // التقاط deep-link المصادقة (أندرويد: عودة Google)
+  useEffect(() => {
+    initAuthUrlOpen();
+  }, []);
 
   // دورة حياة الإشعارات — يقرأ التفضيل لحظة التنفيذ
   useEffect(() => {
@@ -173,6 +182,18 @@ export default function App() {
   };
 
   const lvl = levelFor(progress.xp);
+
+  // ——— تدفق الدخول ———
+  // 1) شاشة الترحيب: تظهر لمن لم يدخل ولم يختر الضيف
+  const showWelcome = supabaseConfigured && !session && !prefs.guest;
+  if (showWelcome) {
+    return <WelcomeScreen lang={lang} onDone={() => undefined} />;
+  }
+  // 2) خطوة اسم اللاعب: بعد أول دخول بحساب بلا اسم
+  const needsName = Boolean(session && !displayNameOf(session.user) && !namePromptDone);
+  if (needsName && session) {
+    return <NamePrompt session={session} lang={lang} onDone={() => setNamePromptDone(true)} />;
+  }
 
   return (
     <div className="pitch-lines flex min-h-dvh flex-col">

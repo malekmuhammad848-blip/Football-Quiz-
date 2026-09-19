@@ -54,6 +54,8 @@ export interface Prefs {
   lang: Lang;
   reminder: boolean;
   haptics: boolean;
+  /** دخل كضيف — يخفي شاشة الترحيب */
+  guest: boolean;
 }
 
 /** نتيجة تسجيل إجابة */

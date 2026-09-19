@@ -14,6 +14,7 @@ const DEFAULTS: Prefs = {
   lang: "ar",
   reminder: true,
   haptics: true,
+  guest: false,
 };
 
 function load(): Prefs {
@@ -33,6 +34,7 @@ interface PrefsStore extends Store<Prefs> {
   setLang(lang: Lang): void;
   setReminder(on: boolean): void;
   setHaptics(on: boolean): void;
+  setGuest(guest: boolean): void;
   isDark(): boolean;
   toggleDark(): void;
 }
@@ -68,6 +70,9 @@ export const prefsStore: PrefsStore = (() => {
     },
     setHaptics(haptics) {
       this.replace({ ...base.getState(), haptics });
+    },
+    setGuest(guest) {
+      this.replace({ ...base.getState(), guest });
     },
     isDark() {
       const { theme } = base.getState();

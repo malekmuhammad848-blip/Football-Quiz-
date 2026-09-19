@@ -19,6 +19,7 @@
 | 🎓 **وضع تدريب** | 5 أسئلة عشوائية متتالية — بلا أثر على سلسلتك |
 | 🌐 **عربي/English** | واجهة و**أسئلة** كاملة بلغتين، مع تبديل RTL/LTR تلقائي |
 | 🔔 **تذكير 10 مساءً** | إشعار أصلي يومي (APK) حتى لو كان التطبيق مغلقًا |
+| 🔐 **دخول بجوجل** | شاشة ترحيب داكنة فاخرة: Google Sign-In + ضيف + بريد + شروط استخدام |
 | ☁️ **مزامنة سحابية** | حساب عبر Supabase: بياناتك تتبعك على كل جهاز |
 | 🌙 **ثيم كامل** | نهاري/ليلي/النظام — بلا وميض عند الإقلاع |
 
@@ -66,7 +67,17 @@ bun run typecheck  # فحص الأنواع
 2. شغّل `supabase/schema.sql` في SQL Editor
 3. أضف `VITE_SUPABASE_URL` و `VITE_SUPABASE_ANON_KEY` في إعدادات البيئة
 
-بدون مفاتيح، يعمل التطبيق بوضع محلي كامل.
+بدون مفاتيح، يعمل التطبيق بوضع محلي كامل (شاشة الترحيب تُخفى تلقائيًا).
+
+### تفعيل تسجيل الدخول بجوجل
+
+1. في [Google Cloud Console](https://console.cloud.google.com) أنشئ OAuth Client ID (Web):
+   - Authorized origins: نطاق تطبيقك + `https://<PROJECT>.supabase.co`
+   - Authorized redirect URI: `https://<PROJECT>.supabase.co/auth/v1/callback`
+2. في Supabase → Authentication → Providers → Google: الصق Client ID و Client Secret وفعّل المزود.
+3. لأندرويد (APK): أضف في Authentication → URL Configuration:
+   - Redirect URLs: `com.malek.tiq://login-callback`
+   - في `android/app/src/main/AndroidManifest.xml` يجب أن يملك التطبيق نفس الـ scheme (يولّده Capacitor تلقائيًا من `appId`).
 
 ## الترخيص
 
