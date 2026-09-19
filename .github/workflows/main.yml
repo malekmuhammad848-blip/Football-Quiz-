@@ -76,10 +76,12 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Add required Android permissions
+      - name: Add permissions + deep link to AndroidManifest
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
           cp "$MANIFEST" "${MANIFEST}.backup"
+
+          # 1) أضف الصلاحيات قبل <application>
           awk '/<application/ {
             print "    <uses-permission android:name=\"android.permission.INTERNET\" />"
             print "    <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />"
@@ -90,7 +92,35 @@ jobs:
             print ""
           }
           { print }' "${MANIFEST}.backup" > "$MANIFEST"
-          echo "✅ Android permissions added"
+
+          # 2) أضف intent-filter للـ deep link (com.malek.tiq://login-callback)
+          #    داخل الـ activity الرئيسية مباشرةً قبل </activity>
+          python3 - <<'PYEOF'
+          import re
+
+          with open("android/app/src/main/AndroidManifest.xml", "r") as f:
+              content = f.read()
+
+          deep_link_filter = """
+                  <intent-filter android:autoVerify="true">
+                      <action android:name="android.intent.action.VIEW" />
+                      <category android:name="android.intent.category.DEFAULT" />
+                      <category android:name="android.intent.category.BROWSABLE" />
+                      <data android:scheme="com.malek.tiq" android:host="login-callback" />
+                  </intent-filter>"""
+
+          # أضف قبل إغلاق الـ activity الأولى
+          if "com.malek.tiq" not in content:
+              content = content.replace("</activity>", deep_link_filter + "\n        </activity>", 1)
+
+          with open("android/app/src/main/AndroidManifest.xml", "w") as f:
+              f.write(content)
+
+          print("✅ Deep link intent-filter added")
+          PYEOF
+
+          echo "✅ Manifest updated"
+          grep -A5 "com.malek.tiq" "$MANIFEST" || echo "(deep link already present)"
 
       - name: Setup app icon
         run: |
