@@ -182,6 +182,27 @@ export function ShieldMark({ className }: IconProps) {
   );
 }
 
+/** شرارة ذهبية — وضع السرعة */
+export function ZapMark({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
+      <defs>
+        <linearGradient id="iq-zp" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#fde047" />
+          <stop offset="1" stopColor="#f97316" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M13 2L4.5 13.5h5L9 22l8.5-11.5h-5L13 2z"
+        fill="url(#iq-zp)"
+        stroke="#b45309"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 /** خريطة الأيقونات للإنجازات */
 export const ACHIEVEMENT_ICONS = {
   flame: FlameMark,

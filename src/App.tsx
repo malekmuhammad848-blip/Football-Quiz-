@@ -24,11 +24,12 @@ import { AppHeader } from "./components/AppHeader";
 import { QuestionCard } from "./components/QuestionCard";
 import { DailyQuests } from "./components/DailyQuests";
 import { LevelUpBurst } from "./components/LevelUpBurst";
+import { RushMode } from "./components/RushMode";
+import { GrassGrid } from "./components/GrassGrid";
 import { ShieldMark } from "./components/Icons";
 import { ResultPanel } from "./components/ResultPanels";
 import { SettingsSheet } from "./components/SettingsSheet";
 import { StreakOrb } from "./components/StreakOrb";
-import { WeekStrip } from "./components/WeekStrip";
 import { StatsGrid } from "./components/StatsGrid";
 import { LevelBar } from "./components/LevelBar";
 import { AchievementsPanel, UnlockToast } from "./components/AchievementsPanel";
@@ -309,11 +310,13 @@ export default function App() {
               />
             )}
 
-            <WeekStrip results={weekResults} lang={lang} />
-
             <LevelBar progress={progress} lang={lang} />
 
             <StatsGrid played={progress.playedCount} correct={progress.correctCount} lang={lang} />
+
+            <RushMode lang={lang} />
+
+            <GrassGrid history={progress.history} results={weekResults} lang={lang} />
 
             <AchievementsPanel progress={progress} lang={lang} />
 

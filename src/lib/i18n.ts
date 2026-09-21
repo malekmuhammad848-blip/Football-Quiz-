@@ -205,6 +205,27 @@ const ar = {
   shieldEarned: "درع سلسلة جديد!",
   levelUpTitle: "ترقية مستوى!",
   keepGoing: "استمر في اللمعان ⚽",
+  // وضع السرعة
+  rushTitle: "السلسلة السريعة",
+  rushDesc: "60 ثانية من الأدرينالين! كل إجابة صحيحة تمنحك +2 ثانية ونقاط مضاعفة بالكومبو — لكن الخطأ يحرق 3 ثوانٍ!",
+  rushStart: "انطلق!",
+  rushAgain: "جولة أخرى",
+  rushScore: "النقاط",
+  rushBest: "الأفضل",
+  rushRounds: "جولة",
+  rushCombo: "كومبو",
+  rushCorrect: "صحيحة",
+  rushBestCombo: "أقصى كومبو",
+  rushNewBest: "رقم قياسي جديد!",
+  rushGreat: "أداء خارق!",
+  rushOver: "انتهى الوقت!",
+  // مصفوفة العشب
+  grassTitle: "نشاطك هذا الشهر",
+  grassWin: "إجابة صحيحة",
+  grassLoss: "إجابة خاطئة",
+  grassNone: "بلا إجابة",
+  grassLess: "أقل",
+  grassMore: "أكثر",
 } as const;
 
 export type TKey = keyof typeof ar;
@@ -395,6 +416,25 @@ const en: Record<TKey, string> = {
   shieldEarned: "New Streak Shield!",
   levelUpTitle: "Level up!",
   keepGoing: "Keep shining ⚽",
+  rushTitle: "Speed Rush",
+  rushDesc: "60 seconds of adrenaline! Every correct answer adds +2s and combo-multiplied points — but a mistake burns 3s!",
+  rushStart: "Go!",
+  rushAgain: "Play again",
+  rushScore: "Score",
+  rushBest: "Best",
+  rushRounds: "rounds",
+  rushCombo: "Combo",
+  rushCorrect: "correct",
+  rushBestCombo: "Top combo",
+  rushNewBest: "New personal best!",
+  rushGreat: "Outstanding!",
+  rushOver: "Time's up!",
+  grassTitle: "Your month",
+  grassWin: "Correct",
+  grassLoss: "Wrong",
+  grassNone: "No answer",
+  grassLess: "Less",
+  grassMore: "More",
 };
 
 const dicts: Record<Lang, Record<TKey, string>> = { ar, en };
