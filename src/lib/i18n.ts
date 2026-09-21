@@ -237,6 +237,8 @@ const ar = {
   albumComplete: "الاكتمال",
   packTapToOpen: "اضغط لفتح الحزمة!",
   packTapContinue: "اضغط للمتابعة",
+  visualWhose: "لمن هذا الطقم؟",
+  visualWhich: "أي نادٍ أو منتخب هذا؟",
 } as const;
 
 export type TKey = keyof typeof ar;
@@ -456,6 +458,8 @@ const en: Record<TKey, string> = {
   albumComplete: "Complete",
   packTapToOpen: "Tap to open the pack!",
   packTapContinue: "Tap to continue",
+  visualWhose: "Whose kit is this?",
+  visualWhich: "Which club or nation is this?",
 };
 
 const dicts: Record<Lang, Record<TKey, string>> = { ar, en };

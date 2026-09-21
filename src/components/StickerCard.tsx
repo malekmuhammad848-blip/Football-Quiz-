@@ -4,6 +4,7 @@
  *  الإطار يتوهج حسب الندرة — بأسلوب بطاقات FUT.
  *  ============================================================ */
 
+import { Lock } from "lucide-react";
 import { STICKERS, type Rarity, type Sticker } from "../domain/season";
 import { cn } from "../utils/cn";
 
@@ -68,7 +69,6 @@ export function StickerCard({ sticker, copies = 0, locked = false, size = "md", 
     <button
       type="button"
       onClick={onClick}
-      disabled={locked}
       style={{
         borderColor: owned ? fr.border : undefined,
         boxShadow: owned ? fr.glow : undefined,
@@ -94,14 +94,17 @@ export function StickerCard({ sticker, copies = 0, locked = false, size = "md", 
         </span>
       )}
 
-      {locked ? (
-        <span className="flex h-12 items-center text-2xl">❓</span>
-      ) : (
-        <StickerArt sticker={sticker} className="h-12 w-12" />
-      )}
+      {/* الملصق يظهر دائمًا — المقفل فقط يُعتم ويُضاف قفل صغير */}
+      <span className="relative flex h-12 items-center justify-center">
+        <StickerArt
+          sticker={sticker}
+          className={cn("h-12 w-12 transition-opacity", locked && "opacity-35 grayscale")}
+        />
+        {locked && <Lock className="absolute size-4 text-ink/50 dark:text-white/50" />}
+      </span>
 
       <span className={cn("truncate text-[10px] font-black leading-tight", !owned && "opacity-40")}>
-        {locked ? "؟؟؟" : sticker.ar}
+        {sticker.ar}
       </span>
     </button>
   );

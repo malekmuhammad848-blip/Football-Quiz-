@@ -210,7 +210,7 @@ export function LocalPenalty({ lang, onXpGain }: Props) {
             <div className="pointer-events-none absolute -top-14 -end-10 size-36 rounded-full bg-grass-500/15 blur-3xl" />
             <motion.div
               animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              transition={{ duration: 2, repeat: 2, ease: "easeInOut" }}
               className="mx-auto w-fit"
             >
               <BallMark className="size-16" />

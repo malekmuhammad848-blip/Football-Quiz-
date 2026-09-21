@@ -197,7 +197,7 @@ export function RushMode({ lang }: Props) {
             <div className="pointer-events-none absolute -top-14 -end-10 size-36 rounded-full bg-gold/20 blur-3xl" />
             <motion.div
               animate={{ scale: [1, 1.08, 1] }}
-              transition={{ duration: 1.4, repeat: Infinity }}
+              transition={{ duration: 1.4, repeat: 2 }}
               className="mx-auto w-fit"
             >
               <ZapMark className="size-16" />

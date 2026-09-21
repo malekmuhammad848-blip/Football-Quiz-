@@ -135,7 +135,7 @@ export function SeasonScreen({ lang, xp }: Props) {
             >
               <motion.span
                 animate={p.affordable && opening === null ? { y: [0, -5, 0] } : {}}
-                transition={{ duration: 1.6, repeat: Infinity }}
+                transition={{ duration: 1.6, repeat: 2 }}
                 className="text-4xl"
               >
                 {p.emoji}
@@ -188,7 +188,7 @@ export function SeasonScreen({ lang, xp }: Props) {
               >
                 <motion.div
                   animate={{ y: [0, -12, 0] }}
-                  transition={{ duration: 1, repeat: Infinity }}
+                  transition={{ duration: 1, repeat: 3 }}
                   className="text-8xl"
                 >
                   {opening.emoji}

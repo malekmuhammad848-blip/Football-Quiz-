@@ -1,5 +1,6 @@
 /** ============================================================
  *  TrainingMode — أسئلة سريعة متتالية بلا أثر على السلسلة
+ *  25% من الأسئلة تُعرض بصريًا (طقم/علم/شعار) — الوجوه والألوان تُفعّل البصري.
  *  ============================================================ */
 
 import { useMemo, useState } from "react";
@@ -16,7 +17,7 @@ import { t, type Lang } from "../lib/i18n";
 import type { LocalizedQuestion } from "../domain/types";
 import { cn } from "../utils/cn";
 import { Badge, Button } from "./ui/primitives";
-import { VisualQuestion, isVisualQuestion } from "./VisualQuestion";
+import { VisualQuestion, makeVisual } from "./VisualQuestion";
 import { CheckBadge, CrossBadge, TrophyMark } from "./Icons";
 
 interface Props {
@@ -61,6 +62,12 @@ export function TrainingMode({ lang, soundOn, hapticsOn, onExit }: Props) {
 
   const current = set[step];
 
+  // سؤال بصري؟ 25% من الأسئلة تُعرض كطقم/علم/شعار بدل النص
+  const visual = useMemo(() => {
+    if (!current || Math.random() >= 0.25) return null;
+    return makeVisual(current.options, current.answer, lang);
+  }, [current, lang]);
+
   if (!current) {
     return null;
   }
@@ -75,7 +82,7 @@ export function TrainingMode({ lang, soundOn, hapticsOn, onExit }: Props) {
     }
     if (soundOn) {
       (correct ? sfx.correct : sfx.wrong)();
-      stadium.correct(); // هللة جمهور على الصحيح
+      if (correct && visual) stadium.goal(); // صعود ثماني النغمات عند كشف البصري الصحيح
     }
     if (hapticsOn) void buzz(correct ? "medium" : "heavy");
   };
@@ -146,8 +153,8 @@ export function TrainingMode({ lang, soundOn, hapticsOn, onExit }: Props) {
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.18 }}
           >
-            {isVisualQuestion(current.id) ? (
-              <VisualQuestion question={current} className="mb-4" />
+            {visual ? (
+              <VisualQuestion sticker={visual.sticker} prompt={visual.answer === current.answer ? t(lang, "visualWhose") : t(lang, "visualWhich")} className="mb-4" />
             ) : (
               <p className="mb-3 text-base leading-7 font-extrabold sm:text-xl sm:leading-8">{current.q}</p>
             )}

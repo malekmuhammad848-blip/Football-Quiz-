@@ -24,9 +24,10 @@ export function StreakOrb({ streak, best, lang }: Props) {
       )}
       title={`${t(lang, "myStreak")}: ${streak} / ${best}`}
     >
+      {/* نبضة خفيفة بلا تكرار لانهائي — يوفر GPU */}
       <motion.span
-        animate={{ scale: [1, 1.15, 1], rotate: [0, -4, 4, 0] }}
-        transition={{ repeat: Infinity, repeatDelay: 2.5 - heat * 2, duration: 0.55 }}
+        animate={{ scale: [1, 1.15, 1] }}
+        transition={{ duration: 0.55, repeat: 3, repeatDelay: Math.max(1, 2.5 - heat * 2) }}
         className="flex"
       >
         <FlameMark className="size-5 sm:size-6" />
