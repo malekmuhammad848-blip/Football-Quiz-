@@ -207,7 +207,7 @@ export function LocalPenalty({ lang, onXpGain }: Props) {
             exit={{ opacity: 0, y: -12 }}
             className="relative overflow-hidden rounded-3xl border border-card-edge bg-card-soft p-6 text-center"
           >
-            <div className="pointer-events-none absolute -top-14 -end-10 size-36 rounded-full bg-grass-500/15 blur-3xl" />
+            <div className="pointer-events-none absolute -top-14 -end-10 size-36 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(16,185,129,0.14), transparent)" }} />
             <motion.div
               animate={{ y: [0, -8, 0] }}
               transition={{ duration: 2, repeat: 2, ease: "easeInOut" }}

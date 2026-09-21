@@ -1,10 +1,10 @@
 /** ============================================================
  *  GrassGrid — مصفوفة النشاط 30 يومًا (بأسلوب GitHub/Duolingo)
  *  كل مربع = يوم: أخضر فاتح/غامق حسب الأداء، رمادي = بلا إجابة.
+ *  بلا framer-motion — 30 مربعًا تُرى ككتلة واحدة بلغة CSS خفيفة.
  *  ============================================================ */
 
 import { useMemo } from "react";
-import { motion } from "framer-motion";
 import { lastNDayKeys } from "../core/date";
 import { t, type Lang } from "../lib/i18n";
 import { cn } from "../utils/cn";
@@ -29,18 +29,15 @@ export function GrassGrid({ history, results, lang }: Props) {
           {totalActive}/30
         </span>
       </div>
-      <div className="flex flex-wrap gap-1.5">
+      <div className="grass-grid flex flex-wrap gap-1.5">
         {keys.map((key, i) => {
           const res = results[key];
           const answered = res !== undefined;
           const d = new Date(`${key}T00:00:00`);
           const isToday = i === 29;
           return (
-            <motion.div
+            <div
               key={key}
-              initial={{ opacity: 0, scale: 0.6 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: Math.min(i * 0.012, 0.5), duration: 0.18 }}
               title={`${key} — ${answered ? (res ? t(lang, "grassWin") : t(lang, "grassLoss")) : t(lang, "grassNone")}`}
               className={cn(
                 "size-[calc((100%-16.5rem)/15)] min-w-3.5 flex-1 basis-3.5 aspect-square rounded-[4px] transition-transform hover:scale-125 sm:size-4",

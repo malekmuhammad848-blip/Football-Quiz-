@@ -378,7 +378,7 @@ function Lobby({
     <div className="space-y-4">
       {/* بطاقة الدخول */}
       <div className="relative overflow-hidden rounded-3xl border border-card-edge bg-gradient-to-b from-grass-500/15 to-transparent p-5">
-        <div className="pointer-events-none absolute -top-16 -end-16 size-40 rounded-full bg-grass-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -top-16 -end-16 size-40 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(16,185,129,0.18), transparent)" }} />
         <div className="relative">
           <div className="flex items-center gap-2 text-gold">
             <Swords className="size-5" />

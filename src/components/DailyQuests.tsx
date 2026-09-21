@@ -54,7 +54,7 @@ export function DailyQuests({ lang }: { lang: Lang }) {
 
   return (
     <section className="glass-card relative overflow-hidden rounded-3xl p-4 sm:p-5">
-      <div className="pointer-events-none absolute -top-12 -start-10 size-32 rounded-full bg-gold/15 blur-3xl" />
+      <div className="pointer-events-none absolute -top-12 -start-10 size-32 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(251,191,36,0.14), transparent)" }} />
 
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">

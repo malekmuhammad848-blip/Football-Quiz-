@@ -21,7 +21,7 @@ const TABS: { id: TabId; icon: typeof Home; key: "tabToday" | "tabPenalty" | "ta
 export function TabBar({ active, onChange, lang }: { active: TabId; onChange: (t: TabId) => void; lang: Lang }) {
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-card-edge bg-nav backdrop-blur-md"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-card-edge bg-nav"
       style={{ paddingBottom: "max(env(safe-area-inset-bottom), 10px)" }}
     >
       <div className="mx-auto flex max-w-md items-stretch justify-around px-2 pt-1.5">

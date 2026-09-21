@@ -52,7 +52,7 @@ export function EventsScreen({ lang }: Props) {
     <div className="space-y-4">
       {/* الترويسة */}
       <div className="relative overflow-hidden rounded-3xl border border-card-edge bg-gradient-to-b from-gold/15 to-transparent p-5">
-        <div className="pointer-events-none absolute -top-14 -start-10 size-36 rounded-full bg-gold/20 blur-3xl" />
+        <div className="pointer-events-none absolute -top-14 -start-10 size-36 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(251,191,36,0.18), transparent)" }} />
         <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-2 text-gold">
             <Sparkles className="size-5" />

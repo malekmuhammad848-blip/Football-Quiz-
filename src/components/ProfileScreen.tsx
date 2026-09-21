@@ -136,7 +136,7 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
       {/* شريط علوي (في الوضع المنبثق فقط) */}
       {!embedded && (
         <div
-          className="sticky top-0 z-10 flex items-center justify-between bg-[#070d09]/90 px-4 backdrop-blur-sm"
+          className="sticky top-0 z-10 flex items-center justify-between bg-[#070d09]/95 px-4"
           style={{ paddingTop: "max(env(safe-area-inset-top), 12px)", paddingBottom: 12 }}
         >
           <h2 className="text-lg font-black">{t(lang, "profile")}</h2>

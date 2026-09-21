@@ -34,7 +34,7 @@ export function LevelUpBurst({ open, level, levelName, onClose }: Props) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60"
         >
           <motion.div
             initial={{ scale: 0.5, y: 40, rotate: -6 }}
@@ -43,7 +43,7 @@ export function LevelUpBurst({ open, level, levelName, onClose }: Props) {
             transition={{ type: "spring", stiffness: 220, damping: 16 }}
             className="relative mx-4 flex w-full max-w-xs flex-col items-center gap-3 rounded-[2rem] border border-gold/50 bg-surface p-8 text-center shadow-2xl"
           >
-            <div className="pointer-events-none absolute -inset-8 -z-10 rounded-full bg-gold/25 blur-3xl" />
+            <div className="pointer-events-none absolute -inset-8 -z-10 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(251,191,36,0.22), transparent)" }} />
 
             <motion.div
               animate={{ rotate: [0, -8, 8, 0], scale: [1, 1.1, 1] }}

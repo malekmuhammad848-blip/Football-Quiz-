@@ -99,8 +99,8 @@ export function SeasonScreen({ lang, xp }: Props) {
     <div className="space-y-4">
       {/* ترويسة الموسم */}
       <section className="glass-card relative overflow-hidden rounded-3xl p-5 text-center">
-        <div className="pointer-events-none absolute -top-16 -start-12 size-40 rounded-full bg-purple-500/15 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-16 -end-12 size-40 rounded-full bg-gold/20 blur-3xl" />
+        <div className="pointer-events-none absolute -top-16 -start-12 size-40 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(168,85,247,0.14), transparent)" }} />
+        <div className="pointer-events-none absolute -bottom-16 -end-12 size-40 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(251,191,36,0.18), transparent)" }} />
         <p className="text-[10px] font-black uppercase tracking-[0.25em] text-purple-400">SEASON 1</p>
         <h2 className="mt-1 text-2xl font-black">{t(lang, "seasonTitle")}</h2>
         <p className="mx-auto mt-1.5 max-w-xs text-xs font-bold opacity-50">{t(lang, "seasonDesc")}</p>
@@ -175,7 +175,7 @@ export function SeasonScreen({ lang, xp }: Props) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-md"
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80"
             onClick={revealNext}
           >
             {/* الحزمة قبل الكشف */}

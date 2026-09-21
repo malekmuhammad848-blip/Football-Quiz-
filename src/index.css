@@ -113,6 +113,34 @@ body {
   box-shadow: 0 1px 3px oklch(0 0 0 / 0.05);
 }
 
+/* ============ أداء: تسريع GPU للانتقالات المتكررة ============ */
+.rush-opt {
+  transition:
+    border-color 0.1s ease,
+    background-color 0.1s ease;
+  will-change: background-color;
+}
+
+.rush-combo-pop {
+  animation: combo-pop 0.25s ease;
+}
+
+@keyframes combo-pop {
+  from {
+    transform: scaleX(0.7);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* ملاحظة أداء: لا نستخدم background-attachment:fixed إطلاقًا —
+   يفرض إعادة رسم الخلفية عند كل سكرول/لمسة على الأجهزة المحمولة
+   ويكون سببًا رئيسيًا لثقل التمرير (jank). الخلفية تتمرر مع الصفحة
+   وتُرسم مرة واحدة في الـ GPU. */
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -120,6 +148,30 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* على الأجهزة الضعيفة: أوقف كل الأنيميشنات الزخرفية الطويلة */
+@media (max-height: 700px) and (prefers-reduced-transparency) {
+  .blur-3xl,
+  .blur-2xl {
+    display: none;
+  }
+}
+
+/* دخول متزامن خفيف لمصفوفة العشب — بلا framer-motion */
+.grass-grid {
+  animation: grass-in 0.35s ease both;
+}
+
+@keyframes grass-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

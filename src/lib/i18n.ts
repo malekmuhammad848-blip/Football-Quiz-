@@ -239,6 +239,7 @@ const ar = {
   packTapContinue: "اضغط للمتابعة",
   visualWhose: "لمن هذا الطقم؟",
   visualWhich: "أي نادٍ أو منتخب هذا؟",
+  visualFact: "بطاقة رياضية من ألبوم الموسم — احفظ أطقم الأندية والمنتخبات المفضلة لديك لتتقن هذه الأسئلة بسرعة!",
 } as const;
 
 export type TKey = keyof typeof ar;
@@ -460,6 +461,7 @@ const en: Record<TKey, string> = {
   packTapContinue: "Tap to continue",
   visualWhose: "Whose kit is this?",
   visualWhich: "Which club or nation is this?",
+  visualFact: "A season-album card — memorize your favorite clubs' and nations' kits and you'll ace these in no time!",
 };
 
 const dicts: Record<Lang, Record<TKey, string>> = { ar, en };

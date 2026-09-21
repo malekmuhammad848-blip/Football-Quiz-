@@ -17,7 +17,7 @@ import { t, type Lang } from "../lib/i18n";
 import type { LocalizedQuestion } from "../domain/types";
 import { cn } from "../utils/cn";
 import { Badge, Button } from "./ui/primitives";
-import { VisualQuestion, makeVisual } from "./VisualQuestion";
+import { VisualQuestion, makeVisual, buildVisualQuestion } from "./VisualQuestion";
 import { CheckBadge, CrossBadge, TrophyMark } from "./Icons";
 
 interface Props {
@@ -54,19 +54,48 @@ function buildSet(lang: Lang, seed: number): TrainQ[] {
 
 export function TrainingMode({ lang, soundOn, hapticsOn, onExit }: Props) {
   // بذرة من الوقت — تدريب مختلف في كل جلسة
-  const set = useMemo(() => buildSet(lang, fnv1a(String(Date.now()))), [lang]);
+  const sessionSeed = useMemo(() => fnv1a(String(Date.now())), []);
+  const set = useMemo(() => buildSet(lang, sessionSeed), [lang, sessionSeed]);
   const [step, setStep] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
 
-  const current = set[step];
+  const base = set[step];
 
-  // سؤال بصري؟ 25% من الأسئلة تُعرض كطقم/علم/شعار بدل النص
-  const visual = useMemo(() => {
-    if (!current || Math.random() >= 0.25) return null;
-    return makeVisual(current.options, current.answer, lang);
-  }, [current, lang]);
+  // سؤال بصري مضمون: كل سؤال ثالث يُولَّد من بنك الملصقات ذاتيًا
+  // (خياراته وإجابته من الملصق نفسه — لا خلط مع السؤال النصي)
+  const generatedVisual = useMemo(
+    () => (base && step % 3 === 0 ? buildVisualQuestion(lang, sessionSeed + step * 104729) : null),
+    [base, step, lang, sessionSeed],
+  );
+
+  // السؤال الفعّال: المولّد بصريًا أو النصي الأصلي
+  const current: TrainQ | null = useMemo(() => {
+    if (generatedVisual) {
+      return {
+        id: `visual-${step}`,
+        category: base?.category ?? "clubs",
+        difficulty: base?.difficulty ?? "easy",
+        q: t(lang, "visualWhose"),
+        options: generatedVisual.options,
+        answer: generatedVisual.answer,
+        fact: t(lang, "visualFact"),
+      };
+    }
+    return base ?? null;
+  }, [generatedVisual, base, step, lang]);
+
+  // إن كان السؤال النصي خياراته أسماء ملصقات مباشرة نعرض البطاقة فوقه
+  const matchedVisual = useMemo(
+    () => (generatedVisual || !current ? null : makeVisual(current.options, current.answer, lang)),
+    [generatedVisual, current],
+  );
+  const visualSticker = generatedVisual?.sticker ?? matchedVisual?.sticker ?? null;
+  const visualPrompt =
+    generatedVisual || matchedVisual?.answer === current?.answer
+      ? t(lang, "visualWhose")
+      : t(lang, "visualWhich");
 
   if (!current) {
     return null;
@@ -82,7 +111,7 @@ export function TrainingMode({ lang, soundOn, hapticsOn, onExit }: Props) {
     }
     if (soundOn) {
       (correct ? sfx.correct : sfx.wrong)();
-      if (correct && visual) stadium.goal(); // صعود ثماني النغمات عند كشف البصري الصحيح
+      if (correct && visualSticker) stadium.goal(); // فانفار ماريمبا عند كشف البصري الصحيح
     }
     if (hapticsOn) void buzz(correct ? "medium" : "heavy");
   };
@@ -153,8 +182,8 @@ export function TrainingMode({ lang, soundOn, hapticsOn, onExit }: Props) {
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.18 }}
           >
-            {visual ? (
-              <VisualQuestion sticker={visual.sticker} prompt={visual.answer === current.answer ? t(lang, "visualWhose") : t(lang, "visualWhich")} className="mb-4" />
+            {visualSticker ? (
+              <VisualQuestion sticker={visualSticker} prompt={visualPrompt} className="mb-4" />
             ) : (
               <p className="mb-3 text-base leading-7 font-extrabold sm:text-xl sm:leading-8">{current.q}</p>
             )}
