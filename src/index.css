@@ -2,18 +2,32 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ============================================================
+   TiQ Theme — رموز دلالية للوضعين
+   كل مكوّن يستخدم card/card-edge/soft/faint/ghost/nav
+   فتتبدّل الواجهة كاملة بناءً على الوضع دون كلاسات مكررة.
+   ============================================================ */
+
 :root {
   color-scheme: light;
   --pitch: oklch(0.97 0.015 150);
   --pitch-deep: oklch(0.93 0.03 152);
   --surface: oklch(1 0 0);
   --ink: oklch(0.24 0.05 150);
-  --grass-400: oklch(0.75 0.16 155);
-  --grass-500: oklch(0.62 0.17 152);
-  --grass-600: oklch(0.55 0.16 152);
-  --grass-700: oklch(0.42 0.12 152);
-  --gold: oklch(0.8 0.15 85);
-  --line: oklch(0.24 0.05 150 / 0.08);
+  --grass-400: oklch(0.62 0.16 155);
+  --grass-500: oklch(0.55 0.17 152);
+  --grass-600: oklch(0.47 0.16 152);
+  --grass-700: oklch(0.38 0.12 152);
+  --gold: oklch(0.72 0.15 80);
+  --line: oklch(0.24 0.05 150 / 0.1);
+
+  /* رموز دلالية — الوضع النهاري */
+  --card-soft: oklch(1 0 0 / 0.88);
+  --card-edge: oklch(0.3 0.05 150 / 0.12);
+  --soft: oklch(0.35 0.04 150 / 0.78);
+  --faint: oklch(0.35 0.04 150 / 0.55);
+  --ghost: oklch(0.3 0.05 150 / 0.06);
+  --nav: oklch(1 0 0 / 0.94);
 }
 
 .dark {
@@ -28,6 +42,14 @@
   --grass-700: oklch(0.5 0.13 152);
   --gold: oklch(0.84 0.14 85);
   --line: oklch(0.94 0.02 145 / 0.1);
+
+  /* رموز دلالية — الوضع الليلي */
+  --card-soft: oklch(0.98 0.01 150 / 0.045);
+  --card-edge: oklch(0.98 0.01 150 / 0.11);
+  --soft: oklch(0.98 0.01 150 / 0.6);
+  --faint: oklch(0.98 0.01 150 / 0.42);
+  --ghost: oklch(0.98 0.01 150 / 0.08);
+  --nav: oklch(0.16 0.02 158 / 0.96);
 }
 
 @theme inline {
@@ -41,6 +63,13 @@
   --color-grass-700: var(--grass-700);
   --color-gold: var(--gold);
   --color-line: var(--line);
+  /* رموز دلالية */
+  --color-card-soft: var(--card-soft);
+  --color-card-edge: var(--card-edge);
+  --color-soft: var(--soft);
+  --color-faint: var(--faint);
+  --color-ghost: var(--ghost);
+  --color-nav: var(--nav);
 }
 
 html,
@@ -59,11 +88,10 @@ body {
     Tahoma,
     sans-serif;
   -webkit-font-smoothing: antialiased;
-  /* انتقال أسرع وأخف للثيم */
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* خلفية الملعب — مرة واحدة بدون إعادة حساب متكررة */
+/* خلفية الملعب */
 .pitch-lines {
   background-image:
     radial-gradient(circle at 15% -5%, color-mix(in oklab, var(--grass-500) 16%, transparent) 0%, transparent 42%),
@@ -78,14 +106,13 @@ body {
     linear-gradient(var(--pitch) 0%, var(--pitch-deep) 100%);
 }
 
-/* بطاقة زجاجية خفيفة — بدون blur ثقيل على الأجهزة الضعيفة */
+/* بطاقة زجاجية خفيفة */
 .glass-card {
-  background: color-mix(in oklab, var(--surface) 92%, transparent);
-  border: 1px solid var(--line);
+  background: var(--card-soft);
+  border: 1px solid var(--card-edge);
   box-shadow: 0 1px 3px oklch(0 0 0 / 0.05);
 }
 
-/* احترام تفضيل تقليل الحركة */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

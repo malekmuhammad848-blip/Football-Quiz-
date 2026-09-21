@@ -70,6 +70,8 @@ interface ProgressStore extends Store<Progress> {
     correct: boolean;
     difficulty: Difficulty;
   }): { before: Progress; after: Progress; newUnlocks: Achievement[]; leveledUp: boolean };
+  /** إضافة XP مباشر (ترجيح محلي/مكافآت) — يعيد ما إذا كان هناك ترقية */
+  addXp(amount: number): { before: Progress; after: Progress; leveledUp: boolean };
   hydrate(remote: Partial<Progress>): void;
   export(): Progress;
   reset(): void;
@@ -104,6 +106,15 @@ export const progressStore: ProgressStore = (() => {
           .filter(Boolean),
         leveledUp,
       };
+    },
+    addXp(amount) {
+      if (amount <= 0) return { before: base.getState(), after: base.getState(), leveledUp: false };
+      const before = base.getState();
+      const after = withUnlocked({ ...before, xp: before.xp + amount });
+      base.replace(after);
+      persist(after);
+      const leveledUp = levelFor(after.xp).index > levelFor(before.xp).index;
+      return { before, after, leveledUp };
     },
     hydrate(remote) {
       // دمج: الأعلى يفوز في الأرقام، ويُحفظ التاريخ الأغنى

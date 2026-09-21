@@ -142,7 +142,7 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
           <button
             onClick={onClose}
             aria-label="Close"
-            className="rounded-full bg-white/10 p-2 transition-colors hover:bg-white/20"
+            className="rounded-full bg-ghost p-2 transition-colors hover:bg-ghost"
           >
             <X className="size-5" />
           </button>
@@ -151,7 +151,7 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
 
       <div className="mx-auto w-full max-w-md space-y-5 px-4 pt-2">
         {/* ——— الترويسة الشخصية ——— */}
-        <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.07] to-white/[0.02] p-6 text-center">
+        <section className="relative overflow-hidden rounded-3xl border border-card-edge bg-gradient-to-b from-white/[0.07] to-white/[0.02] p-6 text-center">
           <div
             className="pointer-events-none absolute -top-24 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full blur-[80px]"
             style={{ background: league.glow }}
@@ -183,12 +183,12 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
                 maxLength={24}
                 onChange={(e) => setDraftName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && saveName()}
-                className="h-10 w-full rounded-xl border border-white/15 bg-black/40 px-3 text-center text-sm font-bold outline-none focus:border-grass-400"
+                className="h-10 w-full rounded-xl border border-card-edge bg-black/40 px-3 text-center text-sm font-bold outline-none focus:border-grass-400"
               />
               <button onClick={saveName} aria-label="Save" className="rounded-xl bg-grass-500 p-2.5 transition-colors hover:bg-grass-400">
                 <Check className="size-4 text-white" />
               </button>
-              <button onClick={() => setEditing(false)} aria-label="Cancel" className="rounded-xl bg-white/10 p-2.5 transition-colors hover:bg-white/20">
+              <button onClick={() => setEditing(false)} aria-label="Cancel" className="rounded-xl bg-ghost p-2.5 transition-colors hover:bg-ghost">
                 <X className="size-4" />
               </button>
             </div>
@@ -198,7 +198,7 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
               <p className={cn("mt-0.5 text-sm font-black", league.accent)}>{rankName}</p>
               <button
                 onClick={startEdit}
-                className="mx-auto mt-3 flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-xs font-bold text-white/80 transition-colors hover:bg-white/10"
+                className="mx-auto mt-3 flex items-center gap-1.5 rounded-full border border-card-edge bg-ghost px-3.5 py-1.5 text-xs font-bold text-white/80 transition-colors hover:bg-ghost"
               >
                 <Pencil className="size-3.5" />
                 {t(lang, "editProfile")}
@@ -222,11 +222,11 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
             <div className="mt-5">
               <div className="mb-1.5 flex items-center justify-between text-[11px] font-bold">
                 <span className={league.accent}>{leagueName(league, lang)}</span>
-                <span className="text-white/50">
+                <span className="text-soft">
                   {t(lang, "leagueNext")}: {leagueName(next, lang)}
                 </span>
               </div>
-              <ProgressBar value={leagueProgress(progress.xp)} className="bg-white/10" />
+              <ProgressBar value={leagueProgress(progress.xp)} className="bg-ghost" />
             </div>
           )}
         </section>
@@ -255,13 +255,13 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 * i }}
-              className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-center"
+              className="rounded-2xl border border-card-edge bg-card-soft p-4 text-center"
             >
               <p className={cn("text-2xl font-black tabular-nums", s.tone)}>
                 {s.value}
                 {s.flame && " 🔥"}
               </p>
-              <p className="mt-0.5 text-[11px] font-bold text-white/55">
+              <p className="mt-0.5 text-[11px] font-bold text-soft">
                 {s.suffix ? `${s.suffix} ${s.label}` : s.label}
               </p>
             </motion.div>
@@ -269,8 +269,8 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
         </section>
 
         {/* ——— الشارات ——— */}
-        <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-4">
-          <h4 className="mb-3 text-sm font-black text-white/85">{t(lang, "achievements")}</h4>
+        <section className="rounded-3xl border border-card-edge bg-card-soft p-4">
+          <h4 className="mb-3 text-sm font-black text-ink">{t(lang, "achievements")}</h4>
           <div className="grid grid-cols-5 gap-2.5">
             {BADGES.map((b, i) => {
               const unlocked = progress.unlocked.includes(b.id);
@@ -286,13 +286,13 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
                     "relative flex aspect-square items-center justify-center rounded-2xl border transition-all",
                     unlocked
                       ? "border-gold/40 bg-gradient-to-b from-gold/20 to-transparent shadow-[0_0_16px_rgba(251,191,36,0.15)]"
-                      : "border-white/10 bg-white/[0.03]",
+                      : "border-card-edge bg-card-soft",
                   )}
                 >
                   <Icon className={cn("size-6", unlocked ? "" : "opacity-30 grayscale")} />
                   {!unlocked && (
                     <span className="absolute -bottom-1 -end-1 flex size-5 items-center justify-center rounded-full bg-[#1a241d] shadow">
-                      <Lock className="size-3 text-white/60" />
+                      <Lock className="size-3 text-soft" />
                     </span>
                   )}
                 </motion.div>
@@ -304,7 +304,7 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
             const locked = BADGES.find((b) => !progress.unlocked.includes(b.id));
             if (!locked) return null;
             return (
-              <p className="mt-3 text-center text-[11px] font-medium text-white/45">
+              <p className="mt-3 text-center text-[11px] font-medium text-faint">
                 🔒 {locked.hint[lang]}
               </p>
             );
@@ -312,12 +312,12 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
         </section>
 
         {/* ——— حالة الدوري ——— */}
-        <section className="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-l from-white/[0.07] to-white/[0.02]">
+        <section className="overflow-hidden rounded-3xl border border-card-edge bg-gradient-to-l from-white/[0.07] to-white/[0.02]">
           <div className={cn("h-1.5 bg-gradient-to-l", league.ring)} />
           <div className="p-4">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-[11px] font-bold uppercase tracking-wide text-white/45">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-faint">
                   {t(lang, "currentLeague")}
                 </p>
                 <p className={cn("mt-0.5 truncate text-lg font-black", league.accent)}>
@@ -331,15 +331,15 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
                     title={leagueName(l, lang)}
                     className={cn(
                       "size-2.5 rounded-full transition-all",
-                      l.id === league.id ? cn("scale-125 bg-gradient-to-r", l.ring) : "bg-white/15",
+                      l.id === league.id ? cn("scale-125 bg-gradient-to-r", l.ring) : "bg-ghost",
                     )}
                   />
                 ))}
               </div>
             </div>
 
-            <div className="mt-3 flex items-center justify-between gap-2 rounded-2xl bg-black/30 px-3.5 py-2.5">
-              <p className="text-xs font-bold text-white/70">
+            <div className="mt-3 flex items-center justify-between gap-2 rounded-2xl bg-ghost px-3.5 py-2.5">
+              <p className="text-xs font-bold text-soft">
                 🟢 <span className={league.accent}>{t(lang, "promotionZone")}</span>
               </p>
               <button
@@ -352,7 +352,7 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
               </button>
             </div>
             {!supabaseConfigured && (
-              <p className="mt-2 text-center text-[10px] font-medium text-white/35">{t(lang, "noCloud")}</p>
+              <p className="mt-2 text-center text-[10px] font-medium text-faint">{t(lang, "noCloud")}</p>
             )}
           </div>
         </section>
@@ -361,7 +361,7 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
         {session && (
           <Button
             variant="ghost"
-            className="w-full border-white/15 text-white/70 hover:bg-white/5"
+            className="w-full border-card-edge text-soft hover:bg-ghost"
             onClick={() => void authService.signOut()}
           >
             {t(lang, "logout")}

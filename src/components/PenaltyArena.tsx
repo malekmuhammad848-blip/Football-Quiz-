@@ -35,8 +35,12 @@ import { prefsStore } from "../stores/prefsStore";
 import { cn } from "../utils/cn";
 import { Button } from "./ui/primitives";
 import { BallMark, CheckBadge, CrossBadge } from "./Icons";
+import { LocalPenalty } from "./LocalPenalty";
 
 type Phase = "lobby" | "waiting" | "playing" | "result";
+
+/** الوضع النشط داخل الساحة: سحابي أو محلي */
+type ArenaMode = "cloud" | "local";
 
 interface Props {
   session: Session | null;
@@ -60,6 +64,7 @@ function useQuestionCache(lang: Lang) {
 }
 
 export function PenaltyArena({ session, lang, onRequireAuth }: Props) {
+  const [mode, setMode] = useState<ArenaMode>("local");
   const [phase, setPhase] = useState<Phase>("lobby");
   const [roomId, setRoomId] = useState<string | null>(null);
   const [room, setRoom] = useState<PenaltyRoomRow | null>(null);
@@ -243,8 +248,19 @@ export function PenaltyArena({ session, lang, onRequireAuth }: Props) {
     void refreshStats();
   };
 
+  // الوضع المحلي لا يحتاج سحابة إطلاقًا
+  if (mode === "local") {
+    return (
+      <div className="space-y-4">
+        <ModeSwitch mode={mode} onChange={setMode} lang={lang} />
+        <LocalPenalty lang={lang} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
+      <ModeSwitch mode={mode} onChange={setMode} lang={lang} />
       <AnimatePresence mode="wait">
         {phase === "lobby" && (
           <motion.div key="lobby" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}>
@@ -256,7 +272,7 @@ export function PenaltyArena({ session, lang, onRequireAuth }: Props) {
               error={error}
               onQueue={enterQueue}
               onBot={playBot}
-              onRequireAuth={onRequireAuth}
+              onLocal={() => setMode("local")}
             />
           </motion.div>
         )}
@@ -292,6 +308,41 @@ export function PenaltyArena({ session, lang, onRequireAuth }: Props) {
   );
 }
 
+/** مفتاح التبديل بين الوضع المحلي والسحابي */
+function ModeSwitch({
+  mode,
+  onChange,
+  lang,
+}: {
+  mode: ArenaMode;
+  onChange: (m: ArenaMode) => void;
+  lang: Lang;
+}) {
+  const options: { id: ArenaMode; label: string }[] = [
+    { id: "local", label: t(lang, "penaltyLocal") },
+    { id: "cloud", label: t(lang, "penaltyOnline") },
+  ];
+  return (
+    <div className="flex rounded-2xl border border-card-edge bg-card-soft p-1">
+      {options.map((o) => (
+        <button
+          key={o.id}
+          onClick={() => onChange(o.id)}
+          className={cn(
+            "flex-1 rounded-xl py-2 text-xs font-black transition-all sm:text-sm",
+            mode === o.id
+              ? "bg-gradient-to-l from-grass-600 to-grass-500 text-white shadow"
+              : "text-soft hover:text-white",
+          )
+          }
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function displayName(session: Session, lang: Lang): string {
   const meta = (session.user.user_metadata ?? {}) as Record<string, unknown>;
   const name = (meta.display_name as string | undefined) ?? (meta.full_name as string | undefined) ?? (meta.name as string | undefined);
@@ -310,7 +361,7 @@ function Lobby({
   error,
   onQueue,
   onBot,
-  onRequireAuth,
+  onLocal,
 }: {
   lang: Lang;
   session: Session | null;
@@ -319,21 +370,21 @@ function Lobby({
   error: string | null;
   onQueue: () => void;
   onBot: () => void;
-  onRequireAuth: () => void;
+  onLocal: () => void;
 }) {
   const accuracy = stats && stats.shots > 0 ? Math.round((stats.goals / stats.shots) * 100) : 0;
 
   return (
     <div className="space-y-4">
       {/* بطاقة الدخول */}
-      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-grass-500/15 to-transparent p-5">
+      <div className="relative overflow-hidden rounded-3xl border border-card-edge bg-gradient-to-b from-grass-500/15 to-transparent p-5">
         <div className="pointer-events-none absolute -top-16 -end-16 size-40 rounded-full bg-grass-500/20 blur-3xl" />
         <div className="relative">
           <div className="flex items-center gap-2 text-gold">
             <Swords className="size-5" />
             <h3 className="text-lg font-black">{t(lang, "penaltyTitle")}</h3>
           </div>
-          <p className="mt-1 text-sm font-medium text-white/60">{t(lang, "penaltyDesc")}</p>
+          <p className="mt-1 text-sm font-medium text-soft">{t(lang, "penaltyDesc")}</p>
 
           {session ? (
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -347,9 +398,13 @@ function Lobby({
               </Button>
             </div>
           ) : (
-            <Button onClick={onRequireAuth} variant="gold" className="mt-4 w-full">
-              {t(lang, "penaltyNeedAuth")}
-            </Button>
+            <div className="mt-4 space-y-2">
+              <p className="text-center text-xs font-bold text-soft">{t(lang, "penaltyNeedAuth")}</p>
+              <Button onClick={onLocal} className="w-full">
+                <Zap className="size-4" />
+                {t(lang, "penaltyPlayOffline")}
+              </Button>
+            </div>
           )}
 
           {error && <p className="mt-3 text-center text-xs font-bold text-red-400">{error}</p>}
@@ -372,15 +427,15 @@ function Lobby({
 
       {/* ترتيب الترجيح المباشر */}
       {leaders && leaders.length > 0 && (
-        <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-4">
+        <div className="rounded-3xl border border-card-edge bg-card-soft p-4">
           <div className="mb-3 flex items-center gap-2">
             <Trophy className="size-4 text-gold" />
-            <h4 className="text-sm font-black text-white/85">{t(lang, "penBoard")}</h4>
+            <h4 className="text-sm font-black text-ink">{t(lang, "penBoard")}</h4>
           </div>
           <ol className="space-y-1.5">
             {leaders.slice(0, 8).map((r, i) => (
-              <li key={r.user_id} className="flex items-center gap-3 rounded-xl bg-white/[0.04] px-3 py-2">
-                <span className="w-6 text-center text-xs font-black tabular-nums text-white/50">{i + 1}</span>
+              <li key={r.user_id} className="flex items-center gap-3 rounded-xl bg-card-soft px-3 py-2">
+                <span className="w-6 text-center text-xs font-black tabular-nums text-soft">{i + 1}</span>
                 <span className="min-w-0 flex-1 truncate text-sm font-bold">{r.display_name}</span>
                 <span className="text-xs font-black tabular-nums text-grass-400">{r.wins}W</span>
                 <span className="text-xs font-bold tabular-nums text-gold">{r.goal_rate}%</span>
@@ -414,11 +469,11 @@ function WaitingRoom({ lang, roomId, onCancel }: { lang: Lang; roomId: string | 
         <BallMark className="size-14" />
       </motion.div>
       <h3 className="mt-4 text-lg font-black">{t(lang, "penaltySearching")}{dots}</h3>
-      <p className="mt-1 text-sm text-white/50">{t(lang, "penaltySearchingHint")}</p>
+      <p className="mt-1 text-sm text-soft">{t(lang, "penaltySearchingHint")}</p>
       <Button variant="ghost" onClick={onCancel} className="mx-auto mt-5 px-6">
         {t(lang, "close")}
       </Button>
-      {roomId && <p className="mt-3 text-[10px] font-mono text-white/25">{roomId.slice(0, 8)}</p>}
+      {roomId && <p className="mt-3 text-[10px] font-mono text-faint">{roomId.slice(0, 8)}</p>}
     </div>
   );
 }
@@ -463,10 +518,10 @@ function MatchStage({
   return (
     <div className="space-y-3">
       {/* لوحة النتيجة */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.07] to-white/[0.02] px-4 py-3">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-3xl border border-card-edge bg-gradient-to-b from-white/[0.07] to-white/[0.02] px-4 py-3">
         <PlayerSide name={myName} score={myScore} you align={lang === "ar" ? "right" : "left"} />
         <div className="text-center">
-          <p className="text-[10px] font-black uppercase tracking-widest text-white/40">
+          <p className="text-[10px] font-black uppercase tracking-widest text-faint">
             {t(lang, "penaltyRound")} {room.round}/{room.total_rounds}
           </p>
           <div className="mt-1 flex items-center justify-center gap-1.5">
@@ -474,7 +529,7 @@ function MatchStage({
               const done = r < room.round || (r === room.round && myAnswer !== null && oppAnswer !== null);
               const myHit = r === room.round ? (outcome === "goal" || (myAnswer !== null && myAnswer === question?.correct)) : null;
               void done; void myHit;
-              return <span key={r} className={cn("size-1.5 rounded-full", r <= room.round ? "bg-gold" : "bg-white/15")} />;
+              return <span key={r} className={cn("size-1.5 rounded-full", r <= room.round ? "bg-gold" : "bg-ghost")} />;
             })}
           </div>
         </div>
@@ -482,7 +537,7 @@ function MatchStage({
       </div>
 
       {/* المؤقت */}
-      <div className="relative h-2 overflow-hidden rounded-full bg-white/10">
+      <div className="relative h-2 overflow-hidden rounded-full bg-ghost">
         <motion.div
           className={cn("h-full rounded-full", urgent ? "bg-red-500" : "bg-gradient-to-l from-grass-500 to-gold")}
           style={{ width: `${Math.min(100, (msLeft / SHOT_WINDOW_MS) * 100)}%` }}
@@ -491,9 +546,9 @@ function MatchStage({
 
       {/* السؤال */}
       {question && (
-        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+        <div className="rounded-3xl border border-card-edge bg-card-soft p-4">
           <div className="flex items-center justify-between gap-2">
-            <span className={cn("flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black", urgent ? "bg-red-500/20 text-red-300" : "bg-white/10 text-white/70")}>
+            <span className={cn("flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black", urgent ? "bg-red-500/20 text-red-300" : "bg-ghost text-soft")}>
               <Timer className={cn("size-3", urgent && "animate-pulse")} />
               {seconds}s
             </span>
@@ -526,11 +581,11 @@ function MatchStage({
                         : isMine
                           ? "border-gold/50 bg-gold/10"
                           : locked
-                            ? "border-white/10 bg-white/[0.03] opacity-50"
-                            : "border-white/15 bg-white/[0.05] hover:border-gold/40 hover:bg-gold/5",
+                            ? "border-card-edge bg-card-soft opacity-50"
+                            : "border-card-edge bg-ghost hover:border-gold/40 hover:bg-gold/5",
                   )}
                 >
-                  <span className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-black/30 text-[11px] font-black text-white/60">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-ghost text-[11px] font-black text-soft">
                     {n}
                   </span>
                   <span className="min-w-0 flex-1">{opt}</span>
@@ -600,7 +655,7 @@ function PlayerSide({ name, score, you, align }: { name: string; score: number; 
 function ResultCard({ summary, lang, onDone }: { summary: MatchSummary; lang: Lang; onDone: () => void }) {
   const title = summary.won ? t(lang, "penWon") : summary.draw ? t(lang, "penDraw") : t(lang, "penLost");
   return (
-    <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.08] to-transparent p-8 text-center">
+    <div className="rounded-3xl border border-card-edge bg-gradient-to-b from-white/[0.08] to-transparent p-8 text-center">
       <motion.div
         initial={{ scale: 0, rotate: -20 }}
         animate={{ scale: 1, rotate: 0 }}

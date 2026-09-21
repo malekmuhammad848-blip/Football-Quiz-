@@ -51,7 +51,7 @@ export function EventsScreen({ lang }: Props) {
   return (
     <div className="space-y-4">
       {/* الترويسة */}
-      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-gold/15 to-transparent p-5">
+      <div className="relative overflow-hidden rounded-3xl border border-card-edge bg-gradient-to-b from-gold/15 to-transparent p-5">
         <div className="pointer-events-none absolute -top-14 -start-10 size-36 rounded-full bg-gold/20 blur-3xl" />
         <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-2 text-gold">
@@ -61,12 +61,12 @@ export function EventsScreen({ lang }: Props) {
           <button
             onClick={() => void load()}
             aria-label="Refresh"
-            className="rounded-full bg-white/10 p-2 transition-transform active:scale-90"
+            className="rounded-full bg-ghost p-2 transition-transform active:scale-90"
           >
             <RefreshCcw className={cn("size-4", refreshing && "animate-spin")} />
           </button>
         </div>
-        <p className="relative mt-1 text-sm font-medium text-white/60">{t(lang, "eventsDesc")}</p>
+        <p className="relative mt-1 text-sm font-medium text-soft">{t(lang, "eventsDesc")}</p>
       </div>
 
       {/* الحالات */}
@@ -77,15 +77,15 @@ export function EventsScreen({ lang }: Props) {
       {events === null && !error && (
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-28 animate-pulse rounded-3xl bg-white/[0.05]" />
+            <div key={i} className="h-28 animate-pulse rounded-3xl bg-ghost" />
           ))}
         </div>
       )}
 
       {events !== null && events.length === 0 && (
-        <div className="rounded-3xl border border-white/10 bg-white/[0.03] py-10 text-center">
-          <CalendarDays className="mx-auto size-10 text-white/30" />
-          <p className="mt-3 text-sm font-bold text-white/50">{t(lang, "eventsEmpty")}</p>
+        <div className="rounded-3xl border border-card-edge bg-card-soft py-10 text-center">
+          <CalendarDays className="mx-auto size-10 text-faint" />
+          <p className="mt-3 text-sm font-bold text-soft">{t(lang, "eventsEmpty")}</p>
         </div>
       )}
 
@@ -115,7 +115,7 @@ function EventCard({ ev, lang, index }: { ev: EventRow; lang: Lang; index: numbe
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index * 0.06, 0.5) }}
-      className={cn("relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b to-transparent p-4", style.bg, style.ring)}
+      className={cn("relative overflow-hidden rounded-3xl border border-card-edge bg-gradient-to-b to-transparent p-4", style.bg, style.ring)}
     >
       {/* شريط لوني بلون الفعالية من قاعدة البيانات */}
       <span className="absolute inset-y-0 start-0 w-1" style={{ background: ev.accent }} />
@@ -137,16 +137,16 @@ function EventCard({ ev, lang, index }: { ev: EventRow; lang: Lang; index: numbe
               </span>
             )}
           </div>
-          {desc && <p className="mt-0.5 line-clamp-2 text-xs font-medium leading-relaxed text-white/55">{desc}</p>}
+          {desc && <p className="mt-0.5 line-clamp-2 text-xs font-medium leading-relaxed text-soft">{desc}</p>}
 
           <div className="mt-2.5 flex flex-wrap items-center gap-2">
             {reward && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-black/30 px-2.5 py-1 text-[10px] font-black text-gold">
+              <span className="inline-flex items-center gap-1 rounded-full bg-ghost px-2.5 py-1 text-[10px] font-black text-gold">
                 <Gift className="size-3" />
                 {reward}
               </span>
             )}
-            <span className="inline-flex items-center gap-1 rounded-full bg-black/30 px-2.5 py-1 text-[10px] font-bold text-white/50">
+            <span className="inline-flex items-center gap-1 rounded-full bg-ghost px-2.5 py-1 text-[10px] font-bold text-soft">
               <Trophy className="size-3" />
               {ends.toLocaleDateString(lang === "ar" ? "ar" : "en", { day: "numeric", month: "short" })}
             </span>

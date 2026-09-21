@@ -8,6 +8,10 @@ import { App as CapApp } from "@capacitor/app";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 import type { Progress } from "../domain/types";
+import { FALLBACK_AVATARS, FALLBACK_TAGS } from "../domain/customization";
+
+// إتاحة الاحتياطيات لطبقة البيانات
+export { FALLBACK_AVATARS, FALLBACK_TAGS };
 
 export type { Session, User };
 
@@ -276,22 +280,40 @@ export interface TagOption {
   sort: number;
 }
 
+/**
+ * جلب كتالوج الأفاتارات — لا يرمي أخطاء أبدًا:
+ * عند أي فشل (لا شبكة / جداول غير موجودة) يعيد الكتالوج الاحتياطي المحلي
+ * حتى لا تنهار واجهة التخصيص.
+ */
 export async function fetchAvatarCatalog(): Promise<AvatarOption[]> {
-  const { data, error } = await supabase
-    .from("avatar_catalog")
-    .select("*")
-    .order("sort", { ascending: true });
-  if (error) throw error;
-  return (data ?? []) as AvatarOption[];
+  try {
+    const { data, error } = await supabase
+      .from("avatar_catalog")
+      .select("*")
+      .order("sort", { ascending: true });
+    if (error) throw error;
+    const rows = (data ?? []).filter((r) => r && typeof r === "object" && (r as AvatarOption).id);
+    if (rows.length === 0) return FALLBACK_AVATARS;
+    return rows as AvatarOption[];
+  } catch {
+    return FALLBACK_AVATARS;
+  }
 }
 
+/** جلب كتالوج التاغات — لا يرمي أخطاء أبدًا (نفس منطق الأفاتارات) */
 export async function fetchTagCatalog(): Promise<TagOption[]> {
-  const { data, error } = await supabase
-    .from("tag_catalog")
-    .select("*")
-    .order("sort", { ascending: true });
-  if (error) throw error;
-  return (data ?? []) as TagOption[];
+  try {
+    const { data, error } = await supabase
+      .from("tag_catalog")
+      .select("*")
+      .order("sort", { ascending: true });
+    if (error) throw error;
+    const rows = (data ?? []).filter((r) => r && typeof r === "object" && (r as TagOption).id);
+    if (rows.length === 0) return FALLBACK_TAGS;
+    return rows as TagOption[];
+  } catch {
+    return FALLBACK_TAGS;
+  }
 }
 
 export interface MyProfileRow {
@@ -299,13 +321,25 @@ export interface MyProfileRow {
   tag_id: string | null;
 }
 
+/** جلب التخصيص المحفوظ — آمن تمامًا: يعيد null عند أي فشل (لا انهيار) */
 export async function fetchMyProfileMeta(userId: string): Promise<MyProfileRow | null> {
-  const { data } = await supabase
-    .from("profiles")
-    .select("avatar_id, tag_id")
-    .eq("id", userId)
-    .maybeSingle();
-  return (data as MyProfileRow | null) ?? null;
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("avatar_id, tag_id")
+      .eq("id", userId)
+      .maybeSingle();
+    if (error) return null;
+    const row = data as MyProfileRow | null;
+    // تجاهل القيم الفارغة/الناقصة
+    if (!row || (typeof row.avatar_id !== "string" && typeof row.tag_id !== "string")) return null;
+    return {
+      avatar_id: typeof row.avatar_id === "string" && row.avatar_id ? row.avatar_id : null,
+      tag_id: typeof row.tag_id === "string" && row.tag_id ? row.tag_id : null,
+    };
+  } catch {
+    return null;
+  }
 }
 
 // ——— الترجيح ———
@@ -427,13 +461,19 @@ export interface PenaltyStatRow {
   goals: number;
 }
 
+/** إحصائيات الترجيح السحابية — آمنة: null عند أي فشل */
 export async function fetchMyPenaltyStats(userId: string): Promise<PenaltyStatRow | null> {
-  const { data } = await supabase
-    .from("penalty_stats")
-    .select("wins, losses, shots, goals")
-    .eq("user_id", userId)
-    .maybeSingle();
-  return (data as PenaltyStatRow | null) ?? null;
+  try {
+    const { data, error } = await supabase
+      .from("penalty_stats")
+      .select("wins, losses, shots, goals")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) return null;
+    return (data as PenaltyStatRow | null) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export interface PenaltyLeaderRow {

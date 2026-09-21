@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
 import { fetchAvatarCatalog, fetchMyProfileMeta, fetchTagCatalog, authServiceExtra, type AvatarOption, type TagOption } from "../lib/backend";
+import { optionLabel, resolveAvatar, resolveTag } from "../domain/customization";
 import type { Session } from "@supabase/supabase-js";
 import { t, tr, type Lang } from "../lib/i18n";
 import { cn } from "../utils/cn";
@@ -31,21 +32,24 @@ export function CustomizeSheet({ open, onClose, session, xp, lang, onSaved }: Pr
   useEffect(() => {
     if (!open) return;
     void (async () => {
+      // الجلب آمن دائمًا: يعيد الكتالوج الاحتياطي عند أي فشل
       const [a, tg, mine] = await Promise.all([
-        fetchAvatarCatalog().catch(() => []),
-        fetchTagCatalog().catch(() => []),
-        fetchMyProfileMeta(session.user.id).catch(() => null),
+        fetchAvatarCatalog(),
+        fetchTagCatalog(),
+        fetchMyProfileMeta(session.user.id),
       ]);
       setAvatars(a);
       setTags(tg);
-      setSelAvatar(mine?.avatar_id ?? a[0]?.id ?? "");
-      setSelTag(mine?.tag_id ?? tg[0]?.id ?? "");
+      // اختيار افتراضي آمن: المحفوظ إن كان صالحًا وإلا أول عنصر متاح
+      setSelAvatar(resolveAvatar(a, mine?.avatar_id ?? null, xp).id);
+      setSelTag(resolveTag(tg, mine?.tag_id ?? null, xp).id);
     })();
-  }, [open, session.user.id]);
+  }, [open, session.user.id, xp]);
 
   const save = async () => {
     setSaving(true);
-    const ok = await authServiceExtra.updateAvatarTag(selAvatar, selTag);
+    // الضيف بلا حساب: يكفي حفظ الاختيار محليًا في الواجهة
+    const ok = session ? await authServiceExtra.updateAvatarTag(selAvatar, selTag) : true;
     setSaving(false);
     if (ok) onSaved(selAvatar, selTag);
     onClose();
@@ -56,7 +60,7 @@ export function CustomizeSheet({ open, onClose, session, xp, lang, onSaved }: Pr
       <div className="space-y-5">
         {/* الأفاتارات */}
         <section>
-          <h4 className="mb-2 text-xs font-black uppercase tracking-wide text-white/50">{t(lang, "avatar")}</h4>
+          <h4 className="mb-2 text-xs font-black uppercase tracking-wide text-soft">{t(lang, "avatar")}</h4>
           <div className="grid grid-cols-4 gap-2">
             {(avatars ?? []).map((a) => {
               const locked = xp < a.min_xp;
@@ -72,17 +76,17 @@ export function CustomizeSheet({ open, onClose, session, xp, lang, onSaved }: Pr
                     active
                       ? "border-gold/60 bg-gold/15"
                       : locked
-                        ? "border-white/8 bg-white/[0.02] opacity-40"
-                        : "border-white/12 bg-white/[0.05] hover:border-gold/30",
+                        ? "border-ghost bg-ghost opacity-40"
+                        : "border-card-edge bg-ghost hover:border-gold/30",
                   )}
                 >
-                  <span className="text-2xl">{a.emoji}</span>
-                  <span className="max-w-full truncate px-1 text-[9px] font-bold text-white/60">
-                    {lang === "ar" ? a.label_ar : a.label_en}
+                  <span className="text-2xl" aria-hidden>{a.emoji || "⚽"}</span>
+                  <span className="max-w-full truncate px-1 text-[9px] font-bold text-soft">
+                    {optionLabel(a, lang)}
                   </span>
                   {locked && (
-                    <span className="absolute -end-1 -top-1 flex size-5 items-center justify-center rounded-full bg-[#1a241d] shadow">
-                      <Lock className="size-2.5 text-white/60" />
+                    <span className="absolute -end-1 -top-1 flex size-5 items-center justify-center rounded-full bg-surface shadow">
+                      <Lock className="size-2.5 text-soft" />
                     </span>
                   )}
                 </motion.button>
@@ -94,7 +98,7 @@ export function CustomizeSheet({ open, onClose, session, xp, lang, onSaved }: Pr
 
         {/* التاغات */}
         <section>
-          <h4 className="mb-2 text-xs font-black uppercase tracking-wide text-white/50">{t(lang, "tags")}</h4>
+          <h4 className="mb-2 text-xs font-black uppercase tracking-wide text-soft">{t(lang, "tags")}</h4>
           <div className="flex flex-wrap gap-2">
             {(tags ?? []).map((tg) => {
               const locked = xp < tg.min_xp;
@@ -110,12 +114,12 @@ export function CustomizeSheet({ open, onClose, session, xp, lang, onSaved }: Pr
                     active
                       ? "border-gold/60 bg-gold/15 text-gold"
                       : locked
-                        ? "border-white/8 bg-white/[0.02] text-white/30"
-                        : "border-white/12 bg-white/[0.05] text-white/75 hover:border-gold/30",
+                        ? "border-ghost bg-ghost text-faint"
+                        : "border-card-edge bg-ghost text-soft hover:border-gold/30",
                   )}
                 >
-                  <span>{tg.emoji}</span>
-                  {lang === "ar" ? tg.label_ar : tg.label_en}
+                  <span aria-hidden>{tg.emoji || "🏷️"}</span>
+                  {optionLabel(tg, lang)}
                   {locked && <Lock className="size-3 opacity-60" />}
                   {locked && <span className="text-[9px] font-bold opacity-70">{tr("{n} XP", { n: tg.min_xp })}</span>}
                 </motion.button>

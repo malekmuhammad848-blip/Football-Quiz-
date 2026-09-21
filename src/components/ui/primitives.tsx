@@ -30,7 +30,7 @@ export function Toggle({
       onClick={() => onChange(!on)}
       className={cn(
         "relative h-7 w-12 shrink-0 rounded-full transition-colors duration-200",
-        on ? "bg-grass-500" : "bg-ink/20 dark:bg-white/20",
+        on ? "bg-grass-500" : "bg-ghost",
       )}
     >
       <motion.span

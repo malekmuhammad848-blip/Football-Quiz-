@@ -42,7 +42,7 @@ export function LeaderboardSheet({ open, onClose, session, lang }: Props) {
       {rows === null && !error && (
         <div className="space-y-2 py-4">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-12 animate-pulse rounded-xl bg-white/5" />
+            <div key={i} className="h-12 animate-pulse rounded-xl bg-ghost" />
           ))}
         </div>
       )}
@@ -50,7 +50,7 @@ export function LeaderboardSheet({ open, onClose, session, lang }: Props) {
       {error && <p className="py-6 text-center text-sm font-bold text-red-400">{error}</p>}
 
       {rows !== null && rows.length === 0 && (
-        <p className="py-6 text-center text-sm font-bold text-white/50">{t(lang, "noCloud")}</p>
+        <p className="py-6 text-center text-sm font-bold text-soft">{t(lang, "noCloud")}</p>
       )}
 
       {rows !== null && rows.length > 0 && (
@@ -67,10 +67,10 @@ export function LeaderboardSheet({ open, onClose, session, lang }: Props) {
                   "flex items-center gap-3 rounded-2xl px-3 py-2.5",
                   me
                     ? "border border-grass-500/40 bg-grass-500/10"
-                    : "bg-white/[0.04]",
+                    : "bg-ghost",
                 )}
               >
-                <span className="w-8 shrink-0 text-center text-sm font-black tabular-nums text-white/60">
+                <span className="w-8 shrink-0 text-center text-sm font-black tabular-nums text-soft">
                   {r.pos <= 3 ? MEDALS[r.pos - 1] : r.pos}
                 </span>
                 <span
@@ -82,7 +82,7 @@ export function LeaderboardSheet({ open, onClose, session, lang }: Props) {
                   {r.display_name}
                   {me && <span className="ms-1.5 text-[10px] font-black opacity-60">({t(lang, "you")})</span>}
                 </span>
-                <span className="shrink-0 text-xs font-bold tabular-nums text-white/60">
+                <span className="shrink-0 text-xs font-bold tabular-nums text-soft">
                   ⚽ {r.correct_count}
                 </span>
                 <span className="shrink-0 text-xs font-bold tabular-nums text-orange-300">

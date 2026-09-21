@@ -1,6 +1,7 @@
-/** ============================================================
- *  Avatar — أفاتار دائري بإطار الدوري المتدرج
- *  ============================================================ */
+/**
+ * Avatar — أفاتار دائري بإطار الدوري
+ * لا يعتمد على شبكة إطلاقًا: إيموجي أو حرف أول — مع fallback آمن.
+ */
 
 import { leagueFor } from "../domain/leagues";
 import { cn } from "../utils/cn";
@@ -10,7 +11,7 @@ interface Props {
   size?: "sm" | "md" | "lg" | "xl";
   ring?: boolean;
   xp?: number; // لتحديد لون الإطار من الدوري (افتراضي 0)
-  /** إيموجي الأفاتار الديناميكي من كتالوج Supabase (اختياري) */
+  /** إيموجي الأفاتار المختار (اختياري) */
   emojiOverride?: string;
 }
 
@@ -24,7 +25,11 @@ const SIZES = {
 export function Avatar({ name, size = "md", ring = true, xp = 0, emojiOverride }: Props) {
   const s = SIZES[size];
   const league = leagueFor(xp);
-  const initial = name.trim().slice(0, 1).toUpperCase() || "⚽";
+  // fallback آمن: إيموجي مختار ← حرف أول ← كرة
+  const emoji = typeof emojiOverride === "string" && emojiOverride.trim() ? emojiOverride : null;
+  const initial =
+    typeof name === "string" && name.trim() ? name.trim().slice(0, 1).toUpperCase() : null;
+  const content = emoji ?? initial ?? "⚽";
 
   return (
     <div
@@ -39,10 +44,10 @@ export function Avatar({ name, size = "md", ring = true, xp = 0, emojiOverride }
         className={cn(
           "flex items-center justify-center rounded-full bg-[#0d1610] font-black text-white",
           s.box,
-          emojiOverride ? "text-2xl" : s.text,
+          emoji ? "text-2xl" : s.text,
         )}
       >
-        {emojiOverride ?? initial}
+        {content}
       </div>
     </div>
   );
