@@ -11,6 +11,7 @@ import { RUSH, buildRushSet, loadRushRecord, roundSeed, rushPoints, rushXp, save
 import { progressStore } from "../stores/progressStore";
 import { prefsStore } from "../stores/prefsStore";
 import { sfx, buzz, celebrate } from "../lib/feedback";
+import { stadium } from "../lib/stadium";
 import { t, type Lang } from "../lib/i18n";
 import { cn } from "../utils/cn";
 import { Button } from "./ui/primitives";
@@ -59,6 +60,7 @@ export function RushMode({ lang }: Props) {
       if (xp > 0) progressStore.addXp(xp);
       if (prefsStore.getState().sound) {
         if (beaten) sfx.unlock();
+        stadium.whistle(); // صفارة نهاية المباراة
         if (finalScore >= 100) void celebrate(["#fbbf24", "#10b981", "#ffffff"], true);
       }
       setPhase("done");
@@ -114,14 +116,20 @@ export function RushMode({ lang }: Props) {
       setCorrectCount((c) => c + 1);
       // +2 ثانية مكافأة
       deadlineRef.current += RUSH.bonusSec * 1000;
-      if (soundOn) sfx.correct();
+      if (soundOn) {
+        sfx.correct();
+        stadium.correct(); // هللة مع كل هدف
+      }
       if (hapticsOn) void buzz("light");
       if (newCombo > 0 && newCombo % RUSH.comboStep === 0 && soundOn) sfx.streak(Math.min(newCombo / 3, 8));
     } else {
       setCombo(0);
       // -3 ثوانٍ عقاب
       deadlineRef.current -= RUSH.penaltySec * 1000;
-      if (soundOn) sfx.wrong();
+      if (soundOn) {
+        sfx.wrong();
+        stadium.aww(); // همهمة إحباط الجمهور
+      }
       if (hapticsOn) void buzz("heavy");
     }
 

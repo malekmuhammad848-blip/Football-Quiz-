@@ -26,6 +26,7 @@ import { DailyQuests } from "./components/DailyQuests";
 import { LevelUpBurst } from "./components/LevelUpBurst";
 import { RushMode } from "./components/RushMode";
 import { GrassGrid } from "./components/GrassGrid";
+import { SeasonScreen } from "./components/SeasonScreen";
 import { ShieldMark } from "./components/Icons";
 import { ResultPanel } from "./components/ResultPanels";
 import { SettingsSheet } from "./components/SettingsSheet";
@@ -265,6 +266,8 @@ export default function App() {
           <PenaltyArena session={session} lang={lang} onRequireAuth={() => setPenaltyAuthPrompt(true)} />
         ) : tab === "events" ? (
           <EventsScreen lang={lang} />
+        ) : tab === "season" ? (
+          <SeasonScreen lang={lang} xp={progress.xp} />
         ) : tab === "profile" ? (
           <ProfileTab
             session={session}

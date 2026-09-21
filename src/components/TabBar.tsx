@@ -4,16 +4,17 @@
  */
 
 import { motion } from "framer-motion";
-import { CalendarDays, Home, User, Volleyball } from "lucide-react";
+import { CalendarDays, Home, Sparkles, User, Volleyball } from "lucide-react";
 import { t, type Lang } from "../lib/i18n";
 import { cn } from "../utils/cn";
 
-export type TabId = "today" | "penalty" | "events" | "profile";
+export type TabId = "today" | "penalty" | "events" | "season" | "profile";
 
-const TABS: { id: TabId; icon: typeof Home; key: "tabToday" | "tabPenalty" | "tabEvents" | "tabProfile" }[] = [
+const TABS: { id: TabId; icon: typeof Home; key: "tabToday" | "tabPenalty" | "tabEvents" | "tabSeason" | "tabProfile" }[] = [
   { id: "today", icon: Home, key: "tabToday" },
   { id: "penalty", icon: Volleyball, key: "tabPenalty" },
   { id: "events", icon: CalendarDays, key: "tabEvents" },
+  { id: "season", icon: Sparkles, key: "tabSeason" },
   { id: "profile", icon: User, key: "tabProfile" },
 ];
 

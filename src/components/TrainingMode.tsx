@@ -10,10 +10,13 @@ import { QUESTIONS } from "../data/questions";
 import { localizeQuestion } from "../domain/dailyEngine";
 import { fnv1a } from "../core/date";
 import { sfx, buzz } from "../lib/feedback";
+import { stadium } from "../lib/stadium";
 import { questsStore } from "../stores/questsStore";
 import { t, type Lang } from "../lib/i18n";
+import type { LocalizedQuestion } from "../domain/types";
 import { cn } from "../utils/cn";
 import { Badge, Button } from "./ui/primitives";
+import { VisualQuestion, isVisualQuestion } from "./VisualQuestion";
 import { CheckBadge, CrossBadge, TrophyMark } from "./Icons";
 
 interface Props {
@@ -25,11 +28,12 @@ interface Props {
 
 interface TrainQ {
   id: string;
+  category: LocalizedQuestion["category"];
+  difficulty: LocalizedQuestion["difficulty"];
   q: string;
   options: string[];
   answer: number;
   fact: string;
-  difficulty: string;
 }
 
 function buildSet(lang: Lang, seed: number): TrainQ[] {
@@ -43,7 +47,7 @@ function buildSet(lang: Lang, seed: number): TrainQ[] {
   }
   return indices.slice(0, GAMEPLAY.trainSetSize).map((qi, k) => {
     const lq = localizeQuestion(QUESTIONS[qi]!, lang, seed + k * 7919);
-    return { id: lq.id, q: lq.q, options: lq.options, answer: lq.answer, fact: lq.fact, difficulty: lq.difficulty };
+    return { id: lq.id, category: lq.category, q: lq.q, options: lq.options, answer: lq.answer, fact: lq.fact, difficulty: lq.difficulty };
   });
 }
 
@@ -69,7 +73,10 @@ export function TrainingMode({ lang, soundOn, hapticsOn, onExit }: Props) {
       setScore((s) => s + 1);
       questsStore.track("trainMaster"); // تتبع مهمة التدريب
     }
-    if (soundOn) (correct ? sfx.correct : sfx.wrong)();
+    if (soundOn) {
+      (correct ? sfx.correct : sfx.wrong)();
+      stadium.correct(); // هللة جمهور على الصحيح
+    }
     if (hapticsOn) void buzz(correct ? "medium" : "heavy");
   };
 
@@ -139,7 +146,11 @@ export function TrainingMode({ lang, soundOn, hapticsOn, onExit }: Props) {
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.18 }}
           >
-            <p className="mb-3 text-base leading-7 font-extrabold sm:text-xl sm:leading-8">{current.q}</p>
+            {isVisualQuestion(current.id) ? (
+              <VisualQuestion question={current} className="mb-4" />
+            ) : (
+              <p className="mb-3 text-base leading-7 font-extrabold sm:text-xl sm:leading-8">{current.q}</p>
+            )}
             <div className="grid gap-2">
               {current.options.map((opt, i) => {
                 const revealed = selected !== null;

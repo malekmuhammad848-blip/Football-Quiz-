@@ -141,6 +141,7 @@ const ar = {
   tabToday: "اليوم",
   tabPenalty: "الترجيح",
   tabEvents: "الفعاليات",
+  tabSeason: "الموسم",
   tabProfile: "ملفي",
   // الترجيح
   penaltyTitle: "دوري الترجيح الحي",
@@ -226,6 +227,16 @@ const ar = {
   grassNone: "بلا إجابة",
   grassLess: "أقل",
   grassMore: "أكثر",
+  // الموسم التقييمي
+  seasonTitle: "مجموعة النجوم",
+  seasonDesc: "اجمع 24 ملصقًا للأساطير والنجوم والأندية والمنتخبات — الحزم تُفتح بـ XP من اللعب",
+  seasonCollected: "ملصق",
+  packsTitle: "افتح حزمة",
+  packsHint: "الـ XP يُخصم من رصيدك — العب أكثر لتفتح أكثر",
+  albumTitle: "الألبوم",
+  albumComplete: "الاكتمال",
+  packTapToOpen: "اضغط لفتح الحزمة!",
+  packTapContinue: "اضغط للمتابعة",
 } as const;
 
 export type TKey = keyof typeof ar;
@@ -357,6 +368,7 @@ const en: Record<TKey, string> = {
   tabToday: "Today",
   tabPenalty: "Shootout",
   tabEvents: "Events",
+  tabSeason: "Season",
   tabProfile: "Me",
   penaltyTitle: "Live Penalty League",
   penaltyDesc: "Real-time 1v1 duels — one question every 5 seconds, highest score wins",
@@ -435,6 +447,15 @@ const en: Record<TKey, string> = {
   grassNone: "No answer",
   grassLess: "Less",
   grassMore: "More",
+  seasonTitle: "Star Collection",
+  seasonDesc: "Collect 24 stickers of legends, stars, clubs & nations — packs open with XP earned by playing",
+  seasonCollected: "stickers",
+  packsTitle: "Open a pack",
+  packsHint: "XP is deducted from your balance — play more to open more",
+  albumTitle: "Album",
+  albumComplete: "Complete",
+  packTapToOpen: "Tap to open the pack!",
+  packTapContinue: "Tap to continue",
 };
 
 const dicts: Record<Lang, Record<TKey, string>> = { ar, en };

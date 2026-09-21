@@ -502,6 +502,87 @@ export const QUESTIONS: Question[] = [
       fact: "Haaland shattered the record in his debut City season — 52 goals all competitions.",
     },
   },
+  // ——— أسئلة بصرية (طقم/علم/شعار SVG) ———
+  {
+    id: "vis-messi-kit",
+    category: "players",
+    difficulty: "easy",
+    answer: 0,
+    ar: {
+      q: "لمن ينتمي هذا الطقم؟",
+      options: ["ميسي", "نيمار", "سواريز", "دي بول"],
+      fact: "ميسي قضى أكثر من 20 عامًا بالأزرق والأحمر قبل الانتقال لباريس ثم ميامي.",
+    },
+    en: {
+      q: "Whose kit is this?",
+      options: ["Messi", "Neymar", "Suárez", "De Paul"],
+      fact: "Messi spent 20+ years in blaugrana before moves to Paris and Miami.",
+    },
+  },
+  {
+    id: "vis-cr7-kit",
+    category: "players",
+    difficulty: "easy",
+    answer: 1,
+    ar: {
+      q: "لمن ينتمي هذا الطقم؟",
+      options: ["بيلينغهام", "رونالدو", "راشفورد", "فيرنانديز"],
+      fact: "رونالدو حمل قميص اليونايتد في فترتين: 2003-2009 ثم 2021-2022.",
+    },
+    en: {
+      q: "Whose kit is this?",
+      options: ["Bellingham", "Ronaldo", "Rashford", "Fernandes"],
+      fact: "Ronaldo wore United red in two spells: 2003-09 and 2021-22.",
+    },
+  },
+  {
+    id: "vis-brazil-flag",
+    category: "worldcup",
+    difficulty: "easy",
+    answer: 2,
+    ar: {
+      q: "أي منتخب يمثله هذا العلم؟",
+      options: ["الأرجنتين", "كولومبيا", "البرازيل", "أوروغواي"],
+      fact: "البرازيل الوحيد الذي شارك في كل نسخ كأس العالم دون استثناء.",
+    },
+    en: {
+      q: "Which nation does this flag represent?",
+      options: ["Argentina", "Colombia", "Brazil", "Uruguay"],
+      fact: "Brazil is the only nation to play in every single World Cup.",
+    },
+  },
+  {
+    id: "vis-real-badge",
+    category: "clubs",
+    difficulty: "easy",
+    answer: 0,
+    ar: {
+      q: "أي نادٍ يحمل هذا الشعار؟",
+      options: ["ريال مدريد", "سيلتا فيغو", "فالنسيا", "ريال سوسيداد"],
+      fact: "التاج فوق الشعار مُنح من الملك ألفونسو الثالث عشر عام 1920.",
+    },
+    en: {
+      q: "Which club bears this crest?",
+      options: ["Real Madrid", "Celta Vigo", "Valencia", "Real Sociedad"],
+      fact: "The crown on the crest was granted by King Alfonso XIII in 1920.",
+    },
+  },
+  {
+    id: "vis-morocco-flag",
+    category: "arab",
+    difficulty: "easy",
+    answer: 1,
+    ar: {
+      q: "أي منتخب يمثله هذا العلم؟",
+      options: ["تونس", "المغرب", "الجزائر", "مصر"],
+      fact: "أسد الأطلس وصل نصف نهائي مونديال 2022 — أول عربي وإفريقي في التاريخ.",
+    },
+    en: {
+      q: "Which nation does this flag represent?",
+      options: ["Tunisia", "Morocco", "Algeria", "Egypt"],
+      fact: "The Atlas Lions reached the 2022 semi-final — first Arab and African side ever.",
+    },
+  },
   {
     id: "copa-libertadores",
     category: "clubs",
