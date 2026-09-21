@@ -140,7 +140,6 @@ const ar = {
   // التبويبات
   tabToday: "اليوم",
   tabPenalty: "الترجيح",
-  tabEvents: "الفعاليات",
   tabSeason: "الموسم",
   tabProfile: "ملفي",
   // الترجيح
@@ -370,7 +369,6 @@ const en: Record<TKey, string> = {
   achLevelLegend: "The Legend — max level",
   tabToday: "Today",
   tabPenalty: "Shootout",
-  tabEvents: "Events",
   tabSeason: "Season",
   tabProfile: "Me",
   penaltyTitle: "Live Penalty League",

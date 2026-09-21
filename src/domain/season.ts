@@ -14,11 +14,19 @@ export interface Sticker {
   id: string;
   kind: StickerKind;
   rarity: Rarity;
-  /** لون الطقم الأساسي والثانوي (يرسمان بـ SVG) */
+  /** لون الطقم/الدرع الأساسي والثانوي (يرسمان بـ SVG) */
   c1: string;
   c2: string;
   /** نمط الرسم: kit = قميص، flag = علم، badge = شعار */
   art: "kit" | "flag" | "badge";
+  /** نمط أكمام الطقم: solid | stripes (عمودي) | sash (وشاح) | hoops (أفقي) */
+  pattern?: "solid" | "stripes" | "sash" | "hoops";
+  /** رقم القميص — يظهر على الظهر للاعبين والأساطير */
+  number?: number;
+  /** معرف رسم علم خاص للمنتخبات (بدقة أعلى من العام) */
+  flagStyle?: "argentina" | "brazil" | "france" | "morocco" | "germany" | "spain";
+  /** معرف رسم شعار خاص للنادي (يُرسم يدويًا لكل نادٍ) */
+  crestStyle?: "real" | "barca" | "united" | "bayern" | "liverpool" | "hilal";
   ar: string;
   en: string;
   /** التقييم من 60 إلى 99 */
@@ -29,36 +37,36 @@ export const SEASON_ID = "s1";
 
 export const STICKERS: readonly Sticker[] = [
   // ——— أساطير (legendary/epic) ———
-  { id: "pele", kind: "legend", rarity: "legendary", c1: "#ffdc26", c2: "#1d4ed8", art: "kit", ar: "بيليه", en: "Pelé", rating: 99 },
-  { id: "maradona", kind: "legend", rarity: "legendary", c1: "#75aadb", c2: "#ffffff", art: "kit", ar: "مارادونا", en: "Maradona", rating: 98 },
-  { id: "cruyff", kind: "legend", rarity: "epic", c1: "#a5001e", c2: "#ffffff", art: "kit", ar: "كرويف", en: "Cruyff", rating: 96 },
-  { id: "zidane", kind: "legend", rarity: "epic", c1: "#1a2f6e", c2: "#ffffff", art: "kit", ar: "زيدان", en: "Zidane", rating: 95 },
-  { id: "ronaldo-nazario", kind: "legend", rarity: "epic", c1: "#ffdc26", c2: "#1d9e4b", art: "kit", ar: "الظاهرة", en: "R9", rating: 96 },
-  { id: "beckenbauer", kind: "legend", rarity: "rare", c1: "#ffffff", c2: "#111111", art: "kit", ar: "بيكنباور", en: "Beckenbauer", rating: 93 },
+  { id: "pele", kind: "legend", rarity: "legendary", c1: "#ffdc26", c2: "#1d4ed8", art: "kit", pattern: "solid", number: 10, ar: "بيليه", en: "Pelé", rating: 99 },
+  { id: "maradona", kind: "legend", rarity: "legendary", c1: "#75aadb", c2: "#ffffff", art: "kit", pattern: "stripes", number: 10, ar: "مارادونا", en: "Maradona", rating: 98 },
+  { id: "cruyff", kind: "legend", rarity: "epic", c1: "#a5001e", c2: "#ffffff", art: "kit", pattern: "hoops", number: 14, ar: "كرويف", en: "Cruyff", rating: 96 },
+  { id: "zidane", kind: "legend", rarity: "epic", c1: "#1a2f6e", c2: "#ffffff", art: "kit", pattern: "sash", number: 10, ar: "زيدان", en: "Zidane", rating: 95 },
+  { id: "ronaldo-nazario", kind: "legend", rarity: "epic", c1: "#ffdc26", c2: "#1d9e4b", art: "kit", pattern: "solid", number: 9, ar: "الظاهرة", en: "R9", rating: 96 },
+  { id: "beckenbauer", kind: "legend", rarity: "rare", c1: "#ffffff", c2: "#111111", art: "kit", pattern: "solid", number: 5, ar: "بيكنباور", en: "Beckenbauer", rating: 93 },
 
   // ——— نجوم الحاضر ———
-  { id: "messi", kind: "star", rarity: "legendary", c1: "#75aadb", c2: "#ffffff", art: "kit", ar: "ميسي", en: "Messi", rating: 98 },
-  { id: "cr7", kind: "star", rarity: "legendary", c1: "#b01c2e", c2: "#0b5e2e", art: "kit", ar: "رونالدو", en: "Ronaldo", rating: 97 },
-  { id: "mbappe", kind: "star", rarity: "epic", c1: "#1a2f6e", c2: "#d00a2e", art: "kit", ar: "مبابي", en: "Mbappé", rating: 95 },
-  { id: "haaland", kind: "star", rarity: "epic", c1: "#6cabdd", c2: "#111111", art: "kit", ar: "هالاند", en: "Haaland", rating: 94 },
-  { id: "bellingham", kind: "star", rarity: "rare", c1: "#ffffff", c2: "#b01c2e", art: "kit", ar: "بيلينغهام", en: "Bellingham", rating: 93 },
-  { id: "salah", kind: "star", rarity: "epic", c1: "#c8102e", c2: "#00b2a9", art: "kit", ar: "صلاح", en: "Salah", rating: 94 },
+  { id: "messi", kind: "star", rarity: "legendary", c1: "#75aadb", c2: "#ffffff", art: "kit", pattern: "stripes", number: 10, ar: "ميسي", en: "Messi", rating: 98 },
+  { id: "cr7", kind: "star", rarity: "legendary", c1: "#b01c2e", c2: "#0b5e2e", art: "kit", pattern: "solid", number: 7, ar: "رونالدو", en: "Ronaldo", rating: 97 },
+  { id: "mbappe", kind: "star", rarity: "epic", c1: "#1a2f6e", c2: "#d00a2e", art: "kit", pattern: "sash", number: 10, ar: "مبابي", en: "Mbappé", rating: 95 },
+  { id: "haaland", kind: "star", rarity: "epic", c1: "#6cabdd", c2: "#111111", art: "kit", pattern: "solid", number: 9, ar: "هالاند", en: "Haaland", rating: 94 },
+  { id: "bellingham", kind: "star", rarity: "rare", c1: "#ffffff", c2: "#b01c2e", art: "kit", pattern: "solid", number: 5, ar: "بيلينغهام", en: "Bellingham", rating: 93 },
+  { id: "salah", kind: "star", rarity: "epic", c1: "#c8102e", c2: "#00b2a9", art: "kit", pattern: "solid", number: 11, ar: "صلاح", en: "Salah", rating: 94 },
 
   // ——— أندية كبرى (شارات) ———
-  { id: "real-madrid", kind: "club", rarity: "epic", c1: "#ffffff", c2: "#febe10", art: "badge", ar: "ريال مدريد", en: "Real Madrid", rating: 95 },
-  { id: "barcelona", kind: "club", rarity: "epic", c1: "#a50044", c2: "#004d98", art: "badge", ar: "برشلونة", en: "Barcelona", rating: 94 },
-  { id: "man-utd", kind: "club", rarity: "rare", c1: "#da291c", c2: "#fbe122", art: "badge", ar: "مان يونايتد", en: "Man United", rating: 90 },
-  { id: "bayern", kind: "club", rarity: "epic", c1: "#dc052d", c2: "#0066b2", art: "badge", ar: "بايرن", en: "Bayern", rating: 93 },
-  { id: "liverpool", kind: "club", rarity: "rare", c1: "#c8102e", c2: "#00b2a9", art: "badge", ar: "ليفربول", en: "Liverpool", rating: 91 },
-  { id: "al-hilal", kind: "club", rarity: "rare", c1: "#0b5ec4", c2: "#ffffff", art: "badge", ar: "الهلال", en: "Al Hilal", rating: 88 },
+  { id: "real-madrid", kind: "club", rarity: "epic", c1: "#ffffff", c2: "#febe10", art: "badge", crestStyle: "real", ar: "ريال مدريد", en: "Real Madrid", rating: 95 },
+  { id: "barcelona", kind: "club", rarity: "epic", c1: "#a50044", c2: "#004d98", art: "badge", crestStyle: "barca", ar: "برشلونة", en: "Barcelona", rating: 94 },
+  { id: "man-utd", kind: "club", rarity: "rare", c1: "#da291c", c2: "#fbe122", art: "badge", crestStyle: "united", ar: "مان يونايتد", en: "Man United", rating: 90 },
+  { id: "bayern", kind: "club", rarity: "epic", c1: "#dc052d", c2: "#0066b2", art: "badge", crestStyle: "bayern", ar: "بايرن", en: "Bayern", rating: 93 },
+  { id: "liverpool", kind: "club", rarity: "rare", c1: "#c8102e", c2: "#00b2a9", art: "badge", crestStyle: "liverpool", ar: "ليفربول", en: "Liverpool", rating: 91 },
+  { id: "al-hilal", kind: "club", rarity: "rare", c1: "#0b5ec4", c2: "#ffffff", art: "badge", crestStyle: "hilal", ar: "الهلال", en: "Al Hilal", rating: 88 },
 
   // ——— منتخبات (أعلام) ———
-  { id: "argentina", kind: "nation", rarity: "epic", c1: "#75aadb", c2: "#ffffff", art: "flag", ar: "الأرجنتين", en: "Argentina", rating: 96 },
-  { id: "brazil", kind: "nation", rarity: "epic", c1: "#ffdc26", c2: "#1d9e4b", art: "flag", ar: "البرازيل", en: "Brazil", rating: 95 },
-  { id: "france", kind: "nation", rarity: "epic", c1: "#1a2f6e", c2: "#d00a2e", art: "flag", ar: "فرنسا", en: "France", rating: 95 },
-  { id: "morocco", kind: "nation", rarity: "rare", c1: "#b01c2e", c2: "#0b6e4f", art: "flag", ar: "المغرب", en: "Morocco", rating: 89 },
-  { id: "germany", kind: "nation", rarity: "rare", c1: "#ffffff", c2: "#111111", art: "flag", ar: "ألمانيا", en: "Germany", rating: 90 },
-  { id: "spain", kind: "nation", rarity: "rare", c1: "#c60b1e", c2: "#ffc400", art: "flag", ar: "إسبانيا", en: "Spain", rating: 92 },
+  { id: "argentina", kind: "nation", rarity: "epic", c1: "#75aadb", c2: "#ffffff", art: "flag", flagStyle: "argentina", ar: "الأرجنتين", en: "Argentina", rating: 96 },
+  { id: "brazil", kind: "nation", rarity: "epic", c1: "#009c3b", c2: "#ffdf00", art: "flag", flagStyle: "brazil", ar: "البرازيل", en: "Brazil", rating: 95 },
+  { id: "france", kind: "nation", rarity: "epic", c1: "#1a2f6e", c2: "#d00a2e", art: "flag", flagStyle: "france", ar: "فرنسا", en: "France", rating: 95 },
+  { id: "morocco", kind: "nation", rarity: "rare", c1: "#b01c2e", c2: "#0b6e4f", art: "flag", flagStyle: "morocco", ar: "المغرب", en: "Morocco", rating: 89 },
+  { id: "germany", kind: "nation", rarity: "rare", c1: "#111111", c2: "#dd0000", art: "flag", flagStyle: "germany", ar: "ألمانيا", en: "Germany", rating: 90 },
+  { id: "spain", kind: "nation", rarity: "rare", c1: "#c60b1e", c2: "#ffc400", art: "flag", flagStyle: "spain", ar: "إسبانيا", en: "Spain", rating: 92 },
 ] as const;
 
 export type PackId = "legends" | "stars" | "clubs" | "nations";

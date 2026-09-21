@@ -204,39 +204,7 @@ export async function fetchWeeklyLeaderboard(): Promise<LeaderRow[]> {
   return (data ?? []) as LeaderRow[];
 }
 
-// ——— الفعاليات ———
 
-export interface EventRow {
-  id: string;
-  kind: "tournament" | "challenge" | "reward" | "season";
-  title_ar: string;
-  title_en: string;
-  desc_ar: string | null;
-  desc_en: string | null;
-  emoji: string;
-  accent: string;
-  starts_at: string;
-  ends_at: string;
-  reward_ar: string | null;
-  reward_en: string | null;
-  cta_label_ar: string | null;
-  cta_label_en: string | null;
-}
-
-export async function fetchActiveEvents(): Promise<EventRow[]> {
-  const now = new Date().toISOString();
-  const { data, error } = await supabase
-    .from("events")
-    .select("*")
-    .eq("active", true)
-    .lte("starts_at", now)
-    .gte("ends_at", now)
-    .order("starts_at", { ascending: true });
-  if (error) throw error;
-  return (data ?? []) as EventRow[];
-}
-
-// ——— التخصيص: أفاتارات وتاغات ———
 export interface AvatarOption {
   id: string;
   label_ar: string;

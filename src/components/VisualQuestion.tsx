@@ -27,9 +27,9 @@ export function VisualQuestion({ sticker, prompt, className }: Props) {
         {prompt}
       </p>
       <div className="flex justify-center">
-        <div className="relative">
-          <div className="absolute -inset-5 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(251,191,36,0.16), transparent)" }} />
-          <StickerArt sticker={sticker} className="relative h-32 w-32 drop-shadow-2xl" />
+        <div className="relative flex h-32 w-32 items-center justify-center drop-shadow-2xl">
+          <div className="absolute -inset-4 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(251,191,36,0.18), transparent)" }} />
+          <StickerArt sticker={sticker} className="relative h-28 w-28" />
         </div>
       </div>
     </div>
