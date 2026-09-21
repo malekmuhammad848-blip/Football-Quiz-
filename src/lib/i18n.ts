@@ -195,6 +195,16 @@ const ar = {
   zoneLeft: "يسار",
   zoneMiddle: "وسط",
   zoneRight: "يمين",
+  // المهام اليومية
+  questsTitle: "مهام اليوم",
+  questsReset: "تتتجدَّد عند منتصف الليل",
+  claim: "استلام",
+  questsAllBonus: "أكملت كل المهام!",
+  questsShieldReward: "حصلت على درع سلسلة",
+  shieldActive: "درع السلسلة نشط — يحمي سلسلتك ليوم واحد إن غبت",
+  shieldEarned: "درع سلسلة جديد!",
+  levelUpTitle: "ترقية مستوى!",
+  keepGoing: "استمر في اللمعان ⚽",
 } as const;
 
 export type TKey = keyof typeof ar;
@@ -376,6 +386,15 @@ const en: Record<TKey, string> = {
   zoneLeft: "Left",
   zoneMiddle: "Middle",
   zoneRight: "Right",
+  questsTitle: "Daily Quests",
+  questsReset: "Resets at midnight",
+  claim: "Claim",
+  questsAllBonus: "All quests complete!",
+  questsShieldReward: "Streak Shield earned",
+  shieldActive: "Streak Shield active — saves your streak for one missed day",
+  shieldEarned: "New Streak Shield!",
+  levelUpTitle: "Level up!",
+  keepGoing: "Keep shining ⚽",
 };
 
 const dicts: Record<Lang, Record<TKey, string>> = { ar, en };

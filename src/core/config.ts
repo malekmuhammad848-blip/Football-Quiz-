@@ -14,6 +14,7 @@ export const APP = {
 export const STORE_KEYS = {
   data: "tiq:data", // الحالة الكاملة للتقدم (نسخة v3)
   prefs: "tiq:prefs", // التفضيلات (ثيم/صوت/لغة/تذكير)
+  quests: "tiq:quests", // المهام اليومية
   legacy: {
     prefix: "fq:",
     lastAnswered: "fq:lastAnswered",
@@ -35,6 +36,13 @@ export const GAMEPLAY = {
   streakMilestones: [3, 7, 14, 30, 50, 100] as const,
   /** إجابات التدريب قبل رؤية النتيجة */
   trainSetSize: 5,
+} as const;
+
+export const SHIELD = {
+  /** الحد الأقصى لعدد الدروع المجمعة */
+  max: 1,
+  /** ساعات سريان الدرع بعد الفقد */
+  graceHours: 0,
 } as const;
 
 export const REMINDER = {

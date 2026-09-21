@@ -69,6 +69,7 @@ export function emptyProgress(): Progress {
     history: {},
     lastAnswered: null,
     todayQuestionId: null,
+    streakShields: 0,
   };
 }
 
@@ -86,12 +87,19 @@ export function xpForAnswer(difficulty: Difficulty, streakAfter: number): number
 /**
  * حساب السلسلة بعد إجابة اليوم:
  * - الإجابة الصحيحة بعد سلسلة متصلة تكملها، والقطع يصفّرها.
- * - أول إجابة صحيحة بعد غياب تبدأ سلسلة جديدة.
+ * - أول إجابة صحيحة بعد غياب تبدأ سلسلة جديدة (أو يستهلك درعًا لإنقاذها).
  */
-function nextStreak(p: Progress, correct: boolean, dateKey: string): number {
-  if (p.lastAnswered === dateKey) return p.streak; // سبق الإجابة اليوم
-  if (!correct) return 0;
-  return p.lastAnswered === yesterdayKey() ? p.streak + 1 : 1;
+function nextStreak(p: Progress, correct: boolean, dateKey: string): { streak: number; shields: number } {
+  if (p.lastAnswered === dateKey) return { streak: p.streak, shields: p.streakShields }; // سبق الإجابة اليوم
+  if (!correct) return { streak: 0, shields: p.streakShields };
+  const missedYesterday = p.lastAnswered !== yesterdayKey();
+  const hadStreak = p.streak > 0;
+  if (missedYesterday && hadStreak) {
+    // فجوة يوم — الدرع ينقذ السلسلة إن وُجد
+    if (p.streakShields > 0) return { streak: p.streak, shields: p.streakShields - 1 };
+    return { streak: 1, shields: p.streakShields };
+  }
+  return { streak: missedYesterday ? 1 : p.streak + 1, shields: p.streakShields };
 }
 
 /** نتيجة إجابة: كل الحسابات في مكان واحد */
@@ -102,7 +110,7 @@ export function applyAnswer(
   const { dateKey, questionId, selected, correct, difficulty } = opts;
   const repeat = p.lastAnswered === dateKey;
 
-  const streak = nextStreak(p, correct, dateKey);
+  const { streak, shields } = nextStreak(p, correct, dateKey);
   const best = Math.max(p.best, streak);
   const playedCount = p.playedCount + (repeat ? 0 : 1);
   const correctCount = p.correctCount + (correct && !repeat ? 1 : 0);
@@ -119,6 +127,7 @@ export function applyAnswer(
   const next: Progress = {
     ...p,
     streak,
+    streakShields: shields,
     best,
     playedCount,
     correctCount,

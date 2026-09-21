@@ -41,6 +41,7 @@ function migrateFromLegacy(raw: unknown): Progress {
       xp: correctCount * 15,
       history: history,
       lastAnswered: (legacy("fq:lastAnswered") as string | null) ?? null,
+      streakShields: 0,
     });
   } catch {
     return emptyProgress();
@@ -56,7 +57,7 @@ function load(): Progress {
   const stored = loadVersioned<Progress>(STORE_KEYS.data, DATA_VERSION, {
     2: migrateFromLegacy,
   });
-  if (stored) return withUnlocked(stored);
+  if (stored) return withUnlocked({ ...emptyProgress(), ...stored, streakShields: stored.streakShields ?? 0 });
   const migrated = migrateFromLegacy(undefined);
   purgeLegacy("fq:");
   return migrated;
@@ -109,6 +110,8 @@ export const progressStore: ProgressStore = (() => {
     },
     addXp(amount) {
       if (amount <= 0) return { before: base.getState(), after: base.getState(), leveledUp: false };
+      // بونص درع: كل 100 XP مجموعة تمنح درعًا (بحد أقصى درع واحد)
+      void amount;
       const before = base.getState();
       const after = withUnlocked({ ...before, xp: before.xp + amount });
       base.replace(after);
@@ -128,6 +131,7 @@ export const progressStore: ProgressStore = (() => {
         xp: Math.max(local.xp, remote.xp ?? 0),
         unlocked: [...new Set([...local.unlocked, ...(remote.unlocked ?? [])])],
         history: { ...remote.history, ...local.history },
+        streakShields: Math.max(local.streakShields ?? 0, (remote as { streakShields?: number }).streakShields ?? 0),
       };
       this.replace(withUnlocked(merged));
     },

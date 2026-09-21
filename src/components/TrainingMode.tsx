@@ -10,6 +10,7 @@ import { QUESTIONS } from "../data/questions";
 import { localizeQuestion } from "../domain/dailyEngine";
 import { fnv1a } from "../core/date";
 import { sfx, buzz } from "../lib/feedback";
+import { questsStore } from "../stores/questsStore";
 import { t, type Lang } from "../lib/i18n";
 import { cn } from "../utils/cn";
 import { Badge, Button } from "./ui/primitives";
@@ -64,7 +65,10 @@ export function TrainingMode({ lang, soundOn, hapticsOn, onExit }: Props) {
     if (selected !== null) return;
     setSelected(i);
     const correct = i === current.answer;
-    if (correct) setScore((s) => s + 1);
+    if (correct) {
+      setScore((s) => s + 1);
+      questsStore.track("trainMaster"); // تتبع مهمة التدريب
+    }
     if (soundOn) (correct ? sfx.correct : sfx.wrong)();
     if (hapticsOn) void buzz(correct ? "medium" : "heavy");
   };

@@ -3,11 +3,11 @@
  *  ============================================================ */
 
 import { motion } from "framer-motion";
-import { Timer } from "lucide-react";
 import type { LocalizedQuestion } from "../domain/types";
 import { t, type TKey, type Lang } from "../lib/i18n";
 import { cn } from "../utils/cn";
 import { Badge } from "./ui/primitives";
+import { CountdownBadge } from "./CountdownBadge";
 import { CheckBadge, CrossBadge } from "./Icons";
 
 interface Props {
@@ -15,7 +15,6 @@ interface Props {
   selected: number | null;
   onSelect: (index: number) => void;
   lang: Lang;
-  countdown: string;
   disabled?: boolean;
 }
 
@@ -39,7 +38,7 @@ const DIFFICULTY_KEY: Record<LocalizedQuestion["difficulty"], TKey> = {
   hard: "difficultyHard",
 };
 
-export function QuestionCard({ question, selected, onSelect, lang, countdown, disabled }: Props) {
+export function QuestionCard({ question, selected, onSelect, lang, disabled }: Props) {
   const revealed = selected !== null;
 
   return (
@@ -56,12 +55,7 @@ export function QuestionCard({ question, selected, onSelect, lang, countdown, di
           <Badge tone="grass">{t(lang, CATEGORY_KEY[question.category])}</Badge>
           <Badge tone="gold">{t(lang, DIFFICULTY_KEY[question.difficulty])}</Badge>
         </div>
-        {!revealed && (
-          <span className="flex items-center gap-1.5 text-sm font-bold tabular-nums opacity-70">
-            <Timer className="size-4" />
-            {countdown}
-          </span>
-        )}
+        {!revealed && <CountdownBadge />}
       </div>
 
       <h2 className="text-lg leading-8 font-extrabold sm:text-2xl sm:leading-9">{question.q}</h2>

@@ -166,6 +166,22 @@ export function PadMark({ className }: IconProps) {
   );
 }
 
+/** درع حماية السلسلة */
+export function ShieldMark({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <defs>
+        <linearGradient id="iq-sh" x1="0" y1="0" x2="0.6" y2="1">
+          <stop offset="0" stopColor="#a5f3fc" />
+          <stop offset="1" stopColor="#0891b2" />
+        </linearGradient>
+      </defs>
+      <path d="M12 2.5l7.5 2.8v6c0 5-3.2 8.6-7.5 10.2C7.7 19.9 4.5 16.3 4.5 11.3v-6L12 2.5z" fill="url(#iq-sh)" />
+      <path d="M8.5 11.5l2.4 2.4 4.6-4.9" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 /** خريطة الأيقونات للإنجازات */
 export const ACHIEVEMENT_ICONS = {
   flame: FlameMark,

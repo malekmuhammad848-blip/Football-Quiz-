@@ -45,6 +45,8 @@ export interface Progress {
   lastAnswered: string | null;
   /** سؤال اليوم الحالي (id) — يُستخدم لمنع إعادة الإجابة بعد تغيير الجدولة */
   todayQuestionId: string | null;
+  /** دروع حماية السلسلة (من إكمال المهام) — يُستهلك درع عند فقدان يوم */
+  streakShields: number;
 }
 
 /** تفضيلات المستخدم */

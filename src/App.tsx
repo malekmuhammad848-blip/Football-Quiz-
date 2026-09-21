@@ -11,7 +11,8 @@ import { getDailyQuestion, localizeQuestion } from "./domain/dailyEngine";
 import { fnv1a } from "./core/date";
 import { QUESTIONS } from "./data/questions";
 import { levelFor } from "./domain/progression";
-import { useProgress, usePrefs, useSession, useMidnightCountdown, useIsDark, useLang } from "./hooks/useAppStores";
+import { useProgress, usePrefs, useSession, useIsDark, useLang } from "./hooks/useAppStores";
+import { questsStore } from "./stores/questsStore";
 import { prefsStore } from "./stores/prefsStore";
 import { progressStore } from "./stores/progressStore";
 import { supabaseConfigured } from "./lib/supabase";
@@ -21,6 +22,9 @@ import { initReminderLifecycle, isNative, scheduleDailyReminder, cancelReminder 
 import { pickPhrase, t, type Lang } from "./lib/i18n";
 import { AppHeader } from "./components/AppHeader";
 import { QuestionCard } from "./components/QuestionCard";
+import { DailyQuests } from "./components/DailyQuests";
+import { LevelUpBurst } from "./components/LevelUpBurst";
+import { ShieldMark } from "./components/Icons";
 import { ResultPanel } from "./components/ResultPanels";
 import { SettingsSheet } from "./components/SettingsSheet";
 import { StreakOrb } from "./components/StreakOrb";
@@ -47,7 +51,6 @@ export default function App() {
   const isDark = useIsDark();
   const progress = useProgress();
   const session: Session | null = useSession();
-  const countdown = useMidnightCountdown();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [training, setTraining] = useState(false);
@@ -60,6 +63,7 @@ export default function App() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [tab, setTab] = useState<TabId>("today");
   const [penaltyAuthPrompt, setPenaltyAuthPrompt] = useState(false);
+  const [levelBurst, setLevelBurst] = useState<{ level: number; name: string } | null>(null);
 
   // سؤال اليوم — ثابت لكل المستخدمين، يُعاد حسابه عند تغيير اللغة
   const daily = useMemo(() => getDailyQuestion(new Date(), lang), [lang]);
@@ -141,6 +145,15 @@ export default function App() {
       if (correct) void celebrate(undefined, result.leveledUp);
       if (prefs.sound && result.leveledUp) setTimeout(() => sfx.levelUp(), 350);
 
+      // ترقية المستوى → احتفال كامل الشاشة
+      if (result.leveledUp) {
+        const after = levelFor(result.after.xp);
+        setTimeout(() => setLevelBurst({ level: after.current, name: after.name }), 600);
+      }
+
+      // تتبع المهمة: الإجابة على سؤال اليوم
+      questsStore.track("answerDaily");
+
       const newUnlock = result.newUnlocks[0];
       if (newUnlock) {
         if (prefs.sound) setTimeout(() => sfx.unlock(), 500);
@@ -155,6 +168,18 @@ export default function App() {
     },
     [selected, daily, lang, prefs.sound, prefs.haptics, session, showUnlockToast],
   );
+
+  /** ترقية مستوى من XP جانبي (ترجيح محلي) — يعرض الاحتفال */
+  const prevLevelRef = useRef(levelFor(progress.xp).index);
+  useEffect(() => {
+    const idx = levelFor(progress.xp).index;
+    if (idx > prevLevelRef.current) {
+      const lvl = levelFor(progress.xp);
+      setLevelBurst({ level: lvl.current, name: lvl.name });
+      if (prefs.sound) sfx.levelUp();
+    }
+    prevLevelRef.current = idx;
+  }, [progress.xp, prefs.sound]);
 
   /**
    * نتائج آخر 7 أيام بدقة: نعيد بناء سؤال كل يوم تاريخيًا
@@ -260,8 +285,16 @@ export default function App() {
               selected={selected}
               onSelect={handleSelect}
               lang={lang}
-              countdown={countdown}
             />
+
+            <DailyQuests lang={lang} />
+
+            {progress.streakShields > 0 && (
+              <div className="flex items-center justify-center gap-2 rounded-2xl border border-cyan-400/30 bg-cyan-400/5 px-4 py-2.5">
+                <ShieldMark className="size-5" />
+                <p className="text-xs font-black text-cyan-700 dark:text-cyan-300">{t(lang, "shieldActive")}</p>
+              </div>
+            )}
 
             {selected !== null && (
               <ResultPanel
@@ -315,6 +348,13 @@ export default function App() {
       <AnimatePresence>
         {profileOpen && <ProfileScreen session={session} onClose={() => setProfileOpen(false)} />}
       </AnimatePresence>
+
+      <LevelUpBurst
+        open={levelBurst !== null}
+        level={levelBurst?.level ?? 1}
+        levelName={levelBurst?.name ?? ""}
+        onClose={() => setLevelBurst(null)}
+      />
 
       {/* تنبيه تسجيل الدخول من الترجيح */}
       {penaltyAuthPrompt && !session && (

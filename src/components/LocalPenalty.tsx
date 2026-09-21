@@ -22,6 +22,7 @@ import { t, type Lang } from "../lib/i18n";
 import { sfx, buzz } from "../lib/feedback";
 import { prefsStore } from "../stores/prefsStore";
 import { progressStore } from "../stores/progressStore";
+import { questsStore } from "../stores/questsStore";
 import { cn } from "../utils/cn";
 import { Button } from "./ui/primitives";
 import { BallMark, CheckBadge, CrossBadge } from "./Icons";
@@ -101,6 +102,7 @@ export function LocalPenalty({ lang, onXpGain }: Props) {
       const res = shotResult(zone, k);
       setResults((prev) => [...prev, res]);
 
+      if (res === "goal") questsStore.track("penaltyAce"); // تتبع مهمة الترجيح
       if (soundOn()) (res === "goal" ? sfx.correct : sfx.wrong)();
       if (hapticsOn()) void buzz(res === "goal" ? "medium" : "heavy");
 
