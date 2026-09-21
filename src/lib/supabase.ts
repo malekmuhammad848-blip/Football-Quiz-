@@ -1,9 +1,10 @@
 /** ============================================================
- *  Supabase client
+ *  Supabase client — جلسة دائمة عبر التخزين الأصلي على أندرويد
  *  ============================================================ */
 
 import { createClient } from "@supabase/supabase-js";
 import { Capacitor } from "@capacitor/core";
+import { nativeAuthStorage } from "./nativeAuthStorage";
 
 // المفاتيح مضمّنة مباشرة
 const SUPABASE_URL = "https://arnhijosycpktbbkzbcx.supabase.co";
@@ -19,7 +20,13 @@ export const supabase = createClient(url, anonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
+    // على أندرويد: لا تبحث عن جلسة في الرابط (الجلسة تأتي عبر deep-link)،
+    // وعلى الويب: التقط الجلسة من رابط العودة بعد OAuth.
     detectSessionInUrl: !Capacitor.isNativePlatform(),
     flowType: Capacitor.isNativePlatform() ? "implicit" : "pkce",
+    // الجلسة تُخزَّن في التخزين الأصلي الدائم (SharedPreferences) —
+    // لا تُمسح عند إعادة تشغيل التطبيق كما يفعل localStorage.
+    storage: nativeAuthStorage,
+    storageKey: "tiq:auth",
   },
 });

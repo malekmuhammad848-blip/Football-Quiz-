@@ -62,9 +62,27 @@ export function useSession(): Session | null {
   useEffect(() => {
     if (!enabled) return;
     let alive = true;
+
+    // 1) الجلسة المخزنة فورًا (إن وجدت) — بلا انتظار الشبكة
     void authService.getSession().then((s) => {
-      if (alive) setSession(s);
+      if (alive && s) setSession(s);
     });
+
+    // 2) إقلاع بارد: قد يفشل تحديث التوكن لأن الشبكة لم تجهز بعد.
+    //    نعيد المحاولة حتى تحصل الجلسة أو تنتهي المحاولات.
+    void (async () => {
+      for (let attempt = 0; attempt < 5; attempt++) {
+        await new Promise((r) => setTimeout(r, 1500));
+        if (!alive) return;
+        const s = await authService.getSession();
+        if (s) {
+          if (alive) setSession(s);
+          return;
+        }
+      }
+    })();
+
+    // 3) استمع لأحداث تغيّر الجلسة (دخول/خروج/تحديث توكن)
     const sub = authService.onChange((s) => setSession(s));
     return () => {
       alive = false;

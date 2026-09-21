@@ -17,6 +17,7 @@
     "@capacitor/core": "^8.5.2",
     "@capacitor/haptics": "^8.0.2",
     "@capacitor/local-notifications": "^8.3.1",
+    "@capacitor/preferences": "8.0.1",
     "@supabase/supabase-js": "^2.116.0",
     "canvas-confetti": "^1.9.3",
     "clsx": "^2.1.1",
