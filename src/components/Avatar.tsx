@@ -16,10 +16,10 @@ interface Props {
 }
 
 const SIZES = {
-  sm: { box: "size-9", text: "text-sm", pad: "p-[2px]" },
-  md: { box: "size-12", text: "text-lg", pad: "p-[2.5px]" },
-  lg: { box: "size-16", text: "text-xl", pad: "p-[3px]" },
-  xl: { box: "size-28", text: "text-4xl", pad: "p-[4px]" },
+  sm: { box: "size-9", text: "text-sm", emoji: "text-base", pad: "p-[2px]" },
+  md: { box: "size-12", text: "text-lg", emoji: "text-xl", pad: "p-[2.5px]" },
+  lg: { box: "size-16", text: "text-xl", emoji: "text-2xl", pad: "p-[3px]" },
+  xl: { box: "size-28", text: "text-4xl", emoji: "text-5xl", pad: "p-[4px]" },
 } as const;
 
 export function Avatar({ name, size = "md", ring = true, xp = 0, emojiOverride }: Props) {
@@ -44,7 +44,7 @@ export function Avatar({ name, size = "md", ring = true, xp = 0, emojiOverride }
         className={cn(
           "flex items-center justify-center rounded-full bg-[#0d1610] font-black text-white",
           s.box,
-          emoji ? "text-2xl" : s.text,
+          emoji ? s.emoji : s.text,
         )}
       >
         {content}

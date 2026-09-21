@@ -4,6 +4,8 @@
  *  ============================================================ */
 
 import { useEffect, useMemo, useState } from "react";
+import type { AvatarOption, TagOption } from "../domain/customization";
+import { instantCatalogs } from "../lib/catalogs";
 import { motion } from "framer-motion";
 import { Check, Lock, Pencil, Shirt, Trophy, X } from "lucide-react";
 import { levelFor } from "../domain/progression";
@@ -15,14 +17,10 @@ import { prefsStore } from "../stores/prefsStore";
 import {
   authService,
   authServiceExtra,
-  fetchAvatarCatalog,
   fetchMyPenaltyStats,
   fetchMyProfileMeta,
-  fetchTagCatalog,
-  type AvatarOption,
   type PenaltyStatRow,
   type Session,
-  type TagOption,
 } from "../lib/backend";
 import { t } from "../lib/i18n";
 import { supabaseConfigured } from "../lib/supabase";
@@ -48,29 +46,26 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
   const [draftName, setDraftName] = useState("");
   const [boardOpen, setBoardOpen] = useState(false);
   const [customizeOpen, setCustomizeOpen] = useState(false);
-  const [avatarId, setAvatarId] = useState<string | null>(null);
-  const [tagId, setTagId] = useState<string | null>(null);
   const [penStats, setPenStats] = useState<PenaltyStatRow | null>(null);
-  const [avatars, setAvatars] = useState<AvatarOption[]>([]);
-  const [tags, setTags] = useState<TagOption[]>([]);
+  const instant = useMemo(() => instantCatalogs(), []);
+  const [avatars] = useState<AvatarOption[]>(instant.avatars);
+  const [tags] = useState<TagOption[]>(instant.tags);
 
-  // بيانات التخصيص + الترجيح من Supabase
+  // الترجيح من Supabase (للمسجلين) — آمن عند الفشل
   useEffect(() => {
     if (!session) return;
     let alive = true;
     void (async () => {
-      const [meta, ps, av, tg] = await Promise.all([
+      const [meta, ps] = await Promise.all([
         fetchMyProfileMeta(session.user.id).catch(() => null),
         fetchMyPenaltyStats(session.user.id).catch(() => null),
-        fetchAvatarCatalog().catch(() => []),
-        fetchTagCatalog().catch(() => []),
       ]);
       if (!alive) return;
-      setAvatarId(meta?.avatar_id ?? null);
-      setTagId(meta?.tag_id ?? null);
       setPenStats(ps);
-      setAvatars(av);
-      setTags(tg);
+      // بذر أولي من السحابة: لا نستبدل ما اختاره المستخدم محليًا
+      if (meta?.avatar_id && !prefsStore.getState().avatarId) {
+        prefsStore.setCustomization(meta.avatar_id, prefsStore.getState().tagId ?? meta.tag_id);
+      }
     })();
     return () => {
       alive = false;
@@ -91,16 +86,22 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
     return cloud?.trim() || prefs.playerName.trim() || session?.user.email?.split("@")[0] || "Player";
   }, [session, prefs.playerName]);
 
+  // الأفاتار والتاغ الفعليان: الاختيار المحلي أولًا (يعمل للضيف والمسجل)،
+  // مع تجاهل أي معرف غير موجود في الكتالوج
+  const activeTag = useMemo(() => {
+    const chosen = prefs.tagId;
+    return tags.find((x) => x.id === chosen) ?? null;
+  }, [tags, prefs.tagId]);
+
   const rankName = useMemo(() => {
-    const tag = tags.find((x) => x.id === tagId);
-    const tagName = tag ? `${tag.emoji} ${lang === "ar" ? tag.label_ar : tag.label_en}` : null;
+    const tagName = activeTag ? `${activeTag.emoji} ${lang === "ar" ? activeTag.label_ar : activeTag.label_en}` : null;
     return `${leagueName(league, lang)} · ${lvl.name}${tagName ? ` · ${tagName}` : ""}`;
-  }, [league, lang, lvl.name, tags, tagId]);
+  }, [league, lang, lvl.name, activeTag]);
 
   const avatarEmoji = useMemo(() => {
-    const av = avatars.find((x) => x.id === avatarId);
+    const av = avatars.find((x) => x.id === prefs.avatarId);
     return av?.emoji ?? null;
-  }, [avatars, avatarId]);
+  }, [avatars, prefs.avatarId]);
 
   const winRate =
     penStats && penStats.wins + penStats.losses > 0
@@ -161,19 +162,15 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
             <Avatar name={displayName} size="xl" ring xp={progress.xp} emojiOverride={avatarEmoji ?? undefined} />
           </div>
 
-          {/* شارة التاغ الديناميكية */}
-          {(() => {
-            const tag = tags.find((x) => x.id === tagId);
-            if (!tag) return null;
-            return (
-              <div className="relative mx-auto mt-3 w-fit">
-                <span className="inline-flex items-center gap-1 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-black text-gold">
-                  <span>{tag.emoji}</span>
-                  {lang === "ar" ? tag.label_ar : tag.label_en}
-                </span>
-              </div>
-            );
-          })()}
+          {/* شارة التاغ — تظهر للجميع من الاختيار المحلي */}
+          {activeTag && (
+            <div className="relative mx-auto mt-3 w-fit">
+              <span className="inline-flex items-center gap-1 rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-black text-gold">
+                <span>{activeTag.emoji}</span>
+                {lang === "ar" ? activeTag.label_ar : activeTag.label_en}
+              </span>
+            </div>
+          )}
 
           {editing ? (
             <div className="mx-auto mt-4 flex max-w-xs items-center gap-2">
@@ -206,16 +203,14 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
             </>
           )}
 
-          {/* زر التخصيص — الأفاتار والتاغات من Supabase */}
-          {session && (
-            <button
-              onClick={() => setCustomizeOpen(true)}
-              className="mx-auto mt-2 flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-3.5 py-1.5 text-xs font-black text-gold transition-colors hover:bg-gold/20"
-            >
-              <Shirt className="size-3.5" />
-              {t(lang, "customizeBtn")}
-            </button>
-          )}
+          {/* زر التخصيص — متاح للجميع: الضيف والمسجل */}
+          <button
+            onClick={() => setCustomizeOpen(true)}
+            className="mx-auto mt-2 flex items-center gap-1.5 rounded-full border border-gold/30 bg-gold/10 px-3.5 py-1.5 text-xs font-black text-gold transition-colors hover:bg-gold/20"
+          >
+            <Shirt className="size-3.5" />
+            {t(lang, "customizeBtn")}
+          </button>
 
           {/* تقدم الدوري */}
           {next && (
@@ -371,19 +366,13 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
 
       <LeaderboardSheet open={boardOpen} onClose={() => setBoardOpen(false)} session={session} lang={lang} />
 
-      {session && (
-        <CustomizeSheet
-          open={customizeOpen}
-          onClose={() => setCustomizeOpen(false)}
-          session={session}
-          xp={progress.xp}
-          lang={lang}
-          onSaved={(a, tg) => {
-            setAvatarId(a);
-            setTagId(tg);
-          }}
-        />
-      )}
+      <CustomizeSheet
+        open={customizeOpen}
+        onClose={() => setCustomizeOpen(false)}
+        session={session}
+        xp={progress.xp}
+        lang={lang}
+      />
     </motion.div>
   );
 }

@@ -1,13 +1,16 @@
 /**
- * CustomizeSheet — اختيار الأفاتار والتاغ من كتالوجات Supabase
- * العناصر المقفولة (XP غير كافٍ) تظهر باهتة مع الحد المطلوب.
+ * CustomizeSheet — اختيار الأفاتار والتاغ
+ * يعمل للجميع: الضيف والمسجل. الحفظ محلي أولًا (فوري ومضمون)،
+ * ثم مزامنة سحابية في الخلفية للمسجلين (بلا انتظار ولا فشل ظاهر).
  */
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
-import { fetchAvatarCatalog, fetchMyProfileMeta, fetchTagCatalog, authServiceExtra, type AvatarOption, type TagOption } from "../lib/backend";
-import { optionLabel, resolveAvatar, resolveTag } from "../domain/customization";
+import { authServiceExtra, type AvatarOption, type TagOption } from "../lib/backend";
+import { optionLabel } from "../domain/customization";
+import { instantCatalogs } from "../lib/catalogs";
+import { prefsStore } from "../stores/prefsStore";
 import type { Session } from "@supabase/supabase-js";
 import { t, tr, type Lang } from "../lib/i18n";
 import { cn } from "../utils/cn";
@@ -16,42 +19,41 @@ import { Sheet } from "./ui/Sheet";
 interface Props {
   open: boolean;
   onClose: () => void;
-  session: Session;
+  session: Session | null;
   xp: number;
   lang: Lang;
-  onSaved: (avatarId: string, tagId: string) => void;
 }
 
-export function CustomizeSheet({ open, onClose, session, xp, lang, onSaved }: Props) {
-  const [avatars, setAvatars] = useState<AvatarOption[] | null>(null);
-  const [tags, setTags] = useState<TagOption[] | null>(null);
-  const [selAvatar, setSelAvatar] = useState<string>("");
-  const [selTag, setSelTag] = useState<string>("");
+export function CustomizeSheet({ open, onClose, session, xp, lang }: Props) {
+  const [avatars, setAvatars] = useState<AvatarOption[]>(() => instantCatalogs().avatars);
+  const [tags, setTags] = useState<TagOption[]>(() => instantCatalogs().tags);
+  const [selAvatar, setSelAvatar] = useState("");
+  const [selTag, setSelTag] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!open) return;
-    void (async () => {
-      // الجلب آمن دائمًا: يعيد الكتالوج الاحتياطي عند أي فشل
-      const [a, tg, mine] = await Promise.all([
-        fetchAvatarCatalog(),
-        fetchTagCatalog(),
-        fetchMyProfileMeta(session.user.id),
-      ]);
-      setAvatars(a);
-      setTags(tg);
-      // اختيار افتراضي آمن: المحفوظ إن كان صالحًا وإلا أول عنصر متاح
-      setSelAvatar(resolveAvatar(a, mine?.avatar_id ?? null, xp).id);
-      setSelTag(resolveTag(tg, mine?.tag_id ?? null, xp).id);
-    })();
-  }, [open, session.user.id, xp]);
+    const instant = instantCatalogs();
+    setAvatars(instant.avatars);
+    setTags(instant.tags);
+    // الاختيار الحالي من التفضيلات المحلية — فوري للجميع
+    setSelAvatar(prefsStore.getState().avatarId ?? instant.avatars.find((a) => xp >= a.min_xp)?.id ?? instant.avatars[0]?.id ?? "");
+    setSelTag(prefsStore.getState().tagId ?? instant.tags.find((x) => xp >= x.min_xp)?.id ?? instant.tags[0]?.id ?? "");
+  }, [open, xp]);
 
   const save = async () => {
     setSaving(true);
-    // الضيف بلا حساب: يكفي حفظ الاختيار محليًا في الواجهة
-    const ok = session ? await authServiceExtra.updateAvatarTag(selAvatar, selTag) : true;
+    // 1) حفظ محلي فوري — يظهر في البروفايل والأفاتار لحظيًا للجميع
+    prefsStore.setCustomization(selAvatar || null, selTag || null);
+    // 2) مزامنة سحابية اختيارية للمسجلين — لا تمنع الإغلاق إن فشلت
+    if (session) {
+      try {
+        await authServiceExtra.updateAvatarTag(selAvatar, selTag);
+      } catch {
+        /* المحلي يكفي — ستُزامن لاحقًا */
+      }
+    }
     setSaving(false);
-    if (ok) onSaved(selAvatar, selTag);
     onClose();
   };
 
@@ -62,7 +64,7 @@ export function CustomizeSheet({ open, onClose, session, xp, lang, onSaved }: Pr
         <section>
           <h4 className="mb-2 text-xs font-black uppercase tracking-wide text-soft">{t(lang, "avatar")}</h4>
           <div className="grid grid-cols-4 gap-2">
-            {(avatars ?? []).map((a) => {
+            {avatars.map((a) => {
               const locked = xp < a.min_xp;
               const active = selAvatar === a.id;
               return (
@@ -92,7 +94,6 @@ export function CustomizeSheet({ open, onClose, session, xp, lang, onSaved }: Pr
                 </motion.button>
               );
             })}
-            {avatars === null && [...Array(4)].map((_, i) => <div key={i} className="aspect-square animate-pulse rounded-2xl bg-white/5" />)}
           </div>
         </section>
 
@@ -100,7 +101,7 @@ export function CustomizeSheet({ open, onClose, session, xp, lang, onSaved }: Pr
         <section>
           <h4 className="mb-2 text-xs font-black uppercase tracking-wide text-soft">{t(lang, "tags")}</h4>
           <div className="flex flex-wrap gap-2">
-            {(tags ?? []).map((tg) => {
+            {tags.map((tg) => {
               const locked = xp < tg.min_xp;
               const active = selTag === tg.id;
               return (

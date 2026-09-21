@@ -16,6 +16,8 @@ const DEFAULTS: Prefs = {
   haptics: true,
   guest: false,
   playerName: "",
+  avatarId: null,
+  tagId: null,
 };
 
 function load(): Prefs {
@@ -37,6 +39,7 @@ interface PrefsStore extends Store<Prefs> {
   setHaptics(on: boolean): void;
   setGuest(guest: boolean): void;
   setPlayerName(name: string): void;
+  setCustomization(avatarId: string | null, tagId: string | null): void;
   isDark(): boolean;
   toggleDark(): void;
 }
@@ -78,6 +81,9 @@ export const prefsStore: PrefsStore = (() => {
     },
     setPlayerName(playerName) {
       this.replace({ ...base.getState(), playerName: playerName.trim().slice(0, 24) });
+    },
+    setCustomization(avatarId, tagId) {
+      this.replace({ ...base.getState(), avatarId, tagId });
     },
     isDark() {
       const { theme } = base.getState();

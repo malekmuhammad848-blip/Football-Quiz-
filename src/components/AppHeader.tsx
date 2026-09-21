@@ -2,10 +2,14 @@
  *  AppHeader — الشريط العلوي
  *  ============================================================ */
 
+import { useMemo } from "react";
 import { Moon, Settings, Sun } from "lucide-react";
 import { APP } from "../core/config";
 import { t, type Lang } from "../lib/i18n";
 import { prefsStore } from "../stores/prefsStore";
+import { useStore } from "../core/store";
+import { instantCatalogs } from "../lib/catalogs";
+import { useProgress } from "../hooks/useAppStores";
 import { cn } from "../utils/cn";
 import { Avatar } from "./Avatar";
 
@@ -19,6 +23,14 @@ interface Props {
 }
 
 export function AppHeader({ lang, isDark, playerName, onToggleLang, onOpenSettings, onOpenProfile }: Props) {
+  const avatarId = useStore(prefsStore, (s) => s.avatarId);
+  const xp = useProgress().xp;
+  // إيموجي الأفاتار من الاختيار المحلي (يعمل للضيف والمسجل)
+  const emoji = useMemo(() => {
+    if (!avatarId) return null;
+    return instantCatalogs().avatars.find((a) => a.id === avatarId)?.emoji ?? null;
+  }, [avatarId]);
+
   return (
     <header
       className="flex items-center justify-between gap-2 px-3 sm:px-8"
@@ -30,7 +42,7 @@ export function AppHeader({ lang, isDark, playerName, onToggleLang, onOpenSettin
           aria-label={t(lang, "profile")}
           className="shrink-0 rounded-full transition-transform active:scale-95"
         >
-          <Avatar name={playerName || "T"} size="sm" xp={0} />
+          <Avatar name={playerName || "T"} size="sm" xp={xp} emojiOverride={emoji ?? undefined} />
         </button>
         <div className="min-w-0 leading-tight">
           <h1 className="bg-gradient-to-l from-grass-600 to-gold bg-clip-text text-lg font-black text-transparent sm:text-xl dark:from-grass-400 dark:to-gold">

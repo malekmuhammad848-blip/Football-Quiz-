@@ -58,6 +58,10 @@ export interface Prefs {
   guest: boolean;
   /** اسم اللاعب المحلي (للضيف أو قبل مزامنة الحساب) */
   playerName: string;
+  /** الأفاتار المختار محليًا (id من الكتالوج) — يعمل للضيف والمسجل */
+  avatarId: string | null;
+  /** الشارة/التاغ المختار محليًا (id من الكتالوج) */
+  tagId: string | null;
 }
 
 /** نتيجة تسجيل إجابة */
