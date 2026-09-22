@@ -6,6 +6,7 @@
 
 import { Lock } from "lucide-react";
 import { STICKERS, type Rarity, type Sticker } from "../domain/season";
+import { CREST_ART } from "./ClubCrests";
 import { cn } from "../utils/cn";
 
 const RARITY_FRAME: Record<
@@ -127,6 +128,11 @@ function KitArt({ sticker }: { sticker: Sticker }) {
           {number}
         </text>
       )}
+
+      {/* شعار صانع على الصدر (شارة صغيرة) */}
+      <rect x="40" y="30" width="7" height="7" rx="1.4" fill={c2} stroke="rgba(0,0,0,0.2)" strokeWidth="0.8" />
+      {/* شعار النادي على الجهة الأخرى */}
+      <circle cx="80" cy="33.5" r="4" fill={c2} stroke="rgba(0,0,0,0.2)" strokeWidth="0.8" />
     </svg>
   );
 }
@@ -295,10 +301,21 @@ function FlagArt({ sticker }: { sticker: Sticker }) {
         <clipPath id={`f-${sticker.id}`}>
           <rect x="10" y="22" width="100" height="76" rx="5" />
         </clipPath>
+        {/* لمعة قطري على العلم */}
+        <linearGradient id={`fg-${sticker.id}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#ffffff" stopOpacity="0.22" />
+          <stop offset="0.5" stopColor="#ffffff" stopOpacity="0" />
+        </linearGradient>
       </defs>
       <g clipPath={`url(#f-${sticker.id})`}>{inner}</g>
+      {/* لمعة واقعية */}
+      <rect x="10" y="22" width="100" height="76" rx="5" fill={`url(#fg-${sticker.id})`} />
       <rect x="10" y="22" width="100" height="76" rx="5" fill="none" stroke="rgba(0,0,0,0.28)" strokeWidth="2.4" />
+      {/* سارية بكرّة علوية */}
+      <circle cx="6.8" cy="13" r="4" fill="#d4af37" stroke="rgba(0,0,0,0.3)" strokeWidth="1" />
       <rect x="5" y="16" width="3.6" height="88" rx="1.8" fill="rgba(0,0,0,0.3)" />
+      {/* شريط سفلي متموج بحدود العلم */}
+      <path d="M10 98 Q35 94 60 98 T110 98" stroke="rgba(0,0,0,0.18)" strokeWidth="2" fill="none" />
     </svg>
   );
 }
@@ -309,6 +326,10 @@ function FlagArt({ sticker }: { sticker: Sticker }) {
 
 function BadgeArt({ sticker }: { sticker: Sticker }) {
   const { crestStyle, c1, c2 } = sticker;
+
+  // الشعارات الواقعية عالية الدقة من المكتبة المخصصة
+  const Detailed = crestStyle ? CREST_ART[crestStyle] : undefined;
+  if (Detailed) return <Detailed />;
 
   switch (crestStyle) {
     case "real":
