@@ -15,7 +15,7 @@ import {
 } from "../domain/progression";
 import type { Difficulty, Progress } from "../domain/types";
 
-const DATA_VERSION = 3;
+const DATA_VERSION = 4;
 
 /** ترحيل من بيانات v2 (fq:*) القديمة المبعثرة في localStorage */
 function migrateFromLegacy(raw: unknown): Progress {
@@ -56,8 +56,20 @@ function withUnlockedPublic(p: Progress): Progress {
 function load(): Progress {
   const stored = loadVersioned<Progress>(STORE_KEYS.data, DATA_VERSION, {
     2: migrateFromLegacy,
+    3: (raw) => {
+      // v3 → v4: إضافة categoryRecord فارغ
+      const p = (raw ?? {}) as Partial<Progress>;
+      return { ...p, categoryRecord: p.categoryRecord ?? {} };
+    },
   });
-  if (stored) return withUnlocked({ ...emptyProgress(), ...stored, streakShields: stored.streakShields ?? 0 });
+  if (stored) {
+    return withUnlocked({
+      ...emptyProgress(),
+      ...stored,
+      streakShields: stored.streakShields ?? 0,
+      categoryRecord: stored.categoryRecord ?? {},
+    });
+  }
   const migrated = migrateFromLegacy(undefined);
   purgeLegacy("fq:");
   return migrated;
@@ -70,9 +82,12 @@ interface ProgressStore extends Store<Progress> {
     selected: number;
     correct: boolean;
     difficulty: Difficulty;
+    category?: string;
   }): { before: Progress; after: Progress; newUnlocks: Achievement[]; leveledUp: boolean };
   /** إضافة XP مباشر (ترجيح محلي/مكافآت) — يعيد ما إذا كان هناك ترقية */
   addXp(amount: number): { before: Progress; after: Progress; leveledUp: boolean };
+  /** تتبع إتقان فئة من أوضاع اللعب الجانبية (تدريب/سرعة/ترجيح) */
+  trackCategory(category: string, correct: boolean): void;
   hydrate(remote: Partial<Progress>): void;
   export(): Progress;
   reset(): void;
@@ -108,6 +123,19 @@ export const progressStore: ProgressStore = (() => {
         leveledUp,
       };
     },
+    trackCategory(category, correct) {
+      const cur = base.getState();
+      const cr = cur.categoryRecord[category] ?? { a: 0, c: 0 };
+      const after: Progress = {
+        ...cur,
+        categoryRecord: {
+          ...cur.categoryRecord,
+          [category]: { a: cr.a + 1, c: cr.c + (correct ? 1 : 0) },
+        },
+      };
+      base.replace(after);
+      persist(after);
+    },
     addXp(amount) {
       if (amount <= 0) return { before: base.getState(), after: base.getState(), leveledUp: false };
       // بونص درع: كل 100 XP مجموعة تمنح درعًا (بحد أقصى درع واحد)
@@ -132,6 +160,7 @@ export const progressStore: ProgressStore = (() => {
         unlocked: [...new Set([...local.unlocked, ...(remote.unlocked ?? [])])],
         history: { ...remote.history, ...local.history },
         streakShields: Math.max(local.streakShields ?? 0, (remote as { streakShields?: number }).streakShields ?? 0),
+        categoryRecord: mergeCategoryRecords(local.categoryRecord, (remote as { categoryRecord?: Progress["categoryRecord"] }).categoryRecord),
       };
       this.replace(withUnlocked(merged));
     },
@@ -148,3 +177,17 @@ import { ACHIEVEMENTS } from "../domain/progression";
 export const ACHIEVEMENTS_BY_ID: Record<string, Achievement> = Object.fromEntries(
   ACHIEVEMENTS.map((a) => [a.id, a]),
 );
+
+/** دمج سجلي الفئات (محلي + سحابي): نجمع الإجابات والصحيحة */
+function mergeCategoryRecords(
+  local: Progress["categoryRecord"],
+  remote: Progress["categoryRecord"] | undefined,
+): Progress["categoryRecord"] {
+  if (!remote) return local ?? {};
+  const merged: Progress["categoryRecord"] = { ...(local ?? {}) };
+  for (const [cat, r] of Object.entries(remote)) {
+    const l = merged[cat] ?? { a: 0, c: 0 };
+    merged[cat] = { a: Math.max(l.a, r.a), c: Math.max(l.c, r.c) };
+  }
+  return merged;
+}

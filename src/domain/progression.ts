@@ -5,9 +5,9 @@
 
 import { GAMEPLAY } from "../core/config";
 import { dayKey, yesterdayKey } from "../core/date";
-import type { Difficulty, Progress } from "./types";
+import { CATEGORIES, type Difficulty, type Progress } from "./types";
 
-/** المستويات: كل مستوى يحتاج XP تراكميًا */
+/** المستويات: 10 مراحل — سلم طويل يمنح هدفًا دائمًا (كل مرحلة تتسارع قليلًا) */
 export const LEVELS = [
   { min: 0, ar: "مبتدئ", en: "Rookie" },
   { min: 150, ar: "هاوٍ", en: "Amateur" },
@@ -15,6 +15,10 @@ export const LEVELS = [
   { min: 800, ar: "نجمة", en: "Star" },
   { min: 1500, ar: "كابتن", en: "Captain" },
   { min: 2500, ar: "أسطورة", en: "Legend" },
+  { min: 4000, ar: "حكّام", en: "Maestro" },
+  { min: 6000, ar: "البالوندور", en: "Ballon d'Or" },
+  { min: 9000, ar: "خارفة التاريخ", en: "Immortal" },
+  { min: 13000, ar: "الرمز الحي", en: "GOAT" },
 ] as const;
 
 export function levelFor(xp: number): { index: number; name: string; current: number; next: number | null; progress: number } {
@@ -56,6 +60,37 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: "levelLegend", icon: "crown", check: (p) => levelFor(p.xp).index >= LEVELS.length - 1 },
 ];
 
+/** ============ إتقان الفئات — تقرير الكشّاف ============ */
+
+export interface CategoryMastery {
+  category: string;
+  answered: number;
+  correct: number;
+  accuracy: number; // 0..1
+}
+
+/** مفتاح سجل الفئات في History — يستخدم مفاتيح يومية مع لاحقة فئة */
+export function categoryRecordKey(dateKey: string, category: string): string {
+  return `${dateKey}|${category}`;
+}
+
+/** تحليل إتقان الفئات من سجل مركّب (يملؤه progressStore) */
+export function analyzeMastery(record: Record<string, { a: number; c: number }>): CategoryMastery[] {
+  return CATEGORIES.map((cat) => {
+    const r = record[cat] ?? { a: 0, c: 0 };
+    const answered = r.a;
+    const correct = r.c;
+    return { category: cat, answered, correct, accuracy: answered > 0 ? correct / answered : 0 };
+  });
+}
+
+/** أضعف فئة عليها إجابات (لعرض "درّب نقاط ضعفك") — null إن لم يكفِ بيانات */
+export function weakestCategory(record: Record<string, { a: number; c: number }>): CategoryMastery | null {
+  const list = analyzeMastery(record).filter((m) => m.answered >= 2);
+  if (list.length === 0) return null;
+  return list.reduce((w, m) => (m.accuracy < w.accuracy ? m : w), list[0]!);
+}
+
 /** ============ التقدم الافتراضي ============ */
 
 export function emptyProgress(): Progress {
@@ -70,6 +105,7 @@ export function emptyProgress(): Progress {
     lastAnswered: null,
     todayQuestionId: null,
     streakShields: 0,
+    categoryRecord: {},
   };
 }
 
@@ -105,9 +141,10 @@ function nextStreak(p: Progress, correct: boolean, dateKey: string): { streak: n
 /** نتيجة إجابة: كل الحسابات في مكان واحد */
 export function applyAnswer(
   p: Progress,
-  opts: { dateKey: string; questionId: string; selected: number; correct: boolean; difficulty: Difficulty },
+  opts: { dateKey: string; questionId: string; selected: number; correct: boolean; difficulty: Difficulty; category?: string },
 ): Progress {
   const { dateKey, questionId, selected, correct, difficulty } = opts;
+  const category = opts.category ?? "history";
   const repeat = p.lastAnswered === dateKey;
 
   const { streak, shields } = nextStreak(p, correct, dateKey);
@@ -124,6 +161,13 @@ export function applyAnswer(
     if (old) delete history[old];
   }
 
+  // إتقان الفئات — يتراكم من كل وضع لعب
+  const cr = p.categoryRecord[category] ?? { a: 0, c: 0 };
+  const categoryRecord = {
+    ...p.categoryRecord,
+    [category]: { a: cr.a + 1, c: cr.c + (correct ? 1 : 0) },
+  };
+
   const next: Progress = {
     ...p,
     streak,
@@ -135,6 +179,7 @@ export function applyAnswer(
     history,
     lastAnswered: dateKey,
     todayQuestionId: questionId,
+    categoryRecord,
   };
   return withUnlocked(next);
 }

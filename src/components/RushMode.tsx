@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Play, RotateCcw, Timer, TrendingUp, Zap } from "lucide-react";
 import { RUSH, buildRushSet, loadRushRecord, roundSeed, rushPoints, rushXp, saveRushResult, type RushRecord } from "../domain/rushEngine";
 import { progressStore } from "../stores/progressStore";
+import { questsStore } from "../stores/questsStore";
 import { prefsStore } from "../stores/prefsStore";
 import { stadium } from "../lib/stadium";
 import { t, type Lang } from "../lib/i18n";
@@ -110,11 +111,15 @@ export function RushMode({ lang }: Props) {
       deadlineRef.current += RUSH.bonusSec * 1000;
       if (soundOn) stadium.correct();
       if (hapticsOn) void import("../lib/feedback").then((m) => m.buzz("light"));
+      // إتقان الفئات + تتبع المهمة الجانبية
+      progressStore.trackCategory(current.category, true);
+      questsStore.track("trainMaster");
     } else {
       setCombo(0);
       deadlineRef.current -= RUSH.penaltySec * 1000;
       if (soundOn) stadium.aww();
       if (hapticsOn) void import("../lib/feedback").then((m) => m.buzz("heavy"));
+      progressStore.trackCategory(current.category, false);
     }
 
     setTimeout(() => {

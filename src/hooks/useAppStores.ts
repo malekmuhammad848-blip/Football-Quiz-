@@ -54,27 +54,52 @@ export function useIsDark(): boolean {
   return dark;
 }
 
-/** جلسة المصادقة (يعمل فقط عند إعداد Supabase) */
-export function useSession(): Session | null {
-  const [session, setSession] = useState<Session | null>(null);
+export type BootPhase = "checking" | "ready";
 
-  const enabled = supabaseConfigured;
+/**
+ * جلسة المصادقة مع مرحلة إقلاع:
+ * - phase = "checking" لحين قراءة الجلسة المحفوظة (ملّي ثوانٍ عادة)
+ *   → يعرض التطبيق شاشة Splash بدل وميض شاشة الترحيب ثم القفز (إحساس بطء كاذب).
+ * - عند توفر Supabase فقط، وإلا الإقلاع فوري.
+ */
+export function useSession(): { session: Session | null; phase: BootPhase } {
+  const [session, setSession] = useState<Session | null>(null);
+  const [phase, setPhase] = useState<BootPhase>(() => (supabaseConfigured ? "checking" : "ready"));
+
   useEffect(() => {
-    if (!enabled) return;
+    if (!supabaseConfigured) {
+      setPhase("ready");
+      return;
+    }
     let alive = true;
+    let bootDone = false;
+
+    const markReady = () => {
+      if (!bootDone) {
+        bootDone = true;
+        // حد أدنى 120ms حتى لا تومض الـSplash بسرعة مرهقة للعين
+        setTimeout(() => {
+          if (alive) setPhase("ready");
+        }, 120);
+      }
+    };
 
     // 1) الجلسة المخزنة فورًا (إن وجدت) — بلا انتظار الشبكة
-    void authService.getSession().then((s) => {
-      if (alive && s) setSession(s);
-    });
+    void authService
+      .getSession()
+      .then((s) => {
+        if (alive && s) setSession(s);
+      })
+      .catch(() => undefined)
+      .finally(markReady);
 
     // 2) إقلاع بارد: قد يفشل تحديث التوكن لأن الشبكة لم تجهز بعد.
     //    نعيد المحاولة حتى تحصل الجلسة أو تنتهي المحاولات.
     void (async () => {
-      for (let attempt = 0; attempt < 5; attempt++) {
-        await new Promise((r) => setTimeout(r, 1500));
+      for (let attempt = 0; attempt < 4; attempt++) {
+        await new Promise((r) => setTimeout(r, 1200));
         if (!alive) return;
-        const s = await authService.getSession();
+        const s = await authService.getSession().catch(() => null);
         if (s) {
           if (alive) setSession(s);
           return;
@@ -83,14 +108,17 @@ export function useSession(): Session | null {
     })();
 
     // 3) استمع لأحداث تغيّر الجلسة (دخول/خروج/تحديث توكن)
-    const sub = authService.onChange((s) => setSession(s));
+    const sub = authService.onChange((s) => {
+      setSession(s);
+      markReady();
+    });
     return () => {
       alive = false;
       sub.unsubscribe();
     };
-  }, [enabled]);
+  }, []);
 
-  return session;
+  return { session, phase };
 }
 
 /** مؤقت تنازلي حتى منتصف الليل — يُحدَّث كل ثانية */

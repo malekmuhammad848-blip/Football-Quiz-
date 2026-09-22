@@ -12,6 +12,7 @@ import { fnv1a } from "./core/date";
 import { QUESTIONS } from "./data/questions";
 import { levelFor } from "./domain/progression";
 import { useProgress, usePrefs, useSession, useIsDark, useLang } from "./hooks/useAppStores";
+import { SplashScreen } from "./components/SplashScreen";
 import { questsStore } from "./stores/questsStore";
 import { prefsStore } from "./stores/prefsStore";
 import { progressStore } from "./stores/progressStore";
@@ -26,6 +27,7 @@ import { DailyQuests } from "./components/DailyQuests";
 import { LevelUpBurst } from "./components/LevelUpBurst";
 import { RushMode } from "./components/RushMode";
 import { GrassGrid } from "./components/GrassGrid";
+import { ScoutReport } from "./components/ScoutReport";
 import { SeasonScreen } from "./components/SeasonScreen";
 import { ShieldMark } from "./components/Icons";
 import { ResultPanel } from "./components/ResultPanels";
@@ -51,7 +53,9 @@ export default function App() {
   const lang = useLang();
   const isDark = useIsDark();
   const progress = useProgress();
-  const session: Session | null = useSession();
+  const { session, phase: bootPhase } = useSession();
+  // أثناء فحص الجلسة المحفوظة نعرض شاشة إقلاع — بلا وميض شاشة الترحيب
+  if (bootPhase === "checking") return <SplashScreen />;
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [training, setTraining] = useState(false);
@@ -135,6 +139,7 @@ export default function App() {
         selected: index,
         correct,
         difficulty: daily.question.difficulty,
+        category: daily.question.category,
       });
 
       setXpGained(correct ? result.after.xp - result.before.xp : 0);
@@ -313,6 +318,8 @@ export default function App() {
             <LevelBar progress={progress} lang={lang} />
 
             <StatsGrid played={progress.playedCount} correct={progress.correctCount} lang={lang} />
+
+            <ScoutReport progress={progress} lang={lang} onTrain={() => setTraining(true)} />
 
             <RushMode lang={lang} />
 

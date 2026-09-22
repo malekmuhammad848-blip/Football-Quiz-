@@ -12,6 +12,7 @@ import { localizeQuestion } from "../domain/dailyEngine";
 import { fnv1a } from "../core/date";
 import { sfx, buzz } from "../lib/feedback";
 import { stadium } from "../lib/stadium";
+import { progressStore } from "../stores/progressStore";
 import { questsStore } from "../stores/questsStore";
 import { t, type Lang } from "../lib/i18n";
 import type { LocalizedQuestion } from "../domain/types";
@@ -109,6 +110,8 @@ export function TrainingMode({ lang, soundOn, hapticsOn, onExit }: Props) {
       setScore((s) => s + 1);
       questsStore.track("trainMaster"); // تتبع مهمة التدريب
     }
+    // إتقان الفئات — يغذي تقرير الكشّاف
+    progressStore.trackCategory(current.category, correct);
     if (soundOn) {
       (correct ? sfx.correct : sfx.wrong)();
       if (correct && visualSticker) stadium.goal(); // فانفار ماريمبا عند كشف البصري الصحيح

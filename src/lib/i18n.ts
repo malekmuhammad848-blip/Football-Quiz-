@@ -239,6 +239,11 @@ const ar = {
   visualWhose: "لمن هذا الطقم؟",
   visualWhich: "أي نادٍ أو منتخب هذا؟",
   visualFact: "بطاقة رياضية من ألبوم الموسم — احفظ أطقم الأندية والمنتخبات المفضلة لديك لتتقن هذه الأسئلة بسرعة!",
+  // تقرير الكشّاف
+  scoutTitle: "تقرير الكشّاف",
+  scoutDesc: "إتقانك لكل مجال — الكشّاف يراقب أداءك",
+  scoutWeak: "نقطة ضعف مكتشفة",
+  scoutTrain: "درّب عليها",
 } as const;
 
 export type TKey = keyof typeof ar;
@@ -460,6 +465,11 @@ const en: Record<TKey, string> = {
   visualWhose: "Whose kit is this?",
   visualWhich: "Which club or nation is this?",
   visualFact: "A season-album card — memorize your favorite clubs' and nations' kits and you'll ace these in no time!",
+  // Scout report
+  scoutTitle: "Scout Report",
+  scoutDesc: "Your mastery per category — the scout is watching",
+  scoutWeak: "Weakness detected",
+  scoutTrain: "Train it",
 };
 
 const dicts: Record<Lang, Record<TKey, string>> = { ar, en };

@@ -47,6 +47,8 @@ export interface Progress {
   todayQuestionId: string | null;
   /** دروع حماية السلسلة (من إكمال المهام) — يُستهلك درع عند فقدان يوم */
   streakShields: number;
+  /** إتقان الفئات: category → { a: إجابات، c: صحيحة } — لتقرير الكشّاف */
+  categoryRecord: Record<string, { a: number; c: number }>;
 }
 
 /** تفضيلات المستخدم */
