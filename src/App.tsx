@@ -54,8 +54,6 @@ export default function App() {
   const isDark = useIsDark();
   const progress = useProgress();
   const { session, phase: bootPhase } = useSession();
-  // أثناء فحص الجلسة المحفوظة نعرض شاشة إقلاع — بلا وميض شاشة الترحيب
-  if (bootPhase === "checking") return <SplashScreen />;
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [training, setTraining] = useState(false);
@@ -231,6 +229,10 @@ export default function App() {
       (meta.name as string | undefined);
     return cloud?.trim() || prefs.playerName.trim() || "Player";
   }, [session, prefs.playerName]);
+
+  // أثناء فحص الجلسة المحفوظة نعرض شاشة إقلاع — بلا وميض شاشة الترحيب
+  // (لا بد أن يأتي بعد كل الـHooks — قواعد React الإلزامية)
+  if (bootPhase === "checking") return <SplashScreen />;
 
   // ——— تدفق الدخول ———
   // 1) شاشة الترحيب: تظهر لمن لم يدخل ولم يختر الضيف
