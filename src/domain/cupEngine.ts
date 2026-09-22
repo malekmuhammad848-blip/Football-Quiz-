@@ -274,3 +274,67 @@ export function saveCup(cup: CupState): void {
 export function clearCup(): void {
   writeJSON(KEY, null);
 }
+
+/* ============================================================
+ *  سجل البطولات — ألقاب وأهداف تظهر في البروفايل
+ * ============================================================ */
+
+export interface CupHistoryEntry {
+  /** تاريخ إكمال البطولة (ISO) */
+  at: string;
+  /** معرف البطل */
+  champion: string;
+  /** هل اللاعب هو البطل؟ */
+  playerWon: boolean;
+  /** إجمالي أهداف اللاعب بالبطولة */
+  goals: number;
+  /** عدد المباريات اللُعبت */
+  matches: number;
+}
+
+const HISTORY_KEY = "tiq:cupHistory";
+const HISTORY_MAX = 20;
+
+export function loadCupHistory(): CupHistoryEntry[] {
+  const h = readJSON<CupHistoryEntry[]>(HISTORY_KEY, []);
+  return Array.isArray(h) ? h : [];
+}
+
+/** تسجيل نتيجة بطولة منتهية — يعيد السجل المحدث */
+export function recordCupResult(cup: CupState): CupHistoryEntry[] {
+  if (!cup.champion) return loadCupHistory();
+  const goals = totalGoals(cup);
+  const matches = ROUND_NAMES.reduce(
+    (n, r) => n + (cup.bracket[r]?.filter((m) => m.homeGoals !== null).length ?? 0),
+    0,
+  );
+  const entry: CupHistoryEntry = {
+    at: new Date().toISOString(),
+    champion: cup.champion,
+    playerWon: cup.champion === myTeamId(cup),
+    goals,
+    matches,
+  };
+  const next = [entry, ...loadCupHistory()].slice(0, HISTORY_MAX);
+  writeJSON(HISTORY_KEY, next);
+  return next;
+}
+
+/** معرف فريق اللاعب من آخر مباراة لُعبت (البطل إن فاز هو) */
+function myTeamId(cup: CupState): string {
+  // في هذا التصميم اللاعب دائمًا صاحب الأرض في مباراته الأخيرة قبل البطل
+  const finalMatch = cup.bracket.final[0];
+  if (finalMatch && finalMatch.homeGoals !== null) return finalMatch.home;
+  return cup.champion ?? "";
+}
+
+/** إحصائيات مختصرة للبروفايل */
+export function cupSummary(): { cups: number; finals: number; played: number; bestRun: number } {
+  const h = loadCupHistory();
+  const cups = h.filter((e) => e.playerWon).length;
+  // نهائي = بطولة وصل فيها النهائي (كل البطولات المسجلة أكملت على الأقل نصف النهائي)
+  const finals = h.length;
+  const played = h.reduce((n, e) => n + e.matches, 0);
+  const bestRun = h.reduce((best, e) => Math.max(best, e.matches), 0);
+  return { cups, finals, played, bestRun };
+}

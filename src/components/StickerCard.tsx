@@ -211,6 +211,74 @@ function FlagArt({ sticker }: { sticker: Sticker }) {
             <rect x="19.5" y="55" width="5" height="4" fill="#ffc400" />
           </>
         );
+      case "england":
+        return (
+          <>
+            <rect x="10" y="22" width="100" height="76" fill="#ffffff" />
+            <rect x="52" y="22" width="16" height="76" fill="#ce1124" />
+            <rect x="10" y="52" width="100" height="16" fill="#ce1124" />
+          </>
+        );
+      case "portugal":
+        return (
+          <>
+            <rect x="10" y="22" width="40" height="76" fill="#046a38" />
+            <rect x="50" y="22" width="60" height="76" fill="#da291c" />
+            {/* درع صغير على الحد */}
+            <circle cx="50" cy="60" r="11" fill="#da291c" stroke="#ffd700" strokeWidth="2.4" />
+            <circle cx="50" cy="60" r="5.5" fill="#ffffff" stroke="#046a38" strokeWidth="1.6" />
+          </>
+        );
+      case "netherlands":
+        return (
+          <>
+            <rect x="10" y="22" width="100" height="25.3" fill="#ae1c28" />
+            <rect x="10" y="47.3" width="100" height="25.4" fill="#ffffff" />
+            <rect x="10" y="72.7" width="100" height="25.3" fill="#21468b" />
+          </>
+        );
+      case "italy":
+        return (
+          <>
+            <rect x="10" y="22" width="33.3" height="76" fill="#008c45" />
+            <rect x="43.3" y="22" width="33.4" height="76" fill="#ffffff" />
+            <rect x="76.7" y="22" width="33.3" height="76" fill="#cd212a" />
+          </>
+        );
+      case "croatia":
+        return (
+          <>
+            <rect x="10" y="22" width="100" height="25.3" fill="#ff0000" />
+            <rect x="10" y="47.3" width="100" height="25.4" fill="#ffffff" />
+            <rect x="10" y="72.7" width="100" height="25.3" fill="#171796" />
+            {/* الدرع الشطرنجي */}
+            <g transform="translate(46,44)">
+              {[0, 1, 2, 3, 4].map((r) =>
+                [0, 1, 2, 3, 4].map((c) =>
+                  (r + c) % 2 === 0 ? <rect key={`${r}${c}`} x={c * 5.6} y={r * 5.6} width="5.6" height="5.6" fill="#d00a2e" /> : null,
+                ),
+              )}
+            </g>
+          </>
+        );
+      case "uruguay":
+        return (
+          <>
+            <rect x="10" y="22" width="100" height="76" fill="#ffffff" />
+            {[0, 1, 2, 3].map((i) => (
+              <rect key={i} x="10" y={22 + i * 19} width="56" height="9.5" fill="#0038a8" />
+            ))}
+            {/* كانتون: شمس + شريط */}
+            <rect x="10" y="22" width="38" height="28.5" fill="#ffffff" />
+            <circle cx="29" cy="36" r="7" fill="#fcd116" stroke="#7b3f00" strokeWidth="1.2" />
+            {Array.from({ length: 8 }, (_, i) => {
+              const a = (i * Math.PI) / 4;
+              return (
+                <line key={i} x1={29 + Math.cos(a) * 8.5} y1={36 + Math.sin(a) * 8.5} x2={29 + Math.cos(a) * 11.5} y2={36 + Math.sin(a) * 11.5} stroke="#fcd116" strokeWidth="1.6" strokeLinecap="round" />
+              );
+            })}
+          </>
+        );
       default:
         return (
           <>
@@ -325,6 +393,113 @@ function BadgeArt({ sticker }: { sticker: Sticker }) {
           <circle cx="60" cy="60" r="38" fill="#ffffff" opacity="0.12" />
           <path d="M69 26 A36 36 0 1 0 69 94 A44 44 0 1 1 69 26 Z" fill="#ffffff" />
           <path d="M78 42 L81.5 52 L92 52 L83.5 58.5 L86.5 69 L78 62.5 L69.5 69 L72.5 58.5 L64 52 L74.5 52 Z" fill="#ffffff" />
+        </svg>
+      );
+    case "juventus":
+      return (
+        <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
+          <path d="M60 10 L98 21 V68 C98 87 82 100 60 110 C38 100 22 87 22 68 V21 Z" fill="#ffffff" stroke="#111111" strokeWidth="4.5" />
+          {/* الخطوط الثلاثة */}
+          <path d="M60 10 L98 21 V40 H60 Z" fill="#111111" />
+          <path d="M60 10 L60 21 V40 H60 Z" fill="#111111" />
+          <rect x="22" y="21" width="19" height="19" fill="#111111" />
+          <rect x="41" y="14" width="19" height="26" fill="#111111" />
+          {/* التاج */}
+          <path d="M40 14 L44 6 L50 11 L55 4 L60 10 L65 4 L70 11 L76 6 L80 14 Z" fill="#111111" />
+          {/* النجوم */}
+          {[38, 48, 58].map((x, i) => (
+            <path key={i} d={`M${x} 60 l1.6 3.4 3.7.5-2.7 2.6.7 3.7-3.3-1.8-3.3 1.8.7-3.7-2.7-2.6 3.7-.5 Z`} fill="#111111" />
+          ))}
+          <text x="60" y="88" textAnchor="middle" fontSize="15" fontWeight="900" fontFamily="serif" fill="#111111">JUV</text>
+        </svg>
+      );
+    case "inter":
+      return (
+        <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
+          <circle cx="60" cy="60" r="50" fill="#ffffff" stroke="#1a2f6e" strokeWidth="5" />
+          <circle cx="60" cy="60" r="40" fill="#1a2f6e" />
+          <circle cx="60" cy="60" r="40" fill="none" stroke="#111111" strokeWidth="3" strokeDasharray="31.4 10" />
+          <text x="60" y="54" textAnchor="middle" fontSize="20" fontWeight="900" fontFamily="serif" fill="#ffffff">I</text>
+          <text x="60" y="78" textAnchor="middle" fontSize="13" fontWeight="900" fontFamily="serif" fill="#d4af37">1908</text>
+        </svg>
+      );
+    case "milan":
+      return (
+        <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
+          <circle cx="60" cy="60" r="50" fill="#ffffff" stroke="#b01c2e" strokeWidth="5" />
+          {/* النصف الأحمر والأسود */}
+          <path d="M60 10 A50 50 0 0 0 60 110 Z" fill="#b01c2e" />
+          <path d="M60 10 A50 50 0 0 1 60 110 Z" fill="#111111" />
+          <circle cx="60" cy="60" r="50" fill="none" stroke="#ffffff" strokeWidth="2.4" />
+          {/* صليب الميلان */}
+          <rect x="56" y="30" width="8" height="30" rx="2" fill="#ffffff" />
+          <rect x="45" y="41" width="30" height="8" rx="2" fill="#ffffff" />
+          <text x="60" y="86" textAnchor="middle" fontSize="12" fontWeight="900" fontFamily="serif" fill="#ffffff">ACM</text>
+        </svg>
+      );
+    case "arsenal":
+      return (
+        <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
+          <path d="M60 10 L98 21 V68 C98 87 82 100 60 110 C38 100 22 87 22 68 V21 Z" fill="#ef0107" stroke="#063672" strokeWidth="4.5" />
+          {/* المدفع */}
+          <g transform="rotate(-20 60 58)">
+            <rect x="38" y="52" width="44" height="9" rx="4.5" fill="#063672" />
+            <rect x="78" y="50" width="10" height="13" rx="2" fill="#063672" />
+          </g>
+          <circle cx="48" cy="70" r="7" fill="#063672" />
+          <circle cx="48" cy="70" r="3" fill="#ef0107" />
+          <text x="60" y="94" textAnchor="middle" fontSize="11" fontWeight="900" fontFamily="serif" fill="#063672">ARSENAL</text>
+        </svg>
+      );
+    case "chelsea":
+      return (
+        <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
+          <path d="M60 10 L98 21 V68 C98 87 82 100 60 110 C38 100 22 87 22 68 V21 Z" fill="#034694" stroke="#ffffff" strokeWidth="4.5" />
+          <circle cx="60" cy="58" r="26" fill="#ffffff" opacity="0.14" />
+          {/* العصا والكرة */}
+          <path d="M52 40 L52 76" stroke="#ffffff" strokeWidth="3.4" strokeLinecap="round" />
+          <circle cx="52" cy="38" r="4.4" fill="#d4af37" />
+          <circle cx="68" cy="62" r="7" fill="#ffffff" stroke="#034694" strokeWidth="1.6" />
+          <text x="60" y="92" textAnchor="middle" fontSize="10" fontWeight="900" fontFamily="serif" fill="#ffffff">CFC</text>
+        </svg>
+      );
+    case "city":
+      return (
+        <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
+          <circle cx="60" cy="60" r="50" fill="#6cabdd" stroke="#ffffff" strokeWidth="5" />
+          <circle cx="60" cy="60" r="38" fill="#1c2c5b" />
+          {/* الصقر المبسط */}
+          <path d="M60 34 C50 40 44 50 44 60 C44 74 52 84 60 88 C68 84 76 74 76 60 C76 50 70 40 60 34 Z" fill="#6cabdd" opacity="0.9" />
+          <path d="M60 40 C54 46 50 54 50 62 C50 72 55 79 60 82 C65 79 70 72 70 62 C70 54 66 46 60 40 Z" fill="#1c2c5b" />
+          <circle cx="60" cy="60" r="3.4" fill="#ffffff" />
+        </svg>
+      );
+    case "atletico":
+      return (
+        <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
+          <path d="M60 10 L98 21 V68 C98 87 82 100 60 110 C38 100 22 87 22 68 V21 Z" fill="#ffffff" stroke="#cb3524" strokeWidth="4.5" />
+          {/* الشريط الأحمر الأفقي */}
+          <path d="M22 44 H98 V60 H22 Z" fill="#cb3524" clipPath="url(#clip-atl)" />
+          <clipPath id="clip-atl">
+            <path d="M60 10 L98 21 V68 C98 87 82 100 60 110 C38 100 22 87 22 68 V21 Z" />
+          </clipPath>
+          <path d="M22 44 H98 V60 H22 Z" fill="#cb3524" clipPath="url(#clip-atl)" />
+          {/* الدب والفراولة مبسط */}
+          <circle cx="60" cy="78" r="8" fill="#7a4a21" />
+          <circle cx="56" cy="75" r="1.6" fill="#ffffff" />
+          <circle cx="64" cy="75" r="1.6" fill="#ffffff" />
+        </svg>
+      );
+    case "ahly":
+      return (
+        <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
+          <path d="M60 10 L98 21 V68 C98 87 82 100 60 110 C38 100 22 87 22 68 V21 Z" fill="#b01c2e" stroke="#ffffff" strokeWidth="4.5" />
+          {/* النسر الذهبي */}
+          <path d="M60 34 C52 40 48 50 50 60 C44 64 42 72 46 78 C50 84 56 86 60 84 C64 86 70 84 74 78 C78 72 76 64 70 60 C72 50 68 40 60 34 Z" fill="#d4af37" stroke="#8b6914" strokeWidth="1.6" />
+          <circle cx="56" cy="48" r="1.8" fill="#8b6914" />
+          <circle cx="64" cy="48" r="1.8" fill="#8b6914" />
+          <path d="M54 62 L60 68 L66 62" stroke="#8b6914" strokeWidth="1.6" fill="none" />
+          <text x="60" y="98" textAnchor="middle" fontSize="9" fontWeight="900" fontFamily="serif" fill="#ffffff">1907</text>
         </svg>
       );
     default:

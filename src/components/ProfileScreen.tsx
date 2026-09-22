@@ -21,6 +21,8 @@ import {
   type Session,
 } from "../lib/backend";
 import { FALLBACK_TAGS } from "../lib/backend";
+import { cupSummary } from "../domain/cupEngine";
+import { PlayerCard } from "./PlayerCard";
 import { t } from "../lib/i18n";
 import { supabaseConfigured } from "../lib/supabase";
 import { cn } from "../utils/cn";
@@ -34,6 +36,17 @@ interface Props {
   onClose: () => void;
   /** الوضع المدمج داخل تبويب الملف (بلا خلفية ثابتة) */
   embedded?: boolean;
+}
+
+function CupStatChip({ value, label, tone, emoji }: { value: number; label: string; tone: string; emoji: string }) {
+  return (
+    <div className="rounded-2xl border border-card-edge bg-card-soft p-3 text-center">
+      <p className={cn("text-xl font-black tabular-nums", tone)}>
+        {emoji} {value}
+      </p>
+      <p className="mt-0.5 text-[10px] font-bold text-soft">{label}</p>
+    </div>
+  );
 }
 
 export function ProfileScreen({ session, onClose, embedded = false }: Props) {
@@ -215,6 +228,24 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
             </div>
           )}
         </section>
+
+        {/* ——— بطاقة اللاعب FUT ——— */}
+        <section className="pt-1">
+          <PlayerCard name={displayName} avatarId={prefs.avatarId} xp={progress.xp} lang={lang} />
+        </section>
+
+        {/* ——— سجل الكأس ——— */}
+        {(() => {
+          const cs = cupSummary();
+          if (cs.played === 0) return null;
+          return (
+            <section className="grid grid-cols-3 gap-3">
+              <CupStatChip value={cs.cups} label={lang === "ar" ? "كؤوس" : "Cups"} tone="text-gold" emoji="🏆" />
+              <CupStatChip value={cs.played} label={lang === "ar" ? "مباريات الكأس" : "Cup matches"} tone="text-sky-300" emoji="⚽" />
+              <CupStatChip value={cs.bestRun} label={lang === "ar" ? "أطول مشوار" : "Best run"} tone="text-fuchsia-300" emoji="🎯" />
+            </section>
+          );
+        })()}
 
         {/* ——— الإحصائيات ——— */}
         <section className="grid grid-cols-2 gap-3">

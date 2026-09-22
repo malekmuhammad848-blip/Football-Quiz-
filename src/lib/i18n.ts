@@ -228,7 +228,7 @@ const ar = {
   grassMore: "أكثر",
   // الموسم التقييمي
   seasonTitle: "مجموعة النجوم",
-  seasonDesc: "اجمع 24 ملصقًا للأساطير والنجوم والأندية والمنتخبات — الحزم تُفتح بـ XP من اللعب",
+  seasonDesc: "اجمع 48 ملصقًا للأساطير والنجوم والأندية والمنتخبات — الحزم تُفتح بـ XP من اللعب",
   seasonCollected: "ملصق",
   packsTitle: "افتح حزمة",
   packsHint: "الـ XP يُخصم من رصيدك — العب أكثر لتفتح أكثر",
@@ -475,7 +475,7 @@ const en: Record<TKey, string> = {
   grassLess: "Less",
   grassMore: "More",
   seasonTitle: "Star Collection",
-  seasonDesc: "Collect 24 stickers of legends, stars, clubs & nations — packs open with XP earned by playing",
+  seasonDesc: "Collect 48 stickers of legends, stars, clubs & nations — packs open with XP earned by playing",
   seasonCollected: "stickers",
   packsTitle: "Open a pack",
   packsHint: "XP is deducted from your balance — play more to open more",

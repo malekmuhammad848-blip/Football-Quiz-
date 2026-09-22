@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Lock, PackageOpen, Sparkles } from "lucide-react";
 import {
   PACKS,
+  TOTAL_STICKERS,
   collectionScore,
   loadSeason,
   openPack,
@@ -40,7 +41,7 @@ export function SeasonScreen({ lang, xp }: Props) {
   const [revealQueue, setRevealQueue] = useState<Reveal[]>([]);
   const [currentReveal, setCurrentReveal] = useState<Reveal>(null);
 
-  const total = 24;
+  const total = TOTAL_STICKERS;
   const got = ownedCount(season);
   const score = collectionScore(season);
 

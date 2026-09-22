@@ -24,9 +24,14 @@ export interface Sticker {
   /** رقم القميص — يظهر على الظهر للاعبين والأساطير */
   number?: number;
   /** معرف رسم علم خاص للمنتخبات (بدقة أعلى من العام) */
-  flagStyle?: "argentina" | "brazil" | "france" | "morocco" | "germany" | "spain";
+  flagStyle?:
+    | "argentina" | "brazil" | "france" | "morocco" | "germany" | "spain"
+    | "england" | "portugal" | "netherlands" | "italy" | "croatia" | "uruguay";
   /** معرف رسم شعار خاص للنادي (يُرسم يدويًا لكل نادٍ) */
-  crestStyle?: "real" | "barca" | "united" | "bayern" | "liverpool" | "hilal";
+  crestStyle?:
+    | "real" | "barca" | "united" | "bayern" | "liverpool" | "hilal"
+    | "juventus" | "inter" | "milan" | "arsenal" | "chelsea" | "city"
+    | "atletico" | "ahly";
   ar: string;
   en: string;
   /** التقييم من 60 إلى 99 */
@@ -67,6 +72,46 @@ export const STICKERS: readonly Sticker[] = [
   { id: "morocco", kind: "nation", rarity: "rare", c1: "#b01c2e", c2: "#0b6e4f", art: "flag", flagStyle: "morocco", ar: "المغرب", en: "Morocco", rating: 89 },
   { id: "germany", kind: "nation", rarity: "rare", c1: "#111111", c2: "#dd0000", art: "flag", flagStyle: "germany", ar: "ألمانيا", en: "Germany", rating: 90 },
   { id: "spain", kind: "nation", rarity: "rare", c1: "#c60b1e", c2: "#ffc400", art: "flag", flagStyle: "spain", ar: "إسبانيا", en: "Spain", rating: 92 },
+
+  // ——— الموسم الموسّع: أساطير إضافية ———
+  { id: "yashin", kind: "legend", rarity: "legendary", c1: "#111111", c2: "#94a3b8", art: "kit", pattern: "solid", number: 1, ar: "ياشين", en: "Yashin", rating: 97 },
+  { id: "puskas", kind: "legend", rarity: "epic", c1: "#ffffff", c2: "#b01c2e", art: "kit", pattern: "hoops", number: 10, ar: "بوشكاش", en: "Puskás", rating: 95 },
+  { id: "eusebio", kind: "legend", rarity: "epic", c1: "#b01c2e", c2: "#ffffff", art: "kit", pattern: "solid", number: 10, ar: "أوزيبيو", en: "Eusébio", rating: 94 },
+  { id: "garrincha", kind: "legend", rarity: "epic", c1: "#ffdc26", c2: "#1d9e4b", art: "kit", pattern: "stripes", number: 7, ar: "غارينشا", en: "Garrincha", rating: 95 },
+  { id: "van-basten", kind: "legend", rarity: "epic", c1: "#f36c21", c2: "#ffffff", art: "kit", pattern: "solid", number: 9, ar: "فان باستن", en: "Van Basten", rating: 94 },
+  { id: "matthaus", kind: "legend", rarity: "rare", c1: "#ffffff", c2: "#111111", art: "kit", pattern: "solid", number: 10, ar: "ماتيوس", en: "Matthäus", rating: 92 },
+  { id: "romario", kind: "legend", rarity: "rare", c1: "#ffdc26", c2: "#1d9e4b", art: "kit", pattern: "solid", number: 11, ar: "روماريو", en: "Romário", rating: 93 },
+  { id: "rivaldo", kind: "legend", rarity: "rare", c1: "#ffdc26", c2: "#1d9e4b", art: "kit", pattern: "solid", number: 10, ar: "ريفالدو", en: "Rivaldo", rating: 92 },
+  { id: "ronaldinho", kind: "legend", rarity: "legendary", c1: "#ffdc26", c2: "#1d9e4b", art: "kit", pattern: "solid", number: 10, ar: "رونالدينيو", en: "Ronaldinho", rating: 96 },
+
+  // ——— نجوم إضافيون ———
+  { id: "kane", kind: "star", rarity: "epic", c1: "#ffffff", c2: "#1a2f6e", art: "kit", pattern: "solid", number: 9, ar: "كين", en: "Kane", rating: 93 },
+  { id: "kdb", kind: "star", rarity: "epic", c1: "#6cabdd", c2: "#ffffff", art: "kit", pattern: "solid", number: 17, ar: "دي بروين", en: "De Bruyne", rating: 94 },
+  { id: "modric", kind: "star", rarity: "epic", c1: "#ffffff", c2: "#d00a2e", art: "kit", pattern: "hoops", number: 10, ar: "مودريتش", en: "Modrić", rating: 93 },
+  { id: "lewandowski", kind: "star", rarity: "epic", c1: "#ffffff", c2: "#d00a2e", art: "kit", pattern: "sash", number: 9, ar: "ليفاندوفسكي", en: "Lewandowski", rating: 93 },
+  { id: "benzema", kind: "star", rarity: "epic", c1: "#ffffff", c2: "#febe10", art: "kit", pattern: "solid", number: 9, ar: "بنزيما", en: "Benzema", rating: 94 },
+  { id: "neymar", kind: "star", rarity: "epic", c1: "#ffdc26", c2: "#1d9e4b", art: "kit", pattern: "solid", number: 10, ar: "نيمار", en: "Neymar", rating: 93 },
+  { id: "vinicius", kind: "star", rarity: "rare", c1: "#ffffff", c2: "#febe10", art: "kit", pattern: "solid", number: 7, ar: "فينيسيوس", en: "Vinícius", rating: 92 },
+  { id: "bellingham-star", kind: "star", rarity: "rare", c1: "#ffffff", c2: "#1a2f6e", art: "kit", pattern: "solid", number: 5, ar: "بيلينغهام", en: "Bellingham", rating: 92 },
+  { id: "yamal", kind: "star", rarity: "rare", c1: "#a50044", c2: "#004d98", art: "kit", pattern: "stripes", number: 19, ar: "يامال", en: "Yamal", rating: 91 },
+
+  // ——— أندية إضافية ———
+  { id: "juventus", kind: "club", rarity: "rare", c1: "#111111", c2: "#ffffff", art: "badge", crestStyle: "juventus", ar: "يوفنتوس", en: "Juventus", rating: 92 },
+  { id: "inter", kind: "club", rarity: "rare", c1: "#1a2f6e", c2: "#111111", art: "badge", crestStyle: "inter", ar: "إنتر", en: "Inter", rating: 91 },
+  { id: "ac-milan", kind: "club", rarity: "rare", c1: "#b01c2e", c2: "#111111", art: "badge", crestStyle: "milan", ar: "ميلان", en: "AC Milan", rating: 92 },
+  { id: "arsenal", kind: "club", rarity: "rare", c1: "#ef0107", c2: "#ffffff", art: "badge", crestStyle: "arsenal", ar: "أرسنال", en: "Arsenal", rating: 91 },
+  { id: "chelsea", kind: "club", rarity: "common", c1: "#034694", c2: "#ffffff", art: "badge", crestStyle: "chelsea", ar: "تشيلسي", en: "Chelsea", rating: 89 },
+  { id: "man-city", kind: "club", rarity: "epic", c1: "#6cabdd", c2: "#ffffff", art: "badge", crestStyle: "city", ar: "مان سيتي", en: "Man City", rating: 94 },
+  { id: "atletico", kind: "club", rarity: "common", c1: "#cb3524", c2: "#ffffff", art: "badge", crestStyle: "atletico", ar: "أتلتيكو", en: "Atlético", rating: 89 },
+  { id: "al-ahly", kind: "club", rarity: "rare", c1: "#b01c2e", c2: "#ffffff", art: "badge", crestStyle: "ahly", ar: "الأهلي", en: "Al Ahly", rating: 89 },
+
+  // ——— منتخبات إضافية ———
+  { id: "england", kind: "nation", rarity: "rare", c1: "#ffffff", c2: "#1a2f6e", art: "flag", flagStyle: "england", ar: "إنجلترا", en: "England", rating: 91 },
+  { id: "portugal", kind: "nation", rarity: "epic", c1: "#b01c2e", c2: "#0b6e2e", art: "flag", flagStyle: "portugal", ar: "البرتغال", en: "Portugal", rating: 92 },
+  { id: "netherlands", kind: "nation", rarity: "rare", c1: "#f36c21", c2: "#1a2f6e", art: "flag", flagStyle: "netherlands", ar: "هولندا", en: "Netherlands", rating: 90 },
+  { id: "italy", kind: "nation", rarity: "rare", c1: "#1a2f6e", c2: "#ffffff", art: "flag", flagStyle: "italy", ar: "إيطاليا", en: "Italy", rating: 90 },
+  { id: "croatia", kind: "nation", rarity: "common", c1: "#ffffff", c2: "#d00a2e", art: "flag", flagStyle: "croatia", ar: "كرواتيا", en: "Croatia", rating: 88 },
+  { id: "uruguay", kind: "nation", rarity: "common", c1: "#5cbfe8", c2: "#111111", art: "flag", flagStyle: "uruguay", ar: "أوروغواي", en: "Uruguay", rating: 87 },
 ] as const;
 
 export type PackId = "legends" | "stars" | "clubs" | "nations";
@@ -157,6 +202,9 @@ export function seedStarterPack(s: SeasonState): SeasonState {
   for (const id of starters) owned[id] = (owned[id] ?? 0) + 1;
   return { ...s, owned, seeded: true };
 }
+
+/** إجمالي الملصقات في الألبوم */
+export const TOTAL_STICKERS = STICKERS.length;
 
 /** سجل ملصقات مكررة تتحول لعملات موسمية (نقاط مجموعة) */
 export function collectionScore(s: SeasonState): number {

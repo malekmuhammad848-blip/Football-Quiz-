@@ -15,6 +15,7 @@ import {
   finishMatch,
   matchQuestions,
   newCup,
+  recordCupResult,
   saveCup,
   teamById,
   teamName,
@@ -122,6 +123,7 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
     const finished = finishMatch(cup);
     setCup(finished);
     saveCup(finished);
+    if (finished.champion) recordCupResult(finished); // سجل البطولة في التاريخ
     setPhase(finished.champion ? "champion" : "matchOver");
     if (soundOn) stadium.whistle();
   };
