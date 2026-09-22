@@ -367,8 +367,14 @@ function BadgeArt({ sticker }: { sticker: Sticker }) {
           <circle cx="60" cy="60" r="50" fill="#ffffff" stroke="#0066b2" strokeWidth="6.5" />
           <circle cx="60" cy="60" r="38" fill="#dc052d" />
           <circle cx="60" cy="60" r="24" fill="#0066b2" />
-          <path d="M60 36 A24 24 0 0 1 84 60 L60 60 Z" fill="#ffffff" opacity="0.3" />
-          <path d="M60 60 L84 60 A24 24 0 0 1 60 84 Z" fill="#ffffff" opacity="0.15" />
+          {/* أطواق الراين الأفقية الدقيقة */}
+          <g clipPath="url(#clip-bay)">
+            <rect x="10" y="52" width="100" height="4" fill="#ffffff" opacity="0.85" />
+            <rect x="10" y="62" width="100" height="4" fill="#ffffff" opacity="0.85" />
+          </g>
+          <clipPath id="clip-bay">
+            <circle cx="60" cy="60" r="24" />
+          </clipPath>
           <path d="M60 2 L63 10 L71.5 10.8 L65 16.4 L67 25 L60 20.5 L53 25 L55 16.4 L48.5 10.8 L57 10 Z" fill="#0066b2" />
         </svg>
       );
@@ -376,14 +382,17 @@ function BadgeArt({ sticker }: { sticker: Sticker }) {
       return (
         <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
           <path d="M60 10 L98 21 V68 C98 87 82 100 60 110 C38 100 22 87 22 68 V21 Z" fill="#c8102e" stroke="#f6eb61" strokeWidth="4.2" />
+          {/* طائر الليفر — جناحان منسدلان وجسم انسيابي */}
           <path
-            d="M60 38 C54 38 50 43 50 48 L39 52 L50 55 C49 61 51.5 66 56.5 68 L44 80 L56 77.5 L54.5 89 L60 78.5 L65.5 89 L64 77.5 L76 80 L63.5 68 C68.5 66 71 61 70 55 L81 52 L70 48 C70 43 66 38 60 38 Z"
+            d="M62 30 C56 30 51 35 51 41 L36 46 L51 50 C50 57 53 63 59 66 L46 84 L60 78 L60 88 L64 78 L78 84 L65 66 C71 63 74 57 73 50 L88 46 L73 41 C73 35 68 30 62 30 Z"
             fill="#f6eb61"
             stroke="#8b0000"
-            strokeWidth="1.5"
+            strokeWidth="1.3"
+            strokeLinejoin="round"
           />
-          <circle cx="55" cy="46.5" r="2.3" fill="#8b0000" />
-          <path d="M36 30 H84" stroke="#f6eb61" strokeWidth="3.4" />
+          <circle cx="58" cy="40" r="2" fill="#8b0000" />
+          <path d="M34 24 H90" stroke="#f6eb61" strokeWidth="3" />
+          <path d="M34 98 H90" stroke="#f6eb61" strokeWidth="3" />
         </svg>
       );
     case "hilal":
@@ -468,38 +477,39 @@ function BadgeArt({ sticker }: { sticker: Sticker }) {
         <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
           <circle cx="60" cy="60" r="50" fill="#6cabdd" stroke="#ffffff" strokeWidth="5" />
           <circle cx="60" cy="60" r="38" fill="#1c2c5b" />
-          {/* الصقر المبسط */}
-          <path d="M60 34 C50 40 44 50 44 60 C44 74 52 84 60 88 C68 84 76 74 76 60 C76 50 70 40 60 34 Z" fill="#6cabdd" opacity="0.9" />
-          <path d="M60 40 C54 46 50 54 50 62 C50 72 55 79 60 82 C65 79 70 72 70 62 C70 54 66 46 60 40 Z" fill="#1c2c5b" />
-          <circle cx="60" cy="60" r="3.4" fill="#ffffff" />
+          {/* السهم الأيقوني فوق النجمة */}
+          <path d="M60 34 L78 66 L60 58 L42 66 Z" fill="#6cabdd" />
+          <path
+            d="M60 62 L63 69.5 L71 70 L65 75.5 L67 83.5 L60 79.5 L53 83.5 L55 75.5 L49 70 L57 69.5 Z"
+            fill="#ffffff"
+          />
         </svg>
       );
     case "atletico":
       return (
         <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
           <path d="M60 10 L98 21 V68 C98 87 82 100 60 110 C38 100 22 87 22 68 V21 Z" fill="#ffffff" stroke="#cb3524" strokeWidth="4.5" />
-          {/* الشريط الأحمر الأفقي */}
-          <path d="M22 44 H98 V60 H22 Z" fill="#cb3524" clipPath="url(#clip-atl)" />
+          {/* الشريطان: الأحمر والأزرق */}
           <clipPath id="clip-atl">
             <path d="M60 10 L98 21 V68 C98 87 82 100 60 110 C38 100 22 87 22 68 V21 Z" />
           </clipPath>
-          <path d="M22 44 H98 V60 H22 Z" fill="#cb3524" clipPath="url(#clip-atl)" />
-          {/* الدب والفراولة مبسط */}
-          <circle cx="60" cy="78" r="8" fill="#7a4a21" />
-          <circle cx="56" cy="75" r="1.6" fill="#ffffff" />
-          <circle cx="64" cy="75" r="1.6" fill="#ffffff" />
+          <g clipPath="url(#clip-atl)">
+            <rect x="22" y="40" width="76" height="13" fill="#cb3524" />
+            <rect x="22" y="53" width="76" height="13" fill="#1a2f6e" />
+          </g>
+          {/* الحرف A الأنيق */}
+          <text x="60" y="88" textAnchor="middle" fontSize="26" fontWeight="900" fontFamily="system-ui, sans-serif" fill="#cb3524">A</text>
         </svg>
       );
     case "ahly":
       return (
         <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
           <path d="M60 10 L98 21 V68 C98 87 82 100 60 110 C38 100 22 87 22 68 V21 Z" fill="#b01c2e" stroke="#ffffff" strokeWidth="4.5" />
-          {/* النسر الذهبي */}
-          <path d="M60 34 C52 40 48 50 50 60 C44 64 42 72 46 78 C50 84 56 86 60 84 C64 86 70 84 74 78 C78 72 76 64 70 60 C72 50 68 40 60 34 Z" fill="#d4af37" stroke="#8b6914" strokeWidth="1.6" />
-          <circle cx="56" cy="48" r="1.8" fill="#8b6914" />
-          <circle cx="64" cy="48" r="1.8" fill="#8b6914" />
-          <path d="M54 62 L60 68 L66 62" stroke="#8b6914" strokeWidth="1.6" fill="none" />
-          <text x="60" y="98" textAnchor="middle" fontSize="9" fontWeight="900" fontFamily="serif" fill="#ffffff">1907</text>
+          {/* النسر المبسط بأجنحة مفتوحة */}
+          <path d="M60 30 L54 44 L34 40 L48 54 L40 66 L60 60 L80 66 L72 54 L86 40 L66 44 Z" fill="#d4af37" stroke="#8b6914" strokeWidth="1.4" strokeLinejoin="round" />
+          <circle cx="60" cy="52" r="4" fill="#d4af37" stroke="#8b6914" strokeWidth="1" />
+          <path d="M52 74 L60 80 L68 74" stroke="#d4af37" strokeWidth="2.4" strokeLinecap="round" fill="none" />
+          <text x="60" y="98" textAnchor="middle" fontSize="10" fontWeight="900" fontFamily="serif" fill="#ffffff">1907</text>
         </svg>
       );
     default:

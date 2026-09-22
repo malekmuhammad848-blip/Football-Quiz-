@@ -10,6 +10,7 @@ import { Lock } from "lucide-react";
 import { updateAvatarTag, type AvatarOption, type TagOption } from "../lib/backend";
 import { optionLabel } from "../domain/customization";
 import { instantCatalogs } from "../lib/catalogs";
+import { AvatarArt } from "./AvatarArt";
 import { prefsStore } from "../stores/prefsStore";
 import type { Session } from "@supabase/supabase-js";
 import { t, tr, type Lang } from "../lib/i18n";
@@ -82,7 +83,7 @@ export function CustomizeSheet({ open, onClose, session, xp, lang }: Props) {
                         : "border-card-edge bg-ghost hover:border-gold/30",
                   )}
                 >
-                  <span className="text-2xl" aria-hidden>{a.emoji || "⚽"}</span>
+                  <AvatarArt id={a.id} className="size-12 overflow-hidden rounded-full shadow-sm" />
                   <span className="max-w-full truncate px-1 text-[9px] font-bold text-soft">
                     {optionLabel(a, lang)}
                   </span>

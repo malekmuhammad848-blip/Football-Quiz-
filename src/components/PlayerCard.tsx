@@ -97,9 +97,9 @@ export function PlayerCard({ name, avatarId, xp, lang, className }: Props) {
             style={{ background: `linear-gradient(90deg, transparent, ${style.sheen}, transparent)` }}
           />
 
-          {/* الأفاتار — مرسوم محليًا */}
+          {/* الأفاتار — شخصية مرسومة محليًا */}
           <div className="relative w-24">
-            <AvatarArt id={avatarId} className="aspect-square w-full overflow-hidden rounded-2xl shadow-lg" />
+            <AvatarArt id={avatarId} className="aspect-square w-full overflow-hidden rounded-full shadow-lg ring-2 ring-white/40" />
           </div>
 
           {/* التقييم الضخم */}
