@@ -24,15 +24,18 @@ export interface TagOption {
   sort: number;
 }
 
-/** كتالوج الأفاتارات الاحتياطي — مطابق لبيانات Supabase الأولية */
+/**
+ * كتالوج الأفاتارات الاحتياطي — **مطابق تمامًا لشخصيات AvatarArt**
+ * الأفاتارات مرسومة داخل التطبيق (SVG محلي) فلا تعتمد على أي شبكة.
+ */
 export const FALLBACK_AVATARS: AvatarOption[] = [
-  { id: "ball", label_ar: "كرة", label_en: "Ball", emoji: "⚽", min_xp: 0, sort: 1 },
-  { id: "gloves", label_ar: "قفازات", label_en: "Gloves", emoji: "🧤", min_xp: 0, sort: 2 },
-  { id: "boot", label_ar: "حذاء", label_en: "Boot", emoji: "👟", min_xp: 0, sort: 3 },
-  { id: "whistle", label_ar: "صافرة", label_en: "Whistle", emoji: "📋", min_xp: 100, sort: 4 },
-  { id: "crown", label_ar: "تاج", label_en: "Crown", emoji: "👑", min_xp: 400, sort: 5 },
-  { id: "trophy", label_ar: "كأس", label_en: "Trophy", emoji: "🏆", min_xp: 800, sort: 6 },
-  { id: "star", label_ar: "نجمة", label_en: "Star", emoji: "⭐", min_xp: 1500, sort: 7 },
+  { id: "classic", label_ar: "اللاعب", label_en: "Striker", emoji: "⚽", min_xp: 0, sort: 1 },
+  { id: "keeper", label_ar: "الحارس", label_en: "Keeper", emoji: "🧤", min_xp: 0, sort: 2 },
+  { id: "captain", label_ar: "الكابتن", label_en: "Captain", emoji: "🎖️", min_xp: 100, sort: 3 },
+  { id: "golden", label_ar: "الذهبي", label_en: "Golden", emoji: "✨", min_xp: 400, sort: 4 },
+  { id: "star", label_ar: "النجمة", label_en: "Star", emoji: "🌟", min_xp: 800, sort: 5 },
+  { id: "legend", label_ar: "الأسطورة", label_en: "Legend", emoji: "🐐", min_xp: 1500, sort: 6 },
+  { id: "emperor", label_ar: "الإمبراطور", label_en: "Emperor", emoji: "👑", min_xp: 3000, sort: 7 },
 ];
 
 /** كتالوج التاغات الاحتياطي */
