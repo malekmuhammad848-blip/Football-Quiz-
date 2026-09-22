@@ -1,8 +1,8 @@
 /**
- * Cup Engine — كأس العالم TiQ
- * بطولة خروج المغلوب: 16 منتخبًا → ثمن → ربع → نصف → النهائي.
- * كل مباراة: 4 أسئلة، إجابة صحيحة = هدف لك، خطأ/انتهاء وقت = هدف للخصم.
- * المحرك نقي بالكامل (pure) — بلا I/O، وقابل للاختبار.
+ * Cup Engine — كأس العالم TiQ (إعادة بناء كاملة)
+ * اللاعب يختار منتخبه ويبقى به حتى النهاية. خروج مغلوب حقيقي:
+ * خسارة = إقصاء فوري مع محاكاة بقية البطولة. تعادل = ركلات ترجيح.
+ * المحرك نقي بالكامل — بلا I/O — وقابل للاختبار.
  */
 
 import { fnv1a } from "../core/date";
@@ -12,7 +12,7 @@ import { localizeQuestion } from "./dailyEngine";
 import type { Lang, LocalizedQuestion } from "./types";
 
 /* ============================================================
- *  المنتخبات المشاركة — 16 منتخبًا بألوان وهمية للرسم
+ *  المنتخبات المشاركة — 16 منتخبًا
  * ============================================================ */
 
 export interface CupTeam {
@@ -21,10 +21,8 @@ export interface CupTeam {
   en: string;
   /** قوة الفريق 60-95 تؤثر على أداء الخصم الذكي */
   strength: number;
-  /** لونان للقميص المرسوم في الواجهة */
   c1: string;
   c2: string;
-  /** قصات القميص: solid | stripes | hoops | sash */
   pattern: "solid" | "stripes" | "hoops" | "sash";
 }
 
@@ -48,11 +46,11 @@ export const CUP_TEAMS: readonly CupTeam[] = [
 ] as const;
 
 export function teamById(id: string): CupTeam {
-  return CUP_TEAMS.find((t) => t.id === id) ?? CUP_TEAMS[0]!;
+  return CUP_TEAMS.find((tm) => tm.id === id) ?? CUP_TEAMS[0]!;
 }
 
-export function teamName(t: CupTeam, lang: Lang): string {
-  return lang === "ar" ? t.ar : t.en;
+export function teamName(team: CupTeam, lang: Lang): string {
+  return lang === "ar" ? team.ar : team.en;
 }
 
 /* ============================================================
@@ -64,7 +62,6 @@ export type CupRound = (typeof ROUND_NAMES)[number];
 
 export const ROUNDS_PER_CUP = 4;
 
-/** كل دور يلعب 4 مباريات (16 → 8 → 4 → 2 → بطل) */
 export const MATCHES_PER_ROUND: Record<CupRound, number> = {
   r16: 8,
   qf: 4,
@@ -72,78 +69,101 @@ export const MATCHES_PER_ROUND: Record<CupRound, number> = {
   final: 1,
 };
 
+function nextRound(r: CupRound): CupRound {
+  return r === "r16" ? "qf" : r === "qf" ? "sf" : "final";
+}
+
 /* ============================================================
  *  حالة البطولة
  * ============================================================ */
 
 export interface CupMatch {
-  /** معرفان للفريقين */
   home: string;
   away: string;
-  /** أهداف بعد انتهاء المباراة (null = لم تلعب بعد) */
   homeGoals: number | null;
   awayGoals: number | null;
+  /** حُسمت بالترجيح؟ */
+  viaPenalties?: boolean;
 }
 
 export interface CupState {
-  /** البذرة: نفس البذرة = نفس البطولة (سؤال اليوم مثلاً) أو بذرة عشوائية */
   seed: number;
+  /** فريق اللاعب — ثابت طوال البطولة */
+  myTeamId: string;
   round: CupRound;
   matchIndex: number;
-  /** شجرة المباريات لكل دور */
   bracket: Record<CupRound, CupMatch[]>;
-  /** أهداف اللاعب في المباراة الحالية */
+  /** أهداف المباراة الحالية */
   myGoals: number;
   oppGoals: number;
   /** اللقب إن اكتملت البطولة */
   champion: string | null;
+  /** أُقصي اللاعب؟ (خسارته في مباراة قبل النهاية) */
+  eliminated: boolean;
 }
 
-/** ترتيب المشاركين بالبذرة وتقسيمهم (1ض16، 8ض9...) */
-function buildBracket(seed: number): Record<CupRound, CupMatch[]> {
-  const ordered = [...CUP_TEAMS];
-  // خلط مثبت بالبذرة
+/** خلط مثبت بالبذرة */
+export function seededShuffle<T>(items: readonly T[], seed: number): T[] {
+  const arr = [...items];
   let s = seed >>> 0 || 1;
-  for (let i = ordered.length - 1; i > 0; i--) {
+  for (let i = arr.length - 1; i > 0; i--) {
     s = (Math.imul(s, 48271) + 11) >>> 0;
     const j = s % (i + 1);
-    [ordered[i], ordered[j]] = [ordered[j]!, ordered[i]!];
+    [arr[i], arr[j]] = [arr[j]!, arr[i]!];
   }
-
-  const r16: CupMatch[] = [];
-  for (let i = 0; i < 8; i++) {
-    r16.push({ home: ordered[i]!.id, away: ordered[15 - i]!.id, homeGoals: null, awayGoals: null });
-  }
-  return { r16, qf: [], sf: [], final: [] };
+  return arr;
 }
 
-/** بطولة جديدة */
-export function newCup(seed = Math.floor(Math.random() * 0xffffffff)): CupState {
+/** بناء شجرة دور الـ16 */
+function buildR16(seed: number): CupMatch[] {
+  const ordered = seededShuffle(CUP_TEAMS, seed);
+  const matches: CupMatch[] = [];
+  for (let i = 0; i < 8; i++) {
+    matches.push({ home: ordered[i]!.id, away: ordered[15 - i]!.id, homeGoals: null, awayGoals: null });
+  }
+  return matches;
+}
+
+/** بطولة جديدة — اللاعب يختار فريقه (يُقعد صاحب أرض دائمًا) */
+export function newCup(myTeamId: string, seed = Math.floor(Math.random() * 0xffffffff)): CupState {
+  const team = teamById(myTeamId);
+  const r16 = buildR16(seed);
+  // ضع فريق اللاعب صاحب أرض في أول ظهور له
+  const idx = r16.findIndex((m) => m.home === team.id || m.away === team.id);
+  if (idx !== -1) {
+    const m = r16[idx]!;
+    if (m.away === team.id) r16[idx] = { home: team.id, away: m.home, homeGoals: null, awayGoals: null };
+  } else {
+    r16[0] = { home: team.id, away: r16[0]!.home, homeGoals: null, awayGoals: null };
+  }
   return {
     seed,
+    myTeamId: team.id,
     round: "r16",
-    matchIndex: 0,
-    bracket: buildBracket(seed),
+    matchIndex: idx === -1 ? 0 : idx,
+    bracket: { r16, qf: [], sf: [], final: [] },
     myGoals: 0,
     oppGoals: 0,
     champion: null,
+    eliminated: false,
   };
 }
 
-/** المباراة الحالية (أو null لو البطولة انتهت) */
+/** المباراة الحالية للاعب (أو null لو أُقصي أو انتهت البطولة) */
 export function currentMatch(cup: CupState): CupMatch | null {
-  if (cup.champion) return null;
+  if (cup.champion || cup.eliminated) return null;
   const ms = cup.bracket[cup.round];
   return ms[cup.matchIndex] ?? null;
 }
 
-/** فريق اللاعب = صاحب الأرض دائمًا في هذا التصميم المبسط */
-export function myTeam(cup: CupState): string | null {
-  return currentMatch(cup)?.home ?? null;
+export function myTeam(cup: CupState): CupTeam {
+  return teamById(cup.myTeamId);
 }
 
-export function oppTeam(cup: CupState): string | null {
-  return currentMatch(cup)?.away ?? null;
+export function oppTeam(cup: CupState): CupTeam | null {
+  const m = currentMatch(cup);
+  if (!m) return null;
+  return teamById(m.home === cup.myTeamId ? m.away : m.home);
 }
 
 /* ============================================================
@@ -154,7 +174,7 @@ export function matchQuestions(cup: CupState, lang: Lang): LocalizedQuestion[] {
   const seed = fnv1a(`${cup.seed}:${cup.round}:${cup.matchIndex}`);
   const idx: number[] = [];
   let s = seed >>> 0 || 1;
-  while (idx.length < 4) {
+  while (idx.length < 4 && idx.length < QUESTIONS.length) {
     s = (Math.imul(s, 48271) + 11) >>> 0;
     const i = s % QUESTIONS.length;
     if (!idx.includes(i)) idx.push(i);
@@ -163,16 +183,49 @@ export function matchQuestions(cup: CupState, lang: Lang): LocalizedQuestion[] {
 }
 
 /* ============================================================
- *  منطق الهدف — نقاء كامل
+ *  ركلات الترجيح عند التعادل
+ * ============================================================ */
+
+export interface PkResult {
+  won: boolean;
+  myCorrect: number;
+  oppCorrect: number;
+}
+
+/** سؤالا الترجيح الحاسمان عند التعادل */
+export function pkQuestions(cup: CupState, lang: Lang): [LocalizedQuestion, LocalizedQuestion] {
+  const seed = fnv1a(`${cup.seed}:${cup.round}:${cup.matchIndex}:pk`);
+  const idx: number[] = [];
+  let s = seed >>> 0 || 1;
+  while (idx.length < 2 && idx.length < QUESTIONS.length) {
+    s = (Math.imul(s, 48271) + 11) >>> 0;
+    const i = s % QUESTIONS.length;
+    if (!idx.includes(i)) idx.push(i);
+  }
+  return idx.map((i, k) => localizeQuestion(QUESTIONS[i]!, lang, seed + k * 31)) as [LocalizedQuestion, LocalizedQuestion];
+}
+
+/** حسم الترجيح: إجاباتك مقابل أداء الخصم حسب قوته */
+export function resolvePk(cup: CupState, myCorrect: number): PkResult {
+  const opp = oppTeam(cup);
+  const strength = opp?.strength ?? 85;
+  const rollSeed = fnv1a(`${cup.seed}:${cup.round}:${cup.matchIndex}:pkOpp`);
+  const r1 = (rollSeed % 1000) / 1000;
+  const r2 = ((rollSeed >>> 10) % 1000) / 1000;
+  const oppCorrect = (r1 < strength / 130 ? 1 : 0) + (r2 < strength / 160 ? 1 : 0);
+  return { won: myCorrect > oppCorrect || (myCorrect === oppCorrect && r1 < 0.5), myCorrect, oppCorrect };
+}
+
+/* ============================================================
+ *  منطق الأهداف
  * ============================================================ */
 
 /** أداء الخصم: قوة الفريق + عشوائية البذرة → احتمال يسجل بعد إجابتك */
 export function opponentScores(cup: CupState, questionNo: number): boolean {
   const opp = oppTeam(cup);
   if (!opp) return false;
-  const strength = teamById(opp).strength;
+  const strength = opp.strength;
   const rollSeed = fnv1a(`${cup.seed}:${cup.round}:${cup.matchIndex}:${questionNo}:opp`);
-  // قوة 92 → ~62% يسجل، قوة 78 → ~48%
   const base = 0.35 + (strength / 100) * 0.35;
   return (rollSeed % 1000) / 1000 < base;
 }
@@ -181,80 +234,125 @@ export function opponentScores(cup: CupState, questionNo: number): boolean {
 export function answerResult(cup: CupState, questionNo: number, correct: boolean): CupState {
   let my = cup.myGoals;
   let opp = cup.oppGoals;
-
   if (correct) {
     my += 1;
     if (opponentScores(cup, questionNo)) opp += 1;
   } else {
     if (opponentScores(cup, questionNo)) opp += 1;
   }
-
   return { ...cup, myGoals: my, oppGoals: opp };
 }
 
-/** إنهاء المباراة وحسم الفائز */
-export function finishMatch(cup: CupState): CupState {
+/* ============================================================
+ *  إنهاء المباراة — خروج مغلوب حقيقي + محاكاة بقية الشجرة
+ * ============================================================ */
+
+/** XP مكافأة حسب الدور (تُمنح عند الفوز في كل مباراة) */
+export function roundWinXp(round: CupRound): number {
+  return { r16: 20, qf: 35, sf: 55, final: 100 }[round];
+}
+
+/** محاكاة مباراة غير لُعبت بالبذرة حسب قوة الفريقين */
+function simulateMatch(seed: number, m: CupMatch): CupMatch {
+  const simSeed = fnv1a(`${seed}:sim:${m.home}:${m.away}`);
+  const hs = teamById(m.home).strength;
+  const as = teamById(m.away).strength;
+  const homeWins = (simSeed % 1000) / 1000 < hs / (hs + as);
+  // نتيجة واقعية 1-0 / 2-1 / 2-0 / 1-1(ترجيح)
+  const variant = (simSeed >>> 10) % 4;
+  const scores: Array<[number, number]> = [
+    [1, 0],
+    [2, 1],
+    [2, 0],
+    [1, 1],
+  ];
+  let [hg, ag] = scores[variant]!;
+  if (hg === ag) hg = homeWins ? hg + 1 : hg; // الترجيح يُظهر فارق هدف
+  if (!homeWins && hg > ag) [hg, ag] = [ag, hg];
+  return { ...m, homeGoals: hg, awayGoals: ag, viaPenalties: scores[variant]![0] === scores[variant]![1] };
+}
+
+/** إكمال شجرة كاملة حتى البطل — بعد حسم مباراة اللاعب */
+function completeBracket(cup: CupState, round: CupRound, matches: CupMatch[]): { champion: string } {
+  let cur = matches;
+  let r = round;
+  while (r !== "final") {
+    const winners = cur.map((m) => ((m.homeGoals ?? 0) >= (m.awayGoals ?? 0) ? m.home : m.away));
+    const nextMatches: CupMatch[] = [];
+    for (let i = 0; i < winners.length; i += 2) {
+      nextMatches.push({ home: winners[i]!, away: winners[i + 1] ?? winners[i]!, homeGoals: null, awayGoals: null });
+    }
+    r = nextRound(r);
+    cur = nextMatches.map((m) => (m.homeGoals === null ? simulateMatch(cup.seed + fnv1a(r), m) : m));
+  }
+  const winners = cur.map((m) => ((m.homeGoals ?? 0) >= (m.awayGoals ?? 0) ? m.home : m.away));
+  return { champion: winners[0] ?? "" };
+}
+
+export function finishMatch(cup: CupState, myPkCorrect = 0): CupState {
   const m = currentMatch(cup);
   if (!m) return cup;
-  const homeGoals = Math.max(cup.myGoals, cup.oppGoals);
-  const awayGoals = Math.min(cup.myGoals, cup.oppGoals);
-  // لو تعادل: ركلة ترجيح — نصف البذرة يفصل
-  let homeWin = cup.myGoals > cup.oppGoals;
-  if (cup.myGoals === cup.oppGoals) {
-    const pkSeed = fnv1a(`${cup.seed}:${cup.round}:${cup.matchIndex}:pk`);
-    homeWin = pkSeed % 2 === 0;
+
+  const draw = cup.myGoals === cup.oppGoals;
+  let iWin = cup.myGoals > cup.oppGoals;
+  let viaPks = false;
+  if (draw) {
+    viaPks = true;
+    const pk = resolvePk(cup, myPkCorrect);
+    iWin = pk.won;
   }
+
+  const iAmHome = m.home === cup.myTeamId;
+  const myFinal = Math.max(cup.myGoals, cup.oppGoals);
+  const oppFinal = Math.min(cup.myGoals, cup.oppGoals);
+
+  const updated: CupMatch = {
+    ...m,
+    homeGoals: iAmHome ? myFinal : oppFinal,
+    awayGoals: iAmHome ? oppFinal : myFinal,
+    viaPenalties: viaPks,
+  };
+
+  // حسم مباراة اللاعب + محاكاة باقي مباريات الدور
+  const roundMatches = cup.bracket[cup.round].map((mm, i) =>
+    i === cup.matchIndex ? updated : mm.homeGoals === null ? simulateMatch(cup.seed, mm) : mm,
+  );
 
   const next: CupState = {
     ...cup,
-    bracket: {
-      ...cup.bracket,
-      [cup.round]: cup.bracket[cup.round].map((mm, i) =>
-        i === cup.matchIndex ? { ...mm, homeGoals: homeWin ? homeGoals : awayGoals, awayGoals: homeWin ? awayGoals : homeGoals } : mm,
-      ),
-    },
+    bracket: { ...cup.bracket, [cup.round]: roundMatches },
     myGoals: 0,
     oppGoals: 0,
   };
 
-  // تقدم الفهرس أو الدور
-  const roundMatches = MATCHES_PER_ROUND[next.round];
-  if (next.matchIndex + 1 < roundMatches) {
-    return { ...next, matchIndex: next.matchIndex + 1 };
+  if (!iWin) {
+    // إقصاء اللاعب — أكمل الشجرة حتى البطل وسجل النتيجة
+    const { champion } = completeBracket(next, cup.round, roundMatches);
+    return { ...next, champion, eliminated: true };
   }
 
-  // انتهى الدور — راكم الفائزين واحسب الدور التالي
-  const winners = next.bracket[next.round].map((mm) =>
-    (mm.homeGoals ?? 0) >= (mm.awayGoals ?? 0) ? mm.home : mm.away,
-  );
-
-  if (next.round === "final") {
-    return { ...next, champion: winners[0] ?? m.home };
+  // اللاعب فاز — إذا كان هذا النهائي فهو البطل
+  if (cup.round === "final") {
+    return { ...next, champion: cup.myTeamId, eliminated: false };
   }
 
-  const nextRound = next.round === "r16" ? "qf" : next.round === "qf" ? "sf" : "final";
+  // راكم الفائزين وابنِ الدور التالي
+  const winners = roundMatches.map((mm) => ((mm.homeGoals ?? 0) >= (mm.awayGoals ?? 0) ? mm.home : mm.away));
+  const nr = nextRound(cup.round);
   const nextMatches: CupMatch[] = [];
   for (let i = 0; i < winners.length; i += 2) {
     nextMatches.push({ home: winners[i]!, away: winners[i + 1] ?? winners[i]!, homeGoals: null, awayGoals: null });
   }
-  return {
-    ...next,
-    round: nextRound,
-    matchIndex: 0,
-    bracket: { ...next.bracket, [nextRound]: nextMatches },
-  };
-}
-
-/** إجمالي أهداف اللاعب بالبطولة */
-export function totalGoals(cup: CupState): number {
-  let g = 0;
-  for (const round of ROUND_NAMES) {
-    for (const m of cup.bracket[round] ?? []) {
-      // أهداف اللاعب = أهداف صاحب الأرض في مبارياته (مبسط)
-      if (m.homeGoals !== null) g += m.homeGoals ?? 0;
-    }
+  // اضبط مؤشر مباراة اللاعب في الدور الجديد
+  const myIdx = nextMatches.findIndex((mm) => mm.home === cup.myTeamId || mm.away === cup.myTeamId);
+  const safeIdx = myIdx === -1 ? 0 : myIdx;
+  const bracket = { ...next.bracket, [nr]: nextMatches };
+  // إن لم يجد اللاعب (خطأ داخلي) — أكمل الشجرة
+  if (myIdx === -1) {
+    const { champion } = completeBracket({ ...next, bracket }, nr, nextMatches);
+    return { ...next, bracket, round: nr, matchIndex: 0, champion, eliminated: true };
   }
-  return g;
+  return { ...next, round: nr, matchIndex: safeIdx };
 }
 
 /* ============================================================
@@ -276,19 +374,14 @@ export function clearCup(): void {
 }
 
 /* ============================================================
- *  سجل البطولات — ألقاب وأهداف تظهر في البروفايل
+ *  سجل البطولات
  * ============================================================ */
 
 export interface CupHistoryEntry {
-  /** تاريخ إكمال البطولة (ISO) */
   at: string;
-  /** معرف البطل */
   champion: string;
-  /** هل اللاعب هو البطل؟ */
   playerWon: boolean;
-  /** إجمالي أهداف اللاعب بالبطولة */
   goals: number;
-  /** عدد المباريات اللُعبت */
   matches: number;
 }
 
@@ -300,10 +393,9 @@ export function loadCupHistory(): CupHistoryEntry[] {
   return Array.isArray(h) ? h : [];
 }
 
-/** تسجيل نتيجة بطولة منتهية — يعيد السجل المحدث */
+/** تسجيل نتيجة بطولة منتهية (لقب أو إقصاء) */
 export function recordCupResult(cup: CupState): CupHistoryEntry[] {
   if (!cup.champion) return loadCupHistory();
-  const goals = totalGoals(cup);
   const matches = ROUND_NAMES.reduce(
     (n, r) => n + (cup.bracket[r]?.filter((m) => m.homeGoals !== null).length ?? 0),
     0,
@@ -311,8 +403,8 @@ export function recordCupResult(cup: CupState): CupHistoryEntry[] {
   const entry: CupHistoryEntry = {
     at: new Date().toISOString(),
     champion: cup.champion,
-    playerWon: cup.champion === myTeamId(cup),
-    goals,
+    playerWon: cup.champion === cup.myTeamId,
+    goals: playerGoalsInCup(cup),
     matches,
   };
   const next = [entry, ...loadCupHistory()].slice(0, HISTORY_MAX);
@@ -320,21 +412,24 @@ export function recordCupResult(cup: CupState): CupHistoryEntry[] {
   return next;
 }
 
-/** معرف فريق اللاعب من آخر مباراة لُعبت (البطل إن فاز هو) */
-function myTeamId(cup: CupState): string {
-  // في هذا التصميم اللاعب دائمًا صاحب الأرض في مباراته الأخيرة قبل البطل
-  const finalMatch = cup.bracket.final[0];
-  if (finalMatch && finalMatch.homeGoals !== null) return finalMatch.home;
-  return cup.champion ?? "";
+/** إجمالي أهداف اللاعب في البطولة (مبارياته فقط) */
+export function playerGoalsInCup(cup: CupState): number {
+  let g = 0;
+  for (const round of ROUND_NAMES) {
+    for (const m of cup.bracket[round] ?? []) {
+      if (m.homeGoals === null) continue;
+      if (m.home === cup.myTeamId) g += m.homeGoals ?? 0;
+      else if (m.away === cup.myTeamId) g += m.awayGoals ?? 0;
+    }
+  }
+  return g;
 }
 
 /** إحصائيات مختصرة للبروفايل */
-export function cupSummary(): { cups: number; finals: number; played: number; bestRun: number } {
+export function cupSummary(): { cups: number; played: number; bestRun: number } {
   const h = loadCupHistory();
   const cups = h.filter((e) => e.playerWon).length;
-  // نهائي = بطولة وصل فيها النهائي (كل البطولات المسجلة أكملت على الأقل نصف النهائي)
-  const finals = h.length;
   const played = h.reduce((n, e) => n + e.matches, 0);
   const bestRun = h.reduce((best, e) => Math.max(best, e.matches), 0);
-  return { cups, finals, played, bestRun };
+  return { cups, played, bestRun };
 }

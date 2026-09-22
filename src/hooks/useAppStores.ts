@@ -84,7 +84,10 @@ export function useSession(): { session: Session | null; phase: BootPhase } {
       }
     };
 
-    // 1) الجلسة المخزنة فورًا (إن وجدت) — بلا انتظار الشبكة
+    // 1) **سقف زمني صارم**: قراءة الجلسة المحلية لا تُمهل الشبكة أبدًا.
+    //    سبب "البطء" الحقيقي كان انتظار getSession() المتصل بالشبكة (تحديث توكن
+    //    قد يتدلى ثوانيًا) — الآن نُظهر التطبيق خلال 400ms كحد أقصى، والجلسة
+    //    تصل متى جهزت عبر onChange (بلا حجب للواجهة).
     void authService
       .getSession()
       .then((s) => {
@@ -92,28 +95,16 @@ export function useSession(): { session: Session | null; phase: BootPhase } {
       })
       .catch(() => undefined)
       .finally(markReady);
+    const bootDeadline = setTimeout(markReady, 400);
 
-    // 2) إقلاع بارد: قد يفشل تحديث التوكن لأن الشبكة لم تجهز بعد.
-    //    نعيد المحاولة حتى تحصل الجلسة أو تنتهي المحاولات.
-    void (async () => {
-      for (let attempt = 0; attempt < 4; attempt++) {
-        await new Promise((r) => setTimeout(r, 1200));
-        if (!alive) return;
-        const s = await authService.getSession().catch(() => null);
-        if (s) {
-          if (alive) setSession(s);
-          return;
-        }
-      }
-    })();
-
-    // 3) استمع لأحداث تغيّر الجلسة (دخول/خروج/تحديث توكن)
+    // 2) استمع لأحداث تغيّر الجلسة (دخول/خروج/تحديث توكن/وصول متأخر)
     const sub = authService.onChange((s) => {
       setSession(s);
       markReady();
     });
     return () => {
       alive = false;
+      clearTimeout(bootDeadline);
       sub.unsubscribe();
     };
   }, []);

@@ -37,28 +37,19 @@ export function VisualQuestion({ sticker, prompt, className }: Props) {
 }
 
 /**
- * تحويل سؤال عادي إلى بصري: يختار ملصقًا مطابقًا لأحد الخيارات.
- * يعيد null إذا لم يوجد ملصق مطابق (يبقى السؤال نصيًا).
+ * تحويل سؤال عادي إلى بصري — **آمنة تمامًا**: يعمل فقط عندما تكون
+ * إجابة السؤال النصي نفسها صاحبة الملصق. لا يعرض أبدًا بطاقة لا تطابق الإجابة
+ * (كان هذا سبب «أجيب ليفربول ويقول ريال مدريد خطأ»).
  */
 export function makeVisual(
   options: string[],
   answerIndex: number,
   lang: "ar" | "en",
 ): { sticker: Sticker; options: string[]; answer: number } | null {
-  // ابحث عن ملصق مطابق لأحد الخيارات (الإجابة الصحيحة أولًا)
-  const find = (name: string) =>
-    STICKERS.find((s) => (lang === "ar" ? s.ar : s.en) === name.trim());
-
-  const answerSticker = find(options[answerIndex] ?? "");
-  if (answerSticker) {
-    return { sticker: answerSticker, options, answer: answerIndex };
-  }
-  // جرّب أي خيار (سؤال "أي نادٍ/منتخب يمثله الشعار/العلم" معكوس)
-  for (let i = 0; i < options.length; i++) {
-    const st = find(options[i] ?? "");
-    if (st) return { sticker: st, options, answer: i };
-  }
-  return null;
+  // الملصق الصحيح فقط: بطاقة صاحب الإجابة الصحيحة — أو لا بطاقة إطلاقًا
+  const name = (options[answerIndex] ?? "").trim();
+  const st = STICKERS.find((s) => (lang === "ar" ? s.ar : s.en) === name);
+  return st ? { sticker: st, options, answer: answerIndex } : null;
 }
 
 /** عشوائية مثبتة بالبذرة — نفس النتيجة دائمًا لنفس البذرة */
