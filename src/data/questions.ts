@@ -4,8 +4,12 @@
  *  ============================================================ */
 
 import type { Question } from "../domain/types";
+import { QUESTIONS_WAVE_A } from "./questionsWaveA";
+import { QUESTIONS_WAVE_B } from "./questionsWaveB";
+import { QUESTIONS_WAVE_C } from "./questionsWaveC";
 
-export const QUESTIONS: Question[] = [
+/** البنك الأساسي (النسخة الأولى) */
+const CORE_QUESTIONS: Question[] = [
   {
     id: "wc-2022-winner",
     category: "worldcup",
@@ -1374,4 +1378,12 @@ export const QUESTIONS: Question[] = [
       fact: "Independiente's 7 Libertadores titles earned them \"King of Cups\" status.",
     },
   },
+];
+
+/** The unified mega bank: core + all waves */
+export const QUESTIONS: Question[] = [
+  ...CORE_QUESTIONS,
+  ...QUESTIONS_WAVE_A,
+  ...QUESTIONS_WAVE_B,
+  ...QUESTIONS_WAVE_C,
 ];

@@ -4,15 +4,16 @@
  */
 
 import { motion } from "framer-motion";
-import { Home, Sparkles, User, Volleyball } from "lucide-react";
+import { Home, Sparkles, Trophy, User, Volleyball } from "lucide-react";
 import { t, type Lang } from "../lib/i18n";
 import { cn } from "../utils/cn";
 
-export type TabId = "today" | "penalty" | "season" | "profile";
+export type TabId = "today" | "penalty" | "cup" | "season" | "profile";
 
-const TABS: { id: TabId; icon: typeof Home; key: "tabToday" | "tabPenalty" | "tabSeason" | "tabProfile" }[] = [
+const TABS: { id: TabId; icon: typeof Home; key: "tabToday" | "tabPenalty" | "tabCup" | "tabSeason" | "tabProfile" }[] = [
   { id: "today", icon: Home, key: "tabToday" },
   { id: "penalty", icon: Volleyball, key: "tabPenalty" },
+  { id: "cup", icon: Trophy, key: "tabCup" },
   { id: "season", icon: Sparkles, key: "tabSeason" },
   { id: "profile", icon: User, key: "tabProfile" },
 ];
@@ -31,7 +32,7 @@ export function TabBar({ active, onChange, lang }: { active: TabId; onChange: (t
               key={id}
               onClick={() => onChange(id)}
               aria-label={t(lang, key)}
-              className="relative flex min-w-16 flex-col items-center gap-0.5 px-3 py-1"
+              className="relative flex min-w-14 flex-col items-center gap-0.5 px-2 py-1"
             >
               {isActive && (
                 <motion.span

@@ -43,6 +43,7 @@ import { NamePrompt } from "./components/NamePrompt";
 import { ProfileScreen } from "./components/ProfileScreen";
 import { PenaltyArena } from "./components/PenaltyArena";
 import { TabBar, type TabId } from "./components/TabBar";
+import { CupMode } from "./components/CupMode";
 import { Badge, Button } from "./components/ui/primitives";
 import { initAuthUrlOpen, displayNameOf } from "./lib/backend";
 
@@ -270,6 +271,8 @@ export default function App() {
       <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 px-3 py-5 sm:gap-5 sm:px-8 sm:py-7">
         {tab === "penalty" ? (
           <PenaltyArena session={session} lang={lang} onRequireAuth={() => setPenaltyAuthPrompt(true)} />
+        ) : tab === "cup" ? (
+          <CupMode lang={lang} soundOn={prefs.sound} hapticsOn={prefs.haptics} onExit={() => setTab("today")} />
         ) : tab === "season" ? (
           <SeasonScreen lang={lang} xp={progress.xp} />
         ) : tab === "profile" ? (
