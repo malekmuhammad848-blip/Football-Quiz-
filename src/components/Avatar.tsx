@@ -1,35 +1,33 @@
 /**
  * Avatar — أفاتار دائري بإطار الدوري
- * لا يعتمد على شبكة إطلاقًا: إيموجي أو حرف أول — مع fallback آمن.
+ * الأفاتار مرسوم SVG محليًا — يظهر دائمًا بلا أي اعتماد خارجي.
+ * fallback: الكرة — لا حرف أول ولا فراغ أبدًا.
  */
 
 import { leagueFor } from "../domain/leagues";
 import { cn } from "../utils/cn";
+import { AvatarArt } from "./AvatarArt";
 
 interface Props {
-  name: string;
+  /** متروك للتوافق — الأفاتار مرسوم الآن ولا يحتاج اسمًا */
+  name?: string;
   size?: "sm" | "md" | "lg" | "xl";
   ring?: boolean;
-  xp?: number; // لتحديد لون الإطار من الدوري (افتراضي 0)
-  /** إيموجي الأفاتار المختار (اختياري) */
-  emojiOverride?: string;
+  xp?: number;
+  /** معرف الأفاتار المختار */
+  avatarId?: string | null;
 }
 
 const SIZES = {
-  sm: { box: "size-9", text: "text-sm", emoji: "text-base", pad: "p-[2px]" },
-  md: { box: "size-12", text: "text-lg", emoji: "text-xl", pad: "p-[2.5px]" },
-  lg: { box: "size-16", text: "text-xl", emoji: "text-2xl", pad: "p-[3px]" },
-  xl: { box: "size-28", text: "text-4xl", emoji: "text-5xl", pad: "p-[4px]" },
+  sm: { box: "size-9", pad: "p-[2px]" },
+  md: { box: "size-12", pad: "p-[2.5px]" },
+  lg: { box: "size-16", pad: "p-[3px]" },
+  xl: { box: "size-28", pad: "p-[4px]" },
 } as const;
 
-export function Avatar({ name, size = "md", ring = true, xp = 0, emojiOverride }: Props) {
+export function Avatar({ name: _name, size = "md", ring = true, xp = 0, avatarId }: Props) {
   const s = SIZES[size];
   const league = leagueFor(xp);
-  // fallback آمن: إيموجي مختار ← حرف أول ← كرة
-  const emoji = typeof emojiOverride === "string" && emojiOverride.trim() ? emojiOverride : null;
-  const initial =
-    typeof name === "string" && name.trim() ? name.trim().slice(0, 1).toUpperCase() : null;
-  const content = emoji ?? initial ?? "⚽";
 
   return (
     <div
@@ -40,15 +38,7 @@ export function Avatar({ name, size = "md", ring = true, xp = 0, emojiOverride }
       )}
       style={ring ? { boxShadow: `0 0 24px ${league.glow}` } : undefined}
     >
-      <div
-        className={cn(
-          "flex items-center justify-center rounded-full bg-[#0d1610] font-black text-white",
-          s.box,
-          emoji ? s.emoji : s.text,
-        )}
-      >
-        {content}
-      </div>
+      <AvatarArt id={avatarId} className={cn("flex items-center justify-center overflow-hidden rounded-full p-1", s.box)} />
     </div>
   );
 }

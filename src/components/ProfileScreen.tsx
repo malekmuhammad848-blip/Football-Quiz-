@@ -4,8 +4,6 @@
  *  ============================================================ */
 
 import { useEffect, useMemo, useState } from "react";
-import type { AvatarOption, TagOption } from "../domain/customization";
-import { instantCatalogs } from "../lib/catalogs";
 import { motion } from "framer-motion";
 import { Check, Lock, Pencil, Shirt, Trophy, X } from "lucide-react";
 import { levelFor } from "../domain/progression";
@@ -16,12 +14,13 @@ import { useProgress, usePrefs } from "../hooks/useAppStores";
 import { prefsStore } from "../stores/prefsStore";
 import {
   authService,
-  authServiceExtra,
   fetchMyPenaltyStats,
   fetchMyProfileMeta,
+  updateDisplayName,
   type PenaltyStatRow,
   type Session,
 } from "../lib/backend";
+import { FALLBACK_TAGS } from "../lib/backend";
 import { t } from "../lib/i18n";
 import { supabaseConfigured } from "../lib/supabase";
 import { cn } from "../utils/cn";
@@ -47,9 +46,6 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
   const [boardOpen, setBoardOpen] = useState(false);
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [penStats, setPenStats] = useState<PenaltyStatRow | null>(null);
-  const instant = useMemo(() => instantCatalogs(), []);
-  const [avatars] = useState<AvatarOption[]>(instant.avatars);
-  const [tags] = useState<TagOption[]>(instant.tags);
 
   // الترجيح من Supabase (للمسجلين) — آمن عند الفشل
   useEffect(() => {
@@ -86,22 +82,16 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
     return cloud?.trim() || prefs.playerName.trim() || session?.user.email?.split("@")[0] || "Player";
   }, [session, prefs.playerName]);
 
-  // الأفاتار والتاغ الفعليان: الاختيار المحلي أولًا (يعمل للضيف والمسجل)،
-  // مع تجاهل أي معرف غير موجود في الكتالوج
+  // الأفاتار والتاغ الفعليان: الاختيار المحلي أولًا (يعمل للضيف والمسجل)
   const activeTag = useMemo(() => {
     const chosen = prefs.tagId;
-    return tags.find((x) => x.id === chosen) ?? null;
-  }, [tags, prefs.tagId]);
+    return FALLBACK_TAGS.find((x) => x.id === chosen) ?? null;
+  }, [prefs.tagId]);
 
   const rankName = useMemo(() => {
     const tagName = activeTag ? `${activeTag.emoji} ${lang === "ar" ? activeTag.label_ar : activeTag.label_en}` : null;
     return `${leagueName(league, lang)} · ${lvl.name}${tagName ? ` · ${tagName}` : ""}`;
   }, [league, lang, lvl.name, activeTag]);
-
-  const avatarEmoji = useMemo(() => {
-    const av = avatars.find((x) => x.id === prefs.avatarId);
-    return av?.emoji ?? null;
-  }, [avatars, prefs.avatarId]);
 
   const winRate =
     penStats && penStats.wins + penStats.losses > 0
@@ -117,7 +107,7 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
     const clean = draftName.trim();
     if (clean.length < 2) return;
     prefsStore.setPlayerName(clean);
-    if (session) void authServiceExtra.updateDisplayName(clean);
+    if (session) void updateDisplayName(clean);
     setEditing(false);
   };
 
@@ -159,7 +149,7 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
           />
 
           <div className="relative mx-auto w-fit">
-            <Avatar name={displayName} size="xl" ring xp={progress.xp} emojiOverride={avatarEmoji ?? undefined} />
+            <Avatar size="xl" ring xp={progress.xp} avatarId={prefs.avatarId} />
           </div>
 
           {/* شارة التاغ — تظهر للجميع من الاختيار المحلي */}

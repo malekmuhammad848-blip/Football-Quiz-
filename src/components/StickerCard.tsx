@@ -1,11 +1,8 @@
-/** ============================================================
- *  StickerCard — بطاقات ملصقات بأسلوب FIFA Ultimate Team
- *  فن SVG يدوي عالي الدقة (viewBox 96):
- *   kit   → قميص بثلاث طبقات (أكمام/جسم/ياقة) + أنماط حقيقية + رقم
- *   flag  → أعلام رسمية بدقة: شمس الأرجنتين، معيّن البرازيل، نجمة المغرب...
- *   badge → شعارات أندية مميزة يدويًا (تاج ريال، بلاوقرانا، طائر الليفر...)
- *  إطار معدني حسب الندرة + شارة تقييم — بطاقة كاملة.
- *  ============================================================ */
+/**
+ * StickerCard — بطاقات ملصقات بأسلوب FIFA Ultimate Team
+ * فن SVG يدوي عالي الدقة (viewBox 120) — أطقم بأرقام وأكمام وياقة حقيقية،
+ * أعلام رسمية بدقتها، شعارات أندية مميزة. مقاس موحّد في كل الأماكن.
+ */
 
 import { Lock } from "lucide-react";
 import { STICKERS, type Rarity, type Sticker } from "../domain/season";
@@ -13,35 +10,31 @@ import { cn } from "../utils/cn";
 
 const RARITY_FRAME: Record<
   Rarity,
-  { border: string; glow: string; label: string; grad: string; sheen: string }
+  { border: string; glow: string; label: string; grad: string }
 > = {
   common: {
     border: "#94a3b8",
     glow: "none",
     label: "#64748b",
     grad: "linear-gradient(160deg,#eef2f7,#cbd5e1)",
-    sheen: "rgba(255,255,255,0.5)",
   },
   rare: {
     border: "#38bdf8",
     glow: "0 0 16px rgba(56,189,248,0.45)",
     label: "#0369a1",
     grad: "linear-gradient(160deg,#e0f2fe,#bae6fd)",
-    sheen: "rgba(255,255,255,0.55)",
   },
   epic: {
     border: "#a855f7",
     glow: "0 0 18px rgba(168,85,247,0.5)",
     label: "#7e22ce",
     grad: "linear-gradient(160deg,#f3e8ff,#e9d5ff)",
-    sheen: "rgba(255,255,255,0.55)",
   },
   legendary: {
     border: "#fbbf24",
     glow: "0 0 20px rgba(251,191,36,0.6)",
     label: "#b45309",
     grad: "linear-gradient(160deg,#fef3c7,#fde68a)",
-    sheen: "rgba(255,255,255,0.6)",
   },
 };
 
@@ -58,80 +51,78 @@ function isLight(hex: string): boolean {
 }
 
 /* ============================================================
- *  فن القميص — قميص حقيقي بثلاث طبقات (viewBox 96)
+ *  فن القميص — قميص واقعي (viewBox 120)
  * ============================================================ */
 
-const KIT_BODY = "M22 18 L36 11 L60 11 L74 18 L74 74 Q74 78 70 78 L26 78 Q22 78 22 74 Z";
-const KIT_BODY_CLIP = "M22 18 L36 11 L60 11 L74 18 L74 74 Q74 78 70 78 L26 78 Q22 78 22 74 Z";
+/** مسار جسم القميص: كتفان + جسم يتسع للياقة والرقم */
+const KIT_BODY =
+  "M28 22 L44 14 L76 14 L92 22 L92 96 Q92 101 87 101 L33 101 Q28 101 28 96 Z";
 
 function KitArt({ sticker }: { sticker: Sticker }) {
   const { c1, c2, pattern = "solid", number } = sticker;
+  const uid = `k${sticker.id}`;
   const numColor = isLight(c1) ? "#1e293b" : "#ffffff";
-  const numStroke = isLight(c1) ? "rgba(0,0,0,0.25)" : "rgba(0,0,0,0.35)";
 
   return (
-    <svg viewBox="0 0 96 96" className="h-full w-full" aria-hidden>
+    <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
       <defs>
-        <clipPath id={`k-${sticker.id}`}>
-          <path d={KIT_BODY_CLIP} />
+        <clipPath id={`${uid}-clip`}>
+          <path d={KIT_BODY} />
         </clipPath>
-        {/* ظل داخلي خفيف يعطي عمق القماش */}
-        <linearGradient id={`ksh-${sticker.id}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#ffffff" stopOpacity="0.25" />
-          <stop offset="0.35" stopColor="#ffffff" stopOpacity="0" />
-          <stop offset="1" stopColor="#000000" stopOpacity="0.18" />
+        <linearGradient id={`${uid}-sh`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ffffff" stopOpacity="0.28" />
+          <stop offset="0.4" stopColor="#ffffff" stopOpacity="0" />
+          <stop offset="1" stopColor="#000000" stopOpacity="0.2" />
         </linearGradient>
       </defs>
 
-      {/* الأكمام */}
-      <path d="M22 18 L8 25 L15 38 L24 33 Z" fill={c2} stroke="rgba(0,0,0,0.2)" strokeWidth="1" />
-      <path d="M74 18 L88 25 L81 38 L72 33 Z" fill={c2} stroke="rgba(0,0,0,0.2)" strokeWidth="1" />
+      {/* الأكمام — أوسع وأوضح */}
+      <path d="M28 22 L8 32 L18 50 L30 44 Z" fill={c2} stroke="rgba(0,0,0,0.22)" strokeWidth="1.4" />
+      <path d="M92 22 L112 32 L102 50 L90 44 Z" fill={c2} stroke="rgba(0,0,0,0.22)" strokeWidth="1.4" />
       {/* حافة الكم */}
-      <path d="M8 25 L15 38" stroke="rgba(0,0,0,0.25)" strokeWidth="1.4" fill="none" />
-      <path d="M88 25 L81 38" stroke="rgba(0,0,0,0.25)" strokeWidth="1.4" fill="none" />
+      <path d="M8 32 L18 50" stroke="rgba(0,0,0,0.3)" strokeWidth="2" fill="none" />
+      <path d="M112 32 L102 50" stroke="rgba(0,0,0,0.3)" strokeWidth="2" fill="none" />
 
       {/* الجسم */}
-      <path d={KIT_BODY} fill={c1} stroke="rgba(0,0,0,0.22)" strokeWidth="1.2" />
+      <path d={KIT_BODY} fill={c1} stroke="rgba(0,0,0,0.25)" strokeWidth="1.6" />
 
-      {/* الأنماط داخل قص الجسم */}
-      <g clipPath={`url(#k-${sticker.id})`}>
+      {/* الأنماط داخل القص */}
+      <g clipPath={`url(#${uid}-clip)`}>
         {pattern === "stripes" && (
           <g fill={c2}>
-            <rect x="28" y="6" width="7" height="80" />
-            <rect x="44" y="6" width="7" height="80" />
-            <rect x="60" y="6" width="7" height="80" />
+            <rect x="36" y="10" width="9" height="95" />
+            <rect x="56" y="10" width="9" height="95" />
+            <rect x="76" y="10" width="9" height="95" />
           </g>
         )}
         {pattern === "hoops" && (
           <g fill={c2}>
-            <rect x="18" y="28" width="60" height="8" />
-            <rect x="18" y="44" width="60" height="8" />
-            <rect x="18" y="60" width="60" height="8" />
+            <rect x="24" y="34" width="72" height="10" />
+            <rect x="24" y="56" width="72" height="10" />
+            <rect x="24" y="78" width="72" height="10" />
           </g>
         )}
-        {pattern === "sash" && (
-          <path d="M12 82 L70 4 L86 18 L28 96 Z" fill={c2} opacity="0.94" />
-        )}
+        {pattern === "sash" && <path d="M16 106 L86 6 L108 24 L38 124 Z" fill={c2} opacity="0.95" />}
         {/* ظل القماش */}
-        <path d={KIT_BODY} fill={`url(#ksh-${sticker.id})`} />
+        <path d={KIT_BODY} fill={`url(#${uid}-sh)`} />
       </g>
 
-      {/* الياقة */}
-      <path d="M36 11 L48 20 L60 11" fill="none" stroke={c2} strokeWidth="3" strokeLinejoin="round" />
-      <path d="M36 11 L48 20 L60 11" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="0.8" strokeLinejoin="round" />
+      {/* الياقة V */}
+      <path d="M44 14 L60 26 L76 14" fill="none" stroke={c2} strokeWidth="4" strokeLinejoin="round" />
+      <path d="M44 14 L60 26 L76 14" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1.2" strokeLinejoin="round" />
 
-      {/* رقم القميص */}
+      {/* الرقم — كبير وواضح */}
       {number !== undefined && (
         <text
-          x="48"
-          y="60"
+          x="60"
+          y="76"
           textAnchor="middle"
-          fontSize="26"
+          fontSize="34"
           fontWeight="900"
           fontFamily="system-ui, sans-serif"
-          fill={pattern === "solid" ? numColor : numColor}
-          stroke={numStroke}
-          strokeWidth="0.8"
+          fill={numColor}
+          stroke="rgba(0,0,0,0.3)"
+          strokeWidth="1"
         >
           {number}
         </text>
@@ -141,7 +132,7 @@ function KitArt({ sticker }: { sticker: Sticker }) {
 }
 
 /* ============================================================
- *  فن الأعلام — أعلام رسمية بدقة (viewBox 96)
+ *  فن الأعلام — أعلام رسمية (viewBox 120)
  * ============================================================ */
 
 function FlagArt({ sticker }: { sticker: Sticker }) {
@@ -152,48 +143,53 @@ function FlagArt({ sticker }: { sticker: Sticker }) {
       case "argentina":
         return (
           <>
-            <rect x="8" y="18" width="80" height="60" fill="#74acdf" />
-            <rect x="8" y="38" width="80" height="20" fill="#ffffff" />
-            {/* شمس مايو */}
-            <circle cx="48" cy="48" r="7.5" fill="#f6b40e" stroke="#85340a" strokeWidth="1.4" />
+            <rect x="10" y="22" width="100" height="76" fill="#74acdf" />
+            <rect x="10" y="48" width="100" height="24" fill="#ffffff" />
+            <circle cx="60" cy="60" r="9" fill="#f6b40e" stroke="#85340a" strokeWidth="1.6" />
             {Array.from({ length: 12 }, (_, i) => {
               const a = (i * Math.PI) / 6;
-              const x1 = 48 + Math.cos(a) * 8.2;
-              const y1 = 48 + Math.sin(a) * 8.2;
-              const x2 = 48 + Math.cos(a) * 11.5;
-              const y2 = 48 + Math.sin(a) * 11.5;
-              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#f6b40e" strokeWidth="1.6" strokeLinecap="round" />;
+              return (
+                <line
+                  key={i}
+                  x1={60 + Math.cos(a) * 10}
+                  y1={60 + Math.sin(a) * 10}
+                  x2={60 + Math.cos(a) * 14}
+                  y2={60 + Math.sin(a) * 14}
+                  stroke="#f6b40e"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              );
             })}
-            <circle cx="48" cy="48" r="2" fill="#85340a" />
+            <circle cx="60" cy="60" r="2.4" fill="#85340a" />
           </>
         );
       case "brazil":
         return (
           <>
-            <rect x="8" y="18" width="80" height="60" fill="#009c3b" />
-            <path d="M48 25 L82 48 L48 71 L14 48 Z" fill="#ffdf00" />
-            <circle cx="48" cy="48" r="14" fill="#002776" />
-            <path d="M35 44.5 Q48 40 61 47.5" stroke="#ffffff" strokeWidth="3" fill="none" strokeLinecap="round" />
+            <rect x="10" y="22" width="100" height="76" fill="#009c3b" />
+            <path d="M60 32 L102 60 L60 88 L18 60 Z" fill="#ffdf00" />
+            <circle cx="60" cy="60" r="17" fill="#002776" />
+            <path d="M44 56 Q60 50 76 59" stroke="#ffffff" strokeWidth="3.6" fill="none" strokeLinecap="round" />
           </>
         );
       case "france":
         return (
           <>
-            <rect x="8" y="18" width="26.7" height="60" fill="#002395" />
-            <rect x="34.7" y="18" width="26.6" height="60" fill="#ffffff" />
-            <rect x="61.3" y="18" width="26.7" height="60" fill="#ed2939" />
+            <rect x="10" y="22" width="33.3" height="76" fill="#002395" />
+            <rect x="43.3" y="22" width="33.4" height="76" fill="#ffffff" />
+            <rect x="76.7" y="22" width="33.3" height="76" fill="#ed2939" />
           </>
         );
       case "morocco":
         return (
           <>
-            <rect x="8" y="18" width="80" height="60" fill="#c1272d" />
-            {/* نجمة خماسية خضراء مفرغة — النجمة الحقيقية */}
+            <rect x="10" y="22" width="100" height="76" fill="#c1272d" />
             <path
-              d="M48 30 L51.5 41.5 L63.5 41.5 L53.8 48.7 L57.5 60.5 L48 53.2 L38.5 60.5 L42.2 48.7 L32.5 41.5 L44.5 41.5 Z"
+              d="M60 38 L64.5 52.5 L79.5 52.5 L67.3 61.5 L72 76 L60 67 L48 76 L52.7 61.5 L40.5 52.5 L55.5 52.5 Z"
               fill="none"
               stroke="#006233"
-              strokeWidth="2.6"
+              strokeWidth="3.2"
               strokeLinejoin="round"
             />
           </>
@@ -201,49 +197,46 @@ function FlagArt({ sticker }: { sticker: Sticker }) {
       case "germany":
         return (
           <>
-            <rect x="8" y="18" width="80" height="20" fill="#111111" />
-            <rect x="8" y="38" width="80" height="20" fill="#dd0000" />
-            <rect x="8" y="58" width="80" height="20" fill="#ffce00" />
+            <rect x="10" y="22" width="100" height="25.3" fill="#111111" />
+            <rect x="10" y="47.3" width="100" height="25.4" fill="#dd0000" />
+            <rect x="10" y="72.7" width="100" height="25.3" fill="#ffce00" />
           </>
         );
       case "spain":
         return (
           <>
-            <rect x="8" y="18" width="80" height="60" fill="#c60b1e" />
-            <rect x="8" y="39" width="80" height="18" fill="#ffc400" />
-            {/* شعار مبسط يسار الشريط */}
-            <rect x="14" y="42" width="8" height="12" rx="1" fill="#ad1519" />
-            <rect x="16" y="45" width="4" height="3" fill="#ffc400" />
+            <rect x="10" y="22" width="100" height="76" fill="#c60b1e" />
+            <rect x="10" y="48" width="100" height="24" fill="#ffc400" />
+            <rect x="17" y="51" width="10" height="18" rx="1.5" fill="#ad1519" />
+            <rect x="19.5" y="55" width="5" height="4" fill="#ffc400" />
           </>
         );
       default:
         return (
           <>
-            <rect x="8" y="18" width="80" height="30" fill={c1} />
-            <rect x="8" y="48" width="80" height="30" fill={c1} opacity="0.6" />
+            <rect x="10" y="22" width="100" height="38" fill={c1} />
+            <rect x="10" y="60" width="100" height="38" fill={c1} opacity="0.6" />
           </>
         );
     }
   })();
 
   return (
-    <svg viewBox="0 0 96 96" className="h-full w-full" aria-hidden>
+    <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
       <defs>
         <clipPath id={`f-${sticker.id}`}>
-          <rect x="8" y="18" width="80" height="60" rx="4" />
+          <rect x="10" y="22" width="100" height="76" rx="5" />
         </clipPath>
       </defs>
       <g clipPath={`url(#f-${sticker.id})`}>{inner}</g>
-      {/* إطار العلم */}
-      <rect x="8" y="18" width="80" height="60" rx="4" fill="none" stroke="rgba(0,0,0,0.25)" strokeWidth="2" />
-      {/* سارية صغيرة */}
-      <rect x="4" y="14" width="3" height="70" rx="1.5" fill="rgba(0,0,0,0.28)" />
+      <rect x="10" y="22" width="100" height="76" rx="5" fill="none" stroke="rgba(0,0,0,0.28)" strokeWidth="2.4" />
+      <rect x="5" y="16" width="3.6" height="88" rx="1.8" fill="rgba(0,0,0,0.3)" />
     </svg>
   );
 }
 
 /* ============================================================
- *  فن الشعارات — دروع أندية مميزة يدويًا (viewBox 96)
+ *  فن الشعارات — دروع أندية (viewBox 120)
  * ============================================================ */
 
 function BadgeArt({ sticker }: { sticker: Sticker }) {
@@ -252,103 +245,93 @@ function BadgeArt({ sticker }: { sticker: Sticker }) {
   switch (crestStyle) {
     case "real":
       return (
-        <svg viewBox="0 0 96 96" className="h-full w-full" aria-hidden>
-          {/* الدرع */}
-          <path d="M48 10 L80 20 V52 C80 68 68 80 48 88 C28 80 16 68 16 52 V20 Z" fill="#ffffff" stroke="#febe10" strokeWidth="3.5" />
-          {/* القلعة/القلب الأزرق */}
-          <path d="M30 46 L48 34 L66 46 L66 62 L48 74 L30 62 Z" fill="#00529f" />
-          <path d="M38 56 Q48 48 58 56 L58 64 L48 70 L38 64 Z" fill="#ffffff" />
-          {/* الشريط القُطري */}
-          <path d="M16 22 L80 54" stroke="#febe10" strokeWidth="3" opacity="0.85" />
-          {/* التاج */}
-          <path d="M28 20 L28 9 L36 14 L43 5 L48 12 L53 5 L60 14 L68 9 L68 20 Z" fill="#febe10" stroke="#b8860b" strokeWidth="1.2" />
-          <circle cx="48" cy="4" r="2.6" fill="#febe10" />
+        <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
+          <path d="M60 12 L100 24 V66 C100 86 85 100 60 110 C35 100 20 86 20 66 V24 Z" fill="#ffffff" stroke="#febe10" strokeWidth="4.5" />
+          <path d="M38 58 L60 42 L82 58 L82 78 L60 92 L38 78 Z" fill="#00529f" />
+          <path d="M48 70 Q60 60 72 70 L72 80 L60 88 L48 80 Z" fill="#ffffff" />
+          <path d="M20 27 L100 68" stroke="#febe10" strokeWidth="4" opacity="0.85" />
+          <path d="M34 24 L34 10 L44 17 L53 5 L60 14 L67 5 L76 17 L86 10 L86 24 Z" fill="#febe10" stroke="#b8860b" strokeWidth="1.6" />
+          <circle cx="60" cy="4" r="3.2" fill="#febe10" />
         </svg>
       );
     case "barca":
       return (
-        <svg viewBox="0 0 96 96" className="h-full w-full" aria-hidden>
-          <path d="M48 6 L84 16 V52 C84 68 70 82 48 90 C26 82 12 68 12 52 V16 Z" fill="#a50044" stroke="#ffd700" strokeWidth="2.8" />
-          {/* سان جوردي — أعلى يسار */}
-          <path d="M12 16 L48 6 V34 H12 Z" fill="#ffffff" />
-          {[16, 24, 32].map((x) => (
-            <rect key={x} x={x} y="9" width="4.5" height="25" fill="#ed2939" opacity="0.9" />
+        <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
+          <path d="M60 7 L105 20 V66 C105 86 88 103 60 112 C32 103 15 86 15 66 V20 Z" fill="#a50044" stroke="#ffd700" strokeWidth="3.6" />
+          {/* سان جوردي */}
+          <path d="M15 20 L60 7 V42 H15 Z" fill="#ffffff" />
+          {[20, 30, 40, 50].map((x) => (
+            <rect key={x} x={x} y="11" width="5.5" height="31" fill="#ed2939" opacity="0.9" />
           ))}
-          {/* بلاوقرانا — أعلى يمين */}
-          <path d="M48 6 L84 16 V34 H48 Z" fill="#004d98" />
-          {[54, 64, 74].map((x) => (
-            <rect key={x} x={x} y="9" width="5.5" height="25" fill="#a50044" />
+          {/* بلاوقرانا */}
+          <path d="M60 7 L105 20 V42 H60 Z" fill="#004d98" />
+          {[68, 79, 90].map((x) => (
+            <rect key={x} x={x} y="12" width="7" height="30" fill="#a50044" />
           ))}
           {/* الحزام الذهبي */}
-          <rect x="12" y="34" width="72" height="9" fill="#ffd700" />
+          <rect x="15" y="42" width="90" height="12" fill="#ffd700" />
           {/* الكرة */}
-          <circle cx="48" cy="62" r="16" fill="#004d98" />
-          <path d="M48 46 A16 16 0 0 1 48 78 Z" fill="#a50044" />
-          <circle cx="48" cy="62" r="16" fill="none" stroke="#ffd700" strokeWidth="2.4" />
+          <circle cx="60" cy="78" r="20" fill="#004d98" />
+          <path d="M60 58 A20 20 0 0 1 60 98 Z" fill="#a50044" />
+          <circle cx="60" cy="78" r="20" fill="none" stroke="#ffd700" strokeWidth="3" />
         </svg>
       );
     case "united":
       return (
-        <svg viewBox="0 0 96 96" className="h-full w-full" aria-hidden>
-          <path d="M48 8 L78 17 V54 C78 69 66 80 48 88 C30 80 18 69 18 54 V17 Z" fill="#da291c" stroke="#fbe122" strokeWidth="3.5" />
-          {/* الشيطان الأصفر */}
+        <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
+          <path d="M60 10 L98 21 V68 C98 87 82 100 60 110 C38 100 22 87 22 68 V21 Z" fill="#da291c" stroke="#fbe122" strokeWidth="4.5" />
           <path
-            d="M48 30 C42 30 39 34 39 39 C33 41 30 45 30 50 C30 56 34 60 40 61 C37 64 37 69 40 72 C43 75 48 75 51 72 C54 75 59 75 62 72 C65 69 65 64 62 61 C68 60 72 56 72 50 C72 45 69 41 63 39 C63 34 60 30 54 30 Z"
+            d="M60 38 C53 38 49 43 49 49 C41 51 37 56 37 62 C37 70 42 75 49 76 C45 80 45 86 49 90 C53 94 60 94 64 90 C68 94 75 94 79 90 C83 86 83 80 79 76 C86 75 91 70 91 62 C91 56 87 51 79 49 C79 43 75 38 68 38 Z"
             fill="#fbe122"
             stroke="#8b0000"
-            strokeWidth="1.4"
+            strokeWidth="1.8"
           />
-          <path d="M36 32 L30 22 M68 32 L74 22" stroke="#fbe122" strokeWidth="3" strokeLinecap="round" />
-          <circle cx="43" cy="46" r="2.4" fill="#da291c" />
-          <circle cx="55" cy="46" r="2.4" fill="#da291c" />
-          <path d="M28 22 H68" stroke="#fbe122" strokeWidth="2.6" />
-          <path d="M28 76 H68" stroke="#fbe122" strokeWidth="2.6" />
+          <path d="M45 41 L37 28 M83 41 L91 28" stroke="#fbe122" strokeWidth="4" strokeLinecap="round" />
+          <circle cx="54" cy="58" r="3" fill="#da291c" />
+          <circle cx="70" cy="58" r="3" fill="#da291c" />
+          <path d="M34 27 H94" stroke="#fbe122" strokeWidth="3.4" />
+          <path d="M34 96 H94" stroke="#fbe122" strokeWidth="3.4" />
         </svg>
       );
     case "bayern":
       return (
-        <svg viewBox="0 0 96 96" className="h-full w-full" aria-hidden>
-          <circle cx="48" cy="48" r="40" fill="#ffffff" stroke="#0066b2" strokeWidth="5" />
-          <circle cx="48" cy="48" r="30" fill="#dc052d" />
-          <circle cx="48" cy="48" r="19" fill="#0066b2" />
-          {/* أطواق الراين */}
-          <path d="M48 29 A19 19 0 0 1 67 48 L48 48 Z" fill="#ffffff" opacity="0.25" />
-          <path d="M48 48 L67 48 A19 19 0 0 1 48 67 Z" fill="#ffffff" opacity="0.12" />
-          {/* نجمة بايرن العلوية */}
-          <path d="M48 2 L50.5 8 L57 8.6 L52 13 L53.5 19.5 L48 16 L42.5 19.5 L44 13 L39 8.6 L45.5 8 Z" fill="#0066b2" />
+        <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
+          <circle cx="60" cy="60" r="50" fill="#ffffff" stroke="#0066b2" strokeWidth="6.5" />
+          <circle cx="60" cy="60" r="38" fill="#dc052d" />
+          <circle cx="60" cy="60" r="24" fill="#0066b2" />
+          <path d="M60 36 A24 24 0 0 1 84 60 L60 60 Z" fill="#ffffff" opacity="0.3" />
+          <path d="M60 60 L84 60 A24 24 0 0 1 60 84 Z" fill="#ffffff" opacity="0.15" />
+          <path d="M60 2 L63 10 L71.5 10.8 L65 16.4 L67 25 L60 20.5 L53 25 L55 16.4 L48.5 10.8 L57 10 Z" fill="#0066b2" />
         </svg>
       );
     case "liverpool":
       return (
-        <svg viewBox="0 0 96 96" className="h-full w-full" aria-hidden>
-          <path d="M48 8 L78 17 V54 C78 69 66 80 48 88 C30 80 18 69 18 54 V17 Z" fill="#c8102e" stroke="#f6eb61" strokeWidth="3.2" />
-          {/* طائر الليفر */}
+        <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
+          <path d="M60 10 L98 21 V68 C98 87 82 100 60 110 C38 100 22 87 22 68 V21 Z" fill="#c8102e" stroke="#f6eb61" strokeWidth="4.2" />
           <path
-            d="M48 30 C43 30 40 34 40 38 L32 41 L40 43.5 C39 48 41 52 45 54 L36 63 L45 61 L44 70 L48 62 L52 70 L51 61 L60 63 L51 54 C55 52 57 48 56 43.5 L64 41 L56 38 C56 34 53 30 48 30 Z"
+            d="M60 38 C54 38 50 43 50 48 L39 52 L50 55 C49 61 51.5 66 56.5 68 L44 80 L56 77.5 L54.5 89 L60 78.5 L65.5 89 L64 77.5 L76 80 L63.5 68 C68.5 66 71 61 70 55 L81 52 L70 48 C70 43 66 38 60 38 Z"
             fill="#f6eb61"
             stroke="#8b0000"
-            strokeWidth="1.2"
+            strokeWidth="1.5"
           />
-          <circle cx="44" cy="37" r="1.8" fill="#8b0000" />
-          <path d="M30 24 H66" stroke="#f6eb61" strokeWidth="2.6" />
+          <circle cx="55" cy="46.5" r="2.3" fill="#8b0000" />
+          <path d="M36 30 H84" stroke="#f6eb61" strokeWidth="3.4" />
         </svg>
       );
     case "hilal":
       return (
-        <svg viewBox="0 0 96 96" className="h-full w-full" aria-hidden>
-          <circle cx="48" cy="48" r="40" fill="#0b5ec4" stroke="#ffffff" strokeWidth="5" />
-          <circle cx="48" cy="48" r="30" fill="#ffffff" opacity="0.1" />
-          {/* الهلال */}
-          <path d="M55 22 A28 28 0 1 0 55 74 A34 34 0 1 1 55 22 Z" fill="#ffffff" />
-          {/* النجمة */}
-          <path d="M62 34 L64.5 41.5 L72.5 41.5 L66 46.2 L68.5 54 L62 49.2 L55.5 54 L58 46.2 L51.5 41.5 L59.5 41.5 Z" fill="#ffffff" />
+        <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
+          <circle cx="60" cy="60" r="50" fill="#0b5ec4" stroke="#ffffff" strokeWidth="6.5" />
+          <circle cx="60" cy="60" r="38" fill="#ffffff" opacity="0.12" />
+          <path d="M69 26 A36 36 0 1 0 69 94 A44 44 0 1 1 69 26 Z" fill="#ffffff" />
+          <path d="M78 42 L81.5 52 L92 52 L83.5 58.5 L86.5 69 L78 62.5 L69.5 69 L72.5 58.5 L64 52 L74.5 52 Z" fill="#ffffff" />
         </svg>
       );
     default:
       return (
-        <svg viewBox="0 0 96 96" className="h-full w-full" aria-hidden>
-          <path d="M48 8 L78 17 V54 C78 69 66 80 48 88 C30 80 18 69 18 54 V17 Z" fill={c1} stroke={c2} strokeWidth="3.5" />
-          <path d="M32 42 L48 30 L64 42 V58 L48 70 L32 58 Z" fill={c2} opacity="0.6" />
+        <svg viewBox="0 0 120 120" className="h-full w-full" aria-hidden>
+          <path d="M60 10 L98 21 V68 C98 87 82 100 60 110 C38 100 22 87 22 68 V21 Z" fill={c1} stroke={c2} strokeWidth="4.5" />
+          <path d="M40 54 L60 38 L80 54 V76 L60 90 L40 76 Z" fill={c2} opacity="0.6" />
         </svg>
       );
   }
@@ -370,21 +353,12 @@ export function StickerArt({ sticker, className }: { sticker: Sticker; className
 
 interface Props {
   sticker: Sticker;
-  /** عدد النسخ المملوكة */
   copies?: number;
-  /** عرض مقفل — يظهر ظلًا رماديًا وبطاقة مجهولة */
   locked?: boolean;
-  size?: "sm" | "md" | "lg";
   onClick?: () => void;
 }
 
-const SIZES = {
-  sm: "w-full",
-  md: "w-full",
-  lg: "w-48",
-} as const;
-
-export function StickerCard({ sticker, copies = 0, locked = false, size = "md", onClick }: Props) {
+export function StickerCard({ sticker, copies = 0, locked = false, onClick }: Props) {
   const fr = RARITY_FRAME[sticker.rarity];
   const owned = copies > 0;
 
@@ -398,19 +372,16 @@ export function StickerCard({ sticker, copies = 0, locked = false, size = "md", 
         boxShadow: owned ? fr.glow : undefined,
       }}
       className={cn(
-        "relative flex flex-col items-center gap-1.5 rounded-2xl border-2 p-2.5 pb-2 text-center transition-transform active:scale-95",
-        SIZES[size],
+        "relative flex w-full flex-col items-center gap-1.5 rounded-2xl border-2 p-2.5 pb-2 pt-4 text-center transition-transform active:scale-95",
         owned ? "" : "border-line bg-ink/5 dark:bg-white/5",
         locked && "opacity-45 grayscale",
       )}
     >
-      {/* شريط الندرة العلوي */}
       <span
         className="absolute inset-x-0 top-0 h-1 rounded-t-2xl"
         style={{ backgroundColor: owned ? fr.border : "#cbd5e1" }}
       />
 
-      {/* التقييم */}
       <span
         className="absolute -top-1.5 -start-1.5 flex size-7 items-center justify-center rounded-full text-[11px] font-black text-white shadow-md"
         style={{ backgroundColor: owned ? fr.label : "#94a3b8" }}
@@ -424,13 +395,13 @@ export function StickerCard({ sticker, copies = 0, locked = false, size = "md", 
         </span>
       )}
 
-      {/* الفن — أكبر وأوضح: h-20 بدل h-14 */}
-      <span className="relative flex h-20 w-20 items-center justify-center pt-1.5">
+      {/* الفن — مربع متساوي الأبعاد يملأ العرض */}
+      <span className="relative flex aspect-square w-full items-center justify-center">
         <StickerArt
           sticker={sticker}
-          className={cn("h-20 w-20 transition-opacity", locked && "opacity-35 grayscale")}
+          className={cn("aspect-square w-full transition-opacity", locked && "opacity-35 grayscale")}
         />
-        {locked && <Lock className="absolute size-4 text-ink/50 dark:text-white/50" />}
+        {locked && <Lock className="absolute size-5 text-ink/50 dark:text-white/50" />}
       </span>
 
       <span className={cn("max-w-full truncate text-[10px] font-black leading-tight", !owned && "opacity-40")}>

@@ -219,8 +219,8 @@ export function SeasonScreen({ lang, xp }: Props) {
                       NEW!
                     </motion.span>
                   )}
-                  <div className="w-56">
-                    <StickerCard sticker={currentReveal.sticker} copies={1} size="lg" />
+                  <div className="w-64">
+                    <StickerCard sticker={currentReveal.sticker} copies={1} />
                   </div>
                   <p className="text-lg font-black text-white">{lang === "ar" ? currentReveal.sticker.ar : currentReveal.sticker.en}</p>
                   <p className="text-[10px] font-bold uppercase tracking-widest text-white/50">

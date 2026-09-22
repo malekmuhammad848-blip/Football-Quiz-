@@ -7,7 +7,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
-import { authServiceExtra, type AvatarOption, type TagOption } from "../lib/backend";
+import { updateAvatarTag, type AvatarOption, type TagOption } from "../lib/backend";
 import { optionLabel } from "../domain/customization";
 import { instantCatalogs } from "../lib/catalogs";
 import { prefsStore } from "../stores/prefsStore";
@@ -48,7 +48,7 @@ export function CustomizeSheet({ open, onClose, session, xp, lang }: Props) {
     // 2) مزامنة سحابية اختيارية للمسجلين — لا تمنع الإغلاق إن فشلت
     if (session) {
       try {
-        await authServiceExtra.updateAvatarTag(selAvatar, selTag);
+        await updateAvatarTag(selAvatar, selTag);
       } catch {
         /* المحلي يكفي — ستُزامن لاحقًا */
       }
