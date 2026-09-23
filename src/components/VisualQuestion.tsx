@@ -1,35 +1,45 @@
 /** ============================================================
- *  VisualQuestion — سؤال بصري: «لمن هذا الطقم؟»
- *  الإصلاح: بدل خريطة IDs جامدة (تظهر نادرًا)، الآن 25% من أسئلة
- *  التدريب تصبح بصرية بعشوائية حقيقية — الأطقم والأعلام تظهر فعلًا.
+ *  VisualQuestion — سؤال بصري: «لمن هذا الطقم/العلم/الشعار؟»
+ *  يعرض فنًا مرسومًا حقيقيًا من مكتبة VisualArt حسب المواصفة
+ *  المرافقة للسؤال (kind + ref) — الفن يخص صاحب الإجابة دائمًا.
+ *  أسئلة التدريب المولّدة تظل تعمل عبر الملصقات (sticker).
  *  ============================================================ */
 
-import { STICKERS, type Sticker } from "../domain/season";
+import type { Sticker } from "../domain/season";
 import { StickerArt } from "./StickerCard";
+import { VisualArt, type VisualSpec } from "./VisualArt";
+import { cn } from "../utils/cn";
 
 interface Props {
-  /** الملصق المستخدم في السؤال */
-  sticker: Sticker;
+  /** مواصفة فن مباشرة (من حقل visual في السؤال) */
+  spec?: VisualSpec;
+  /** ملصق من بنك الموسم (أسئلة التدريب المولّدة) */
+  sticker?: Sticker;
   /** نص السؤال المطبوع */
   prompt: string;
   className?: string;
 }
 
-export { StickerArt };
+export { StickerArt, VisualArt };
+export type { VisualSpec };
 
-/** هل هذا السؤال بصري؟ (نمرر العلم من المولّد) */
-export type VisualFlag = { visual?: Sticker };
-
-export function VisualQuestion({ sticker, prompt, className }: Props) {
+export function VisualQuestion({ spec, sticker, prompt, className }: Props) {
   return (
     <div className={className}>
-      <p className="mb-3 text-center text-xs font-black uppercase tracking-widest text-faint">
+      <p className={cn("text-center text-xs font-black uppercase tracking-widest text-faint", prompt ? "mb-3" : "hidden")}>
         {prompt}
       </p>
       <div className="flex justify-center">
         <div className="relative flex h-40 w-40 items-center justify-center">
-          <div className="absolute -inset-5 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(251,191,36,0.18), transparent)" }} />
-          <StickerArt sticker={sticker} className="relative h-36 w-36" />
+          <div
+            className="absolute -inset-5 rounded-full"
+            style={{ background: "radial-gradient(closest-side, rgba(251,191,36,0.18), transparent)" }}
+          />
+          {spec ? (
+            <VisualArt spec={spec} className="relative h-36 w-36" />
+          ) : sticker ? (
+            <StickerArt sticker={sticker} className="relative h-36 w-36" />
+          ) : null}
         </div>
       </div>
     </div>
@@ -51,6 +61,8 @@ export function makeVisual(
   const st = STICKERS.find((s) => (lang === "ar" ? s.ar : s.en) === name);
   return st ? { sticker: st, options, answer: answerIndex } : null;
 }
+
+import { STICKERS } from "../domain/season";
 
 /** عشوائية مثبتة بالبذرة — نفس النتيجة دائمًا لنفس البذرة */
 function seededPick<T>(arr: readonly T[], seed: number): T {
@@ -84,7 +96,7 @@ export interface GeneratedVisual {
 export function buildVisualQuestion(lang: "ar" | "en", seed: number): GeneratedVisual {
   const sticker = seededPick(STICKERS, seed);
   const sameKind = STICKERS.filter((s) => s.kind === sticker.kind && s.id !== sticker.id);
-  const distractors = seededShuffle(sameKind, seed * 31 + 7).slice(0, 3);
+  const distractors = seededShuffle([...sameKind], seed * 31 + 7).slice(0, 3);
   const name = (s: Sticker) => (lang === "ar" ? s.ar : s.en);
 
   const options = seededShuffle([name(sticker), ...distractors.map(name)], seed * 7 + 3);

@@ -15,6 +15,7 @@ import { t, type Lang } from "../lib/i18n";
 import { cn } from "../utils/cn";
 import { Button } from "./ui/primitives";
 import { CheckBadge, CrossBadge, ZapMark } from "./Icons";
+import { VisualQuestion } from "./VisualQuestion";
 
 interface Props {
   lang: Lang;
@@ -212,6 +213,7 @@ export function RushMode({ lang }: Props) {
               </span>
             </div>
             <h3 className="text-base leading-7 font-extrabold sm:text-lg sm:leading-8">{current.q}</h3>
+            {current.visual && <VisualQuestion spec={current.visual} prompt="" className="mt-3" />}
             <div className="mt-3 grid gap-2">
               {current.options.map((opt, i) => {
                 const revealed = selected !== null;

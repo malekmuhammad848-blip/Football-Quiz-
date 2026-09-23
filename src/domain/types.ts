@@ -18,6 +18,11 @@ export interface Question {
   en: { q: string; options: string[]; fact: string };
   /** فهرس الإجابة الصحيحة (0-3) — مشترك بين اللغتين */
   answer: number;
+  /**
+   * سؤال بصري اختياري: يعرض فنًا مرسومًا (طقم/علم/شعار) بدل النص.
+   * يُربط بإجابة السؤال الصحيحة — الفن يخص صاحب الإجابة دائمًا.
+   */
+  visual?: { kind: "kit" | "flag" | "badge"; ref: string };
 }
 
 /** سؤال مُحلَّول للعرض باللغة الحالية */
@@ -29,6 +34,8 @@ export interface LocalizedQuestion {
   options: string[];
   fact: string;
   answer: number;
+  /** الفن البصري المرافق (بعد المحلية) — إن وجد */
+  visual?: { kind: "kit" | "flag" | "badge"; ref: string };
 }
 
 /** تقدم اللاعب (نسخة v3 الموحدة) */

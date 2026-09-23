@@ -24,13 +24,13 @@ export const QUESTIONS_WAVE_A: Question[] = [
     en: { q: "Who won the famous 1950 'Maracanazo' final?", options: ["Brazil", "Sweden", "Spain", "Uruguay"], fact: "Uruguay beat Brazil in front of ~173,000 at the Maracanã — the biggest upset in World Cup history." },
   },
   {
-    id: "wa-klose-record", category: "worldcup", difficulty: "medium", answer: 1,
-    ar: { q: "من هو هداف كأس العالم التاريخي؟", options: ["رونالدو البرازيلي", "ميروسلاف كلوزه", "بيليه", "جيرد مولر"], fact: "كلوزه سجّل 16 هدفًا في 4 مونديالات متتالية، متجاوزًا رونالدو صاحب الـ15." },
-    en: { q: "Who is the all-time World Cup top scorer?", options: ["Ronaldo (Brazil)", "Miroslav Klose", "Pelé", "Gerd Müller"], fact: "Klose scored 16 goals across four World Cups, passing Ronaldo's 15." },
+    id: "wa-klose-record", category: "worldcup", difficulty: "medium", answer: 2,
+    ar: { q: "كم هدفًا سجل ميروسلاف كلوزه في المونديالات؟", options: ["14", "15", "16", "17"], fact: "16 هدفًا في 4 مونديالات — تجاوز رونالدو (15) في مونديال 2014 الذي توجته ألمانيا." },
+    en: { q: "How many World Cup goals did Miroslav Klose score?", options: ["14", "15", "16", "17"], fact: "16 across four editions — he passed Ronaldo's 15 during Germany's 2014 triumph." },
   },
   {
     id: "wa-fastest-goal", category: "worldcup", difficulty: "hard", answer: 2,
-    ar: { q: "من سجّل أسرع هدف في تاريخ كأس العالم؟", options: ["ديفيد بيكهام", "بيران الأتركي", "هوكان شوكور", "كلينسمان"], fact: "شوكور سجّل لكوريا الجنوبية ضد تركيا بعد 10.8 ثوانٍ فقط في مونديال 2002." },
+    ar: { q: "من سجّل أسرع هدف في تاريخ كأس العالم؟", options: ["ديفيد بيكهام", "بولنت كوركماز", "هوكان شوكور", "كلينسمان"], fact: "شوكور سجّل لكوريا الجنوبية ضد تركيا بعد 10.8 ثوانٍ فقط في مونديال 2002." },
     en: { q: "Who scored the fastest goal in World Cup history?", options: ["David Beckham", "Bülent Korkmaz", "Hakan Şükür", "Klinsmann"], fact: "Şükür netted for Turkey vs South Korea after just 10.8 seconds in 2002." },
   },
   {
@@ -64,9 +64,9 @@ export const QUESTIONS_WAVE_A: Question[] = [
     en: { q: "Who hosted and won the 1998 World Cup?", options: ["Italy", "France", "England", "Germany"], fact: "France won its first title at home with Zidane's brace against Brazil." },
   },
   {
-    id: "wa-cameroon-1990", category: "worldcup", difficulty: "hard", answer: 3,
-    ar: { q: "من سجّل هدف الفوز الشهير للكاميرون على الأرجنتين في مونديال 1990؟", options: ["روجر ميلا", "أومام بييك", "إيمانويل مابوني", "فرانسوا أومام-بييك"], fact: "الكاميرون فازت 1-0 بصمة مفاجأة المونديال، ووصلت لربع النهائي — أول أفريقي." },
-    en: { q: "Who scored Cameroon's famous winner over Argentina at Italia 90?", options: ["Roger Milla", "Omam-Biyik", "Emmanuel Maboang", "François Omam-Biyik"], fact: "Cameroon's 1-0 win shocked the world; they reached the first-ever African quarterfinal." },
+    id: "wa-cameroon-1990", category: "worldcup", difficulty: "hard", answer: 2,
+    ar: { q: "من سجّل هدف الفوز الشهير للكاميرون على الأرجنتين في مونديال 1990؟", options: ["روجر ميلا", "باتريك مبوما", "فرانسوا أومام-بييك", "إيمانويل مابوني"], fact: "رأسية أومام-بييك حسمت 1-0 — مفاجأة الافتتاح ووصول أفريقي أول لربع النهائي." },
+    en: { q: "Who scored Cameroon's famous winner over Argentina at Italia 90?", options: ["Roger Milla", "Patrick Mboma", "François Omam-Biyik", "Emmanuel Maboang"], fact: "Omam-Biyik's header sealed a 1-0 shock — and Africa's first quarterfinal run." },
   },
   {
     id: "wa-morocco-22", category: "worldcup", difficulty: "easy", answer: 0,
@@ -86,7 +86,7 @@ export const QUESTIONS_WAVE_A: Question[] = [
 
   // ——— تاريخ وقوانين ———
   {
-    id: "wa-offside-year", category: "history", difficulty: "medium", answer: 1,
+    id: "wa-offside-year", category: "history", difficulty: "medium", answer: 0,
     ar: { q: "في أي عام حُدِّث قانون التسلل ليصبح «اللاعب الأخير» بدل الثالث؟", options: ["1925", "1990", "2005", "2010"], fact: "1925 غيّرت اللعبة: الأهداف تضاعفت تقريبًا في موسم واحد بعد التعديل." },
     en: { q: "In which year was the offside rule changed from three to two defenders?", options: ["1925", "1990", "2005", "2010"], fact: "1925 transformed football: goals nearly doubled in a single season." },
   },
@@ -106,13 +106,13 @@ export const QUESTIONS_WAVE_A: Question[] = [
     en: { q: "What's the maximum legal width of a football pitch?", options: ["80m", "90m", "100m", "75m"], fact: "Pitches run 90-120m long and 45-90m wide — international ones are narrower." },
   },
   {
-    id: "wa-yellow-card", category: "history", difficulty: "hard", answer: 2,
-    ar: { q: "من كان أول لاعب يتلقى بطاقة حمراء في كأس العالم؟", options: ["بيدرو مونزون", "ماركو ماتيريازي", "ديفيد واغستاف", "زين الدين زيدان"], fact: "واغستاف الإنجليزي طُرد 1998 ضد كولومبيا — أول حمراء بمعايير VAR الحديثة." },
-    en: { q: "Who received the first World Cup red card?", options: ["Pedro Monzón", "Marco Materazzi", "David Wagstaffe", "Zinedine Zidane"], fact: "England's Wagstaffe was sent off in 1998 — first under modern card rules." },
+    id: "wa-yellow-card", category: "history", difficulty: "hard", answer: 0,
+    ar: { q: "من كان أول لاعب يتلقى بطاقة حمراء في تاريخ كأس العالم؟", options: ["بيدرو مونزون", "ماركو ماتيريازي", "ديفيد بيكهام", "زين الدين زيدان"], fact: "الأرجنتيني مونزون طُرد ضد الاتحاد السوفيتي في إيطاليا 1990 — أول حمراء في تاريخ المونديال." },
+    en: { q: "Who received the first red card in World Cup history?", options: ["Pedro Monzón", "Marco Materazzi", "David Beckham", "Zinedine Zidane"], fact: "Argentina's Monzón was sent off vs the USSR at Italia '90 — the first red card ever shown." },
   },
   {
     id: "wa-oldest-club", category: "history", difficulty: "medium", answer: 0,
-    ar: { q: "ما أقدم نادٍ كرة قدم في العالم ما زال نشطًا؟", options: ["نوتس كاونتي", "شيفيلد ونسدي", "أستون فيلا", "برنتفورد"], fact: "نوتس كاونتي تأسس 1862 — وألوانه البيضاء السوداء ألهمت يوفنتوس." },
+    ar: { q: "ما أقدم نادٍ محترف في العالم ما زال نشطًا؟", options: ["نوتس كاونتي", "شيفيلد ونسدي", "أستون فيلا", "برنتفورد"], fact: "نوتس كاونتي تأسس 1862 — وألوانه البيضاء السوداء ألهمت يوفنتوس." },
     en: { q: "What's the world's oldest professional football club?", options: ["Notts County", "Sheffield Wednesday", "Aston Villa", "Brentford"], fact: "Notts County formed in 1862 — their black & white stripes inspired Juventus." },
   },
   {
@@ -137,8 +137,8 @@ export const QUESTIONS_WAVE_A: Question[] = [
   },
   {
     id: "wa-keeper-captain", category: "history", difficulty: "hard", answer: 0,
-    ar: { q: "من هو الحارس الوحيد الذي فاز بالكرة الذهبية؟", options: ["ليف ياشين", "جيانلويجي بوفون", "أوليفر كان", "إيكر كاسياس"], fact: "ياشين السوفيتي فاز بها 1963 — ويبقى الوحيد حتى اليوم، وسُمّي جائزة أفضل حارس باسمه." },
-    en: { q: "Who is the only goalkeeper to win the Ballon d'Or?", options: ["Lev Yashin", "Gianluigi Buffon", "Oliver Kahn", "Iker Casillas"], fact: "Soviet legend Yashin won in 1963 — still the only keeper; the best-GK award bears his name." },
+    ar: { q: "جائزة أفضل حارس في العالم مُنحت باسم أي أسطورة؟", options: ["ليف ياشين", "جيانلويجي بوفون", "أوليفر كان", "إيكر كاسياس"], fact: "«جائزة ياشين» — مُنحت أول مرة 2019 للسوفيتي الوحيد الفائز بالكرة الذهبية 1963." },
+    en: { q: "The world's best-goalkeeper award is named after which legend?", options: ["Lev Yashin", "Gianluigi Buffon", "Oliver Kahn", "Iker Casillas"], fact: "The Yashin Trophy debuted in 2019, honoring the Soviet keeper — the only one to win the Ballon d'Or (1963)." },
   },
 
   // ——— الأندية ———
@@ -245,7 +245,7 @@ export const QUESTIONS_WAVE_A: Question[] = [
     en: { q: "Who manages Manchester City's greatest era?", options: ["Pep Guardiola", "Zinédine Zidane", "Carlo Ancelotti", "Jürgen Klopp"], fact: "Guardiola delivered the 2023 treble and City's first Champions League." },
   },
   {
-    id: "wa- Klopp-anfield", category: "players", difficulty: "easy", answer: 1,
+    id: "wa-klopp-anfield", category: "players", difficulty: "easy", answer: 1,
     ar: { q: "من هو المدرب الألماني الذي قاد ليفربول لأول أبطال أوروبا في العصر الحديث؟", options: ["توب هامل", "يورغن كلوب", "رافا بينيتيز", "رودجرز"], fact: "كلوب فاز بالأبطال 2019 والدوري 2020 — أنهى 30 سنة انتظار الجماهير." },
     en: { q: "Which German manager won Liverpool's modern Champions League?", options: ["Toppmöller", "Jürgen Klopp", "Rafael Benítez", "Brendan Rodgers"], fact: "Klopp won the 2019 CL and 2020 league — ending 30-year waits." },
   },
@@ -285,14 +285,14 @@ export const QUESTIONS_WAVE_A: Question[] = [
     en: { q: "Who is La Liga's highest-scoring defender?", options: ["Puyol", "Pepe", "Sergio Ramos", "Pelligrino"], fact: "Ramos scored 100+ goals including decisive Clásico and final headers." },
   },
   {
-    id: "wa-enciso-young", category: "players", difficulty: "hard", answer: 3,
-    ar: { q: "من أصغر لاعب يشارك في كأس العالم؟", options: ["بييليه", "إدواردو فينيسيوس", "نورمان ويتيكر", "نورمان ويتيكرز"], fact: "الأيرلندي الشمالي ويتيكرز شارك 1982 بعمر 17 عامًا و41 يومًا." },
-    en: { q: "Who is the youngest player ever at a World Cup?", options: ["Pelé", "Vinícius Jr.", "Norman Whiteside", "Nigel Clough"], fact: "Northern Ireland's Whiteside played in 1982 aged 17 years 41 days." },
+    id: "wa-enciso-young", category: "players", difficulty: "hard", answer: 2,
+    ar: { q: "من أصغر لاعب يشارك في تاريخ كأس العالم؟", options: ["بييليه", "إدواردو فينيسيوس", "نورمان وايتسايد", "نايجل كلوف"], fact: "الأيرلندي الشمالي وايتسايد شارك 1982 بعمر 17 عامًا و41 يومًا — رقم ما زال قائمًا." },
+    en: { q: "Who is the youngest player in World Cup history?", options: ["Pelé", "Vinícius Jr.", "Norman Whiteside", "Nigel Clough"], fact: "Northern Ireland's Whiteside played in 1982 aged 17 years 41 days — still the record." },
   },
   {
-    id: "wa-ibra-countries", category: "players", difficulty: "hard", answer: 1,
-    ar: { q: "كم هدفًا سجّل إبراهيموفيتش في الدوريات الخمسة الكبرى؟", options: ["302", "302 هدف", "355", "280"], fact: "سويد سجل مع 7 أندية في 4 دول: هولندا، إيطاليا، إسبانيا، فرنسا، إنجلترا." },
-    en: { q: "How many league goals did Zlatan score in Europe's top 5?", options: ["302", "302 goals", "355", "280"], fact: "Ibra scored across 7 clubs in Netherlands, Italy, Spain, France, and England." },
+    id: "wa-ibra-countries", category: "players", difficulty: "hard", answer: 0,
+    ar: { q: "كم هدفًا سجّل إبراهيموفيتش في الدوريات الخمسة الكبرى؟", options: ["نحو 302", "355", "280", "420"], fact: "سويد سجل مع أندية في إيطاليا وإسبانيا وفرنسا وإنجلترا — أربعة من الخمسة الكبرى." },
+    en: { q: "Roughly how many league goals did Zlatan score in Europe's top 5?", options: ["~302", "355", "280", "420"], fact: "Ibra scored across clubs in Italy, Spain, France, and England." },
   },
   {
     id: "wa-xavi-passes", category: "players", difficulty: "hard", answer: 2,

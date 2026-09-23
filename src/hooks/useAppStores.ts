@@ -77,16 +77,16 @@ export function useSession(): { session: Session | null; phase: BootPhase } {
     const markReady = () => {
       if (!bootDone) {
         bootDone = true;
-        // حد أدنى 120ms حتى لا تومض الـSplash بسرعة مرهقة للعين
+        // حد أدنى 60ms فقط — يكفي لمنع الوميض دون إحساس بالتأخير
         setTimeout(() => {
           if (alive) setPhase("ready");
-        }, 120);
+        }, 60);
       }
     };
 
     // 1) **سقف زمني صارم**: قراءة الجلسة المحلية لا تُمهل الشبكة أبدًا.
     //    سبب "البطء" الحقيقي كان انتظار getSession() المتصل بالشبكة (تحديث توكن
-    //    قد يتدلى ثوانيًا) — الآن نُظهر التطبيق خلال 400ms كحد أقصى، والجلسة
+    //    قد يتدلى ثوانيًا) — الآن نُظهر التطبيق خلال 250ms كحد أقصى، والجلسة
     //    تصل متى جهزت عبر onChange (بلا حجب للواجهة).
     void authService
       .getSession()
@@ -95,7 +95,7 @@ export function useSession(): { session: Session | null; phase: BootPhase } {
       })
       .catch(() => undefined)
       .finally(markReady);
-    const bootDeadline = setTimeout(markReady, 400);
+    const bootDeadline = setTimeout(markReady, 250);
 
     // 2) استمع لأحداث تغيّر الجلسة (دخول/خروج/تحديث توكن/وصول متأخر)
     const sub = authService.onChange((s) => {

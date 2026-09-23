@@ -161,9 +161,17 @@ function pickByRarity(kind: StickerKind, luck: number): Sticker {
 
 export function openPack(packId: PackId): Sticker[] {
   const pack = PACKS.find((p) => p.id === packId)!;
+  /** خريطة الحزمة → نوع الملصق (legends → legend — كانت مكسورة وتنتج undefined!) */
+  const KIND_OF: Record<PackId, StickerKind> = {
+    legends: "legend",
+    stars: "star",
+    clubs: "club",
+    nations: "nation",
+  };
+  const kind = KIND_OF[packId];
   const pulled: Sticker[] = [];
   for (let i = 0; i < pack.pulls; i++) {
-    pulled.push(pickByRarity(pack.id as StickerKind, pack.luck));
+    pulled.push(pickByRarity(kind, pack.luck));
   }
   return pulled;
 }

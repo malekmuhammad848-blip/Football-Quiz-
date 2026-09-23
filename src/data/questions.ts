@@ -7,6 +7,8 @@ import type { Question } from "../domain/types";
 import { QUESTIONS_WAVE_A } from "./questionsWaveA";
 import { QUESTIONS_WAVE_B } from "./questionsWaveB";
 import { QUESTIONS_WAVE_C } from "./questionsWaveC";
+import { QUESTIONS_WAVE_D } from "./questionsWaveD";
+import { QUESTIONS_WAVE_E } from "./questionsWaveE";
 
 /** البنك الأساسي (النسخة الأولى) */
 const CORE_QUESTIONS: Question[] = [
@@ -321,7 +323,7 @@ const CORE_QUESTIONS: Question[] = [
     answer: 1,
     ar: {
       q: "أي نادٍ هو الأكثر تحقيقًا للبوندسليجا الألمانية؟",
-      options: ["دورتموند", "بايرن ميونخ", "شالكه", " Leverkusen"],
+      options: ["دورتموند", "بايرن ميونخ", "شالكه", "ليفركوزن"],
       fact: "بايرن فاز بالبوندسليجا أكثر من 30 مرة — هيمنة لا مثيل لها.",
     },
     en: {
@@ -1154,19 +1156,19 @@ const CORE_QUESTIONS: Question[] = [
   },
   // arab (8)
   {
-    id: "algeria-2019",
+    id: "algeria-2019-mahrez",
     category: "arab",
     difficulty: "easy",
     answer: 0,
     ar: {
-      q: "من فاز بكأس أفريقيا 2019؟",
-      options: ["الجزائر", "السنغال", "المغرب", "نيجيريا"],
-      fact: "الجزائر حسمت اللقب بهدف محرز القاتل في الدقيقة 90 ضد السنغال.",
+      q: "من سجل الهدف القاتل في نهائي كأس أفريقيا 2019؟",
+      options: ["رياض محرز", "بغداد بونجاح", "إسلام سليماني", "عبد الرؤوف بن حمادة"],
+      fact: "محرز حسم اللقب بركلة حرة مباشرة في الدقيقة 90+ ضد السنغال.",
     },
     en: {
-      q: "Who won the 2019 Africa Cup of Nations?",
-      options: ["Algeria", "Senegal", "Morocco", "Nigeria"],
-      fact: "Algeria won it with Mahrez's 90th-minute free-kick stunner vs Senegal.",
+      q: "Who scored the decisive goal in the 2019 AFCON final?",
+      options: ["Riyad Mahrez", "Baghdad Bounedjah", "Islam Slimani", "Benhamada"],
+      fact: "Mahrez curled a 90th-minute free-kick past Senegal to seal it.",
     },
   },
   {
@@ -1280,13 +1282,10 @@ const CORE_QUESTIONS: Question[] = [
       options: ["Al Ahly", "Pyramids", "Al Masry", "Zamalek"],
       fact: "Zamalek — voted Africa's Club of the 20th Century in 2000.",
     },
-  },
-  // ——— أسئلة بصرية (طقم/علم/شعار SVG) ———
+  },  // ——— أسئلة بصرية (طقم/علم/شعار SVG) — فن مرسوم يخص صاحب الإجابة ———
   {
-    id: "vis-messi-kit",
-    category: "players",
-    difficulty: "easy",
-    answer: 0,
+    id: "vis-messi-kit", category: "players", difficulty: "easy", answer: 0,
+    visual: { kind: "kit", ref: "barca-kit" },
     ar: {
       q: "لمن ينتمي هذا الطقم؟",
       options: ["ميسي", "نيمار", "سواريز", "دي بول"],
@@ -1297,12 +1296,9 @@ const CORE_QUESTIONS: Question[] = [
       options: ["Messi", "Neymar", "Suárez", "De Paul"],
       fact: "Messi spent 20+ years in blaugrana before moves to Paris and Miami.",
     },
-  },
-  {
-    id: "vis-cr7-kit",
-    category: "players",
-    difficulty: "easy",
-    answer: 1,
+  },  {
+    id: "vis-cr7-kit", category: "players", difficulty: "easy", answer: 1,
+    visual: { kind: "kit", ref: "united-kit" },
     ar: {
       q: "لمن ينتمي هذا الطقم؟",
       options: ["بيلينغهام", "رونالدو", "راشفورد", "فيرنانديز"],
@@ -1315,10 +1311,8 @@ const CORE_QUESTIONS: Question[] = [
     },
   },
   {
-    id: "vis-brazil-flag",
-    category: "worldcup",
-    difficulty: "easy",
-    answer: 2,
+    id: "vis-brazil-flag", category: "worldcup", difficulty: "easy", answer: 2,
+    visual: { kind: "flag", ref: "brazil" },
     ar: {
       q: "أي منتخب يمثله هذا العلم؟",
       options: ["الأرجنتين", "كولومبيا", "البرازيل", "أوروغواي"],
@@ -1331,7 +1325,7 @@ const CORE_QUESTIONS: Question[] = [
     },
   },
   {
-    id: "vis-real-badge",
+    id: "vis-real-badge", visual: { kind: "badge", ref: "real" },
     category: "clubs",
     difficulty: "easy",
     answer: 0,
@@ -1347,7 +1341,7 @@ const CORE_QUESTIONS: Question[] = [
     },
   },
   {
-    id: "vis-morocco-flag",
+    id: "vis-morocco-flag", visual: { kind: "flag", ref: "morocco" },
     category: "arab",
     difficulty: "easy",
     answer: 1,
@@ -1386,4 +1380,6 @@ export const QUESTIONS: Question[] = [
   ...QUESTIONS_WAVE_A,
   ...QUESTIONS_WAVE_B,
   ...QUESTIONS_WAVE_C,
+  ...QUESTIONS_WAVE_D,
+  ...QUESTIONS_WAVE_E,
 ];

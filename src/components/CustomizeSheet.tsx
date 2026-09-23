@@ -7,9 +7,10 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
-import { updateAvatarTag, type AvatarOption, type TagOption } from "../lib/backend";
+import { updateAvatarTag, type TagOption } from "../lib/backend";
 import { optionLabel } from "../domain/customization";
 import { instantCatalogs } from "../lib/catalogs";
+import { AVATARS } from "./AvatarArt";
 import { AvatarArt } from "./AvatarArt";
 import { prefsStore } from "../stores/prefsStore";
 import type { Session } from "@supabase/supabase-js";
@@ -26,7 +27,6 @@ interface Props {
 }
 
 export function CustomizeSheet({ open, onClose, session, xp, lang }: Props) {
-  const [avatars, setAvatars] = useState<AvatarOption[]>(() => instantCatalogs().avatars);
   const [tags, setTags] = useState<TagOption[]>(() => instantCatalogs().tags);
   const [selAvatar, setSelAvatar] = useState("");
   const [selTag, setSelTag] = useState("");
@@ -34,12 +34,10 @@ export function CustomizeSheet({ open, onClose, session, xp, lang }: Props) {
 
   useEffect(() => {
     if (!open) return;
-    const instant = instantCatalogs();
-    setAvatars(instant.avatars);
-    setTags(instant.tags);
-    // الاختيار الحالي من التفضيلات المحلية — فوري للجميع
-    setSelAvatar(prefsStore.getState().avatarId ?? instant.avatars.find((a) => xp >= a.min_xp)?.id ?? instant.avatars[0]?.id ?? "");
-    setSelTag(prefsStore.getState().tagId ?? instant.tags.find((x) => xp >= x.min_xp)?.id ?? instant.tags[0]?.id ?? "");
+    setTags(instantCatalogs().tags);
+    // كتالوج الأفاتارات محلي فني دائمًا — كل شخصية فريدة جذرًا
+    setSelAvatar(prefsStore.getState().avatarId ?? AVATARS.find((a) => xp >= a.min_xp)?.id ?? AVATARS[0]!.id);
+    setSelTag(prefsStore.getState().tagId ?? instantCatalogs().tags.find((x) => xp >= x.min_xp)?.id ?? instantCatalogs().tags[0]?.id ?? "");
   }, [open, xp]);
 
   const save = async () => {
@@ -61,11 +59,11 @@ export function CustomizeSheet({ open, onClose, session, xp, lang }: Props) {
   return (
     <Sheet open={open} onClose={onClose} title={t(lang, "customize")}>
       <div className="space-y-5">
-        {/* الأفاتارات */}
+        {/* الأفاتارات — كتالوج محلي فني: 7 شخصيات فريدة */}
         <section>
           <h4 className="mb-2 text-xs font-black uppercase tracking-wide text-soft">{t(lang, "avatar")}</h4>
           <div className="grid grid-cols-4 gap-2">
-            {avatars.map((a) => {
+            {AVATARS.map((a) => {
               const locked = xp < a.min_xp;
               const active = selAvatar === a.id;
               return (
@@ -85,7 +83,7 @@ export function CustomizeSheet({ open, onClose, session, xp, lang }: Props) {
                 >
                   <AvatarArt id={a.id} className="size-12 overflow-hidden rounded-full shadow-sm" />
                   <span className="max-w-full truncate px-1 text-[9px] font-bold text-soft">
-                    {optionLabel(a, lang)}
+                    {lang === "ar" ? a.ar : a.en}
                   </span>
                   {locked && (
                     <span className="absolute -end-1 -top-1 flex size-5 items-center justify-center rounded-full bg-surface shadow">

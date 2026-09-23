@@ -125,7 +125,7 @@ export async function fetchPenaltyLeaders(): Promise<PenaltyLeaderRow[]> {
   const { data, error } = await supabase
     .from("penalty_leaderboard")
     .select("*")
-    .order("wins", { ascending: true })
+    .order("wins", { ascending: false })
     .limit(20);
   if (error) throw error;
   return (data ?? []) as PenaltyLeaderRow[];

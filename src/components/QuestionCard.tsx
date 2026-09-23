@@ -9,6 +9,7 @@ import { cn } from "../utils/cn";
 import { Badge } from "./ui/primitives";
 import { CountdownBadge } from "./CountdownBadge";
 import { CheckBadge, CrossBadge } from "./Icons";
+import { VisualQuestion } from "./VisualQuestion";
 
 interface Props {
   question: LocalizedQuestion;
@@ -59,6 +60,10 @@ export function QuestionCard({ question, selected, onSelect, lang, disabled }: P
       </div>
 
       <h2 className="text-lg leading-8 font-extrabold sm:text-2xl sm:leading-9">{question.q}</h2>
+
+      {question.visual && (
+        <VisualQuestion spec={question.visual} prompt="" className="mt-4" />
+      )}
 
       <div className="mt-4 grid gap-2.5 sm:mt-5 sm:gap-3">
         {question.options.map((opt, i) => {

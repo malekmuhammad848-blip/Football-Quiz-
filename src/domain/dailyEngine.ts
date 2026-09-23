@@ -39,6 +39,7 @@ export function localizeQuestion(q: Question, lang: Lang, seed: number): Localiz
     options,
     fact: content.fact,
     answer,
+    visual: q.visual,
   };
 }
 

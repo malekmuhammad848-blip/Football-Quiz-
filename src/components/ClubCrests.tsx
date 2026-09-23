@@ -1,226 +1,284 @@
 /**
- * ClubCrests — شعارات أندية واقعية عالية الدقة (viewBox 240)
- * كل شعار مرسوم بعناية فائقة ليطابق الشعار الأصلي قدر الإمكان:
- * ريال (تاج + شريط قطري + قلعة) · برشلونة (الأرباع الأربعة + سان جوردي)
- * يونايتد (الشيطان) · بايرن (الحلقات + أطواق الراين) · ليفربول (الليفر فيرنيولا)
- * الهلال (الهلال والنجمة) · يوفنتوس (الخطوط الثلاثة + Taurus) · إنتر (الدائرة الذهبية)
- * ميلان (النصفان + صليب سانت أمبروز) · أرسنال (المدفع الغربي) · تشيلسي (العصا)
- * سيتي (الصقر الفصيحي) · أتلتيكو (الدب والفراولة) · الأهلي (النسر الذهبي)
+ * ClubCrests — مكتبة شعارات الأندية (نسخة v3 المطوّرة)
+ * ============================================================
+ * كل شعار مرسوم يدويًا بعشرات الطبقات: تدرجات، ظلال، حدود داخلية،
+ * ونصوص — ليقترب قدر الإمكان من الهوية الحقيقية للنادي.
+ *
+ * أهم إصلاح هندسي: **كل نسخة من الشعار تحصل على معرّفات SVG فريدة**
+ * عبر useId — المعرفات المكررة كانت تُفسد التدرجات والقص في كل الشعارات
+ * المعروضة معًا (سبب رئيسي في «اختفاء» الشعارات أو ظهورها ملطخة).
+ *
+ * الفهارس: ريال · برشلونة · يونايتد · بايرن · ليفربول · الهلال · يوفنتوس
+ * إنتر · ميلان · أرسنال · تشيلسي · سيتي · أتلتيكو · الأهلي · PSG
+ * دورتموند · بوكا · فلامنغو
+ * ============================================================
  */
 
+import { useId } from "react";
+import type { JSX } from "react";
+
+/** تطبيع معرّف React إلى نص آمن لعناصر SVG */
+function safeId(raw: string): string {
+  return raw.replace(/[^a-zA-Z0-9]/g, "");
+}
+
+/** نجمة خماسية بمقاس ولون */
+function star5(cx: number, cy: number, r: number, fill: string, stroke?: string, sw = 1): JSX.Element {
+  const pts: string[] = [];
+  for (let i = 0; i < 5; i++) {
+    const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+    const b = a + Math.PI / 5;
+    pts.push(`${(cx + Math.cos(a) * r).toFixed(2)},${(cy + Math.sin(a) * r).toFixed(2)}`);
+    pts.push(`${(cx + Math.cos(b) * r * 0.42).toFixed(2)},${(cy + Math.sin(b) * r * 0.42).toFixed(2)}`);
+  }
+  return <polygon points={pts.join(" ")} fill={fill} stroke={stroke} strokeWidth={sw} strokeLinejoin="round" />;
+}
+
+/* ============================================================
+ *  ريال مدريد — تاج بأقواس + قلعة بثلاثة أبراج + وشاح ذهبي قطري
+ * ============================================================ */
 export function RealCrest() {
+  const uid = safeId(useId());
+  const g = `rmg-${uid}`;
+  const b = `rmb-${uid}`;
+  const c = `rmc-${uid}`;
   return (
     <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
       <defs>
-        <linearGradient id="rm-gold" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#ffd54a" />
-          <stop offset="0.5" stopColor="#f5b91e" />
-          <stop offset="1" stopColor="#c8860a" />
+        <linearGradient id={g} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ffe08a" />
+          <stop offset="0.45" stopColor="#f0b429" />
+          <stop offset="1" stopColor="#b57b0a" />
         </linearGradient>
-        <linearGradient id="rm-blue" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#1d6fc2" />
-          <stop offset="1" stopColor="#003d7d" />
+        <linearGradient id={b} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#2a7ac9" />
+          <stop offset="1" stopColor="#0a3d7c" />
         </linearGradient>
+        <clipPath id={c}>
+          <path d="M120 62 L188 82 V140 C188 176 158 202 120 218 C82 202 52 176 52 140 V82 Z" />
+        </clipPath>
       </defs>
 
-      {/* التاج الكبير */}
+      {/* — التاج الملكي — */}
       <g>
-        <path d="M85 62 L85 30 L102 44 L120 22 L138 44 L155 30 L155 62 Z" fill="url(#rm-gold)" stroke="#8a5c08" strokeWidth="3" strokeLinejoin="round" />
-        <circle cx="85" cy="27" r="6" fill="url(#rm-gold)" stroke="#8a5c08" strokeWidth="2" />
-        <circle cx="120" cy="18" r="7" fill="url(#rm-gold)" stroke="#8a5c08" strokeWidth="2" />
-        <circle cx="155" cy="27" r="6" fill="url(#rm-gold)" stroke="#8a5c08" strokeWidth="2" />
-        {/* جواهر التاج */}
-        <circle cx="102" cy="46" r="3.4" fill="#e53935" />
-        <circle cx="138" cy="46" r="3.4" fill="#e53935" />
-        <circle cx="120" cy="50" r="3.8" fill="#2e7d32" />
-        <path d="M85 56 H155" stroke="#8a5c08" strokeWidth="2.4" />
+        <path d="M76 44 C76 30 88 27 95 35 C99 23 111 21 120 29 C129 21 141 23 145 35 C152 27 164 30 164 44 Z" fill={`url(#${g})`} stroke="#8a5c08" strokeWidth="2.4" strokeLinejoin="round" />
+        <rect x="74" y="43" width="92" height="16" rx="3.5" fill={`url(#${g})`} stroke="#8a5c08" strokeWidth="2.4" />
+        <rect x="117" y="6" width="6" height="15" rx="1.5" fill={`url(#${g})`} stroke="#8a5c08" strokeWidth="1.4" />
+        <rect x="111" y="10" width="18" height="5" rx="1.5" fill={`url(#${g})`} stroke="#8a5c08" strokeWidth="1.4" />
+        <circle cx="76" cy="42" r="4" fill="#fff8e1" stroke="#8a5c08" strokeWidth="1.4" />
+        <circle cx="95" cy="33" r="3.4" fill="#fff8e1" stroke="#8a5c08" strokeWidth="1.4" />
+        <circle cx="120" cy="27" r="3.8" fill="#fff8e1" stroke="#8a5c08" strokeWidth="1.4" />
+        <circle cx="145" cy="33" r="3.4" fill="#fff8e1" stroke="#8a5c08" strokeWidth="1.4" />
+        <circle cx="164" cy="42" r="4" fill="#fff8e1" stroke="#8a5c08" strokeWidth="1.4" />
+        <circle cx="90" cy="51" r="3.6" fill="#d32f2f" stroke="#7c1414" strokeWidth="1" />
+        <circle cx="120" cy="51" r="4.4" fill="#2e7d32" stroke="#123d14" strokeWidth="1" />
+        <circle cx="150" cy="51" r="3.6" fill="#d32f2f" stroke="#7c1414" strokeWidth="1" />
       </g>
 
-      {/* الدرع الرئيسي */}
-      <path d="M120 66 L186 84 V138 C186 172 160 198 120 214 C80 198 54 172 54 138 V84 Z" fill="#ffffff" stroke="url(#rm-gold)" strokeWidth="7" />
+      {/* — الدرع الأبيض — */}
+      <path d="M120 62 L188 82 V140 C188 176 158 202 120 218 C82 202 52 176 52 140 V82 Z" fill="#ffffff" stroke={`url(#${g})`} strokeWidth="7" />
+      <path d="M120 72 L179 89 V139 C179 168 154 190 120 204 C86 190 61 168 61 139 V89 Z" fill="none" stroke="#e3b64f" strokeWidth="1.6" opacity="0.9" />
 
-      {/* الشريط القُطري الذهبي */}
-      <clipPath id="rm-clip">
-        <path d="M120 66 L186 84 V138 C186 172 160 198 120 214 C80 198 54 172 54 138 V84 Z" />
-      </clipPath>
-      <g clipPath="url(#rm-clip)">
-        <path d="M54 100 L186 178 L186 196 L54 118 Z" fill="url(#rm-gold)" opacity="0.9" />
-        <path d="M54 96 L186 174" stroke="#8a5c08" strokeWidth="1.6" opacity="0.6" />
-        <path d="M54 122 L186 200" stroke="#8a5c08" strokeWidth="1.6" opacity="0.6" />
+      {/* — الوشاح الذهبي القطري — */}
+      <g clipPath={`url(#${c})`}>
+        <path d="M52 108 L188 166 L188 194 L52 136 Z" fill={`url(#${g})`} opacity="0.93" />
+        <path d="M52 108 L188 166" stroke="#8a5c08" strokeWidth="1.8" opacity="0.7" />
+        <path d="M52 136 L188 194" stroke="#8a5c08" strokeWidth="1.8" opacity="0.7" />
       </g>
 
-      {/* القلعة الزرقاء (كستيا) */}
+      {/* — القلعة الزرقاء — */}
       <g>
-        <path d="M84 128 L120 106 L156 128 V162 L120 186 L84 162 Z" fill="url(#rm-blue)" stroke="#002d5c" strokeWidth="2.4" />
-        {/* أبراج القلعة الثلاثة */}
-        <rect x="90" y="132" width="12" height="20" rx="2" fill="#ffffff" />
-        <rect x="114" y="132" width="12" height="20" rx="2" fill="#ffffff" />
-        <rect x="138" y="132" width="12" height="20" rx="2" fill="#ffffff" />
-        {/* شرفات الأبراج */}
-        <path d="M90 132 h4 v-4 h4 v4 M114 132 h4 v-4 h4 v4 M138 132 h4 v-4 h4 v4" fill="#ffffff" />
-        {/* البوابة */}
-        <path d="M108 172 Q120 158 132 172 V186 H108 Z" fill="#ffffff" />
+        <path d="M86 130 L120 110 L154 130 V164 L120 186 L86 164 Z" fill={`url(#${b})`} stroke="#06305e" strokeWidth="2.6" strokeLinejoin="round" />
+        {[94, 114, 134].map((x) => (
+          <g key={x}>
+            <rect x={x} y="134" width="12" height="24" rx="1.5" fill="#ffffff" />
+            <path d={`M${x} 134 h3 v-4 h3 v4 h3 v-4 h3 v4`} fill="#ffffff" stroke="#0a3d7c" strokeWidth="0.8" />
+          </g>
+        ))}
+        <rect x="99" y="140" width="3.6" height="7" rx="1.6" fill="#0a3d7c" />
+        <rect x="137.4" y="140" width="3.6" height="7" rx="1.6" fill="#0a3d7c" />
+        <path d="M111 176 Q120 165 129 176 V186 H111 Z" fill="#ffffff" />
       </g>
 
-      {/* كرة القدم في الأعلى */}
-      <circle cx="120" cy="94" r="14" fill="#ffffff" stroke="#003d7d" strokeWidth="2.2" />
-      <path d="M120 84 L129 91 L125.5 101 H114.5 L111 91 Z" fill="#003d7d" />
+      {/* — الكرة العلوية — */}
+      <circle cx="120" cy="94" r="13" fill="#ffffff" stroke="#0a3d7c" strokeWidth="2.2" />
+      <path d="M120 85.5 L127.5 91 L124.6 100 H115.4 L112.5 91 Z" fill="#0a3d7c" />
+      <path d="M112 89 L104 92 M128 89 L136 92 M117 100 L114 107 M123 100 L126 107" stroke="#0a3d7c" strokeWidth="1.4" />
     </svg>
   );
 }
 
+/* ============================================================
+ *  برشلونة — الأرباع الأربعة الكاملة
+ * ============================================================ */
 export function BarcaCrest() {
+  const uid = safeId(useId());
+  const c = `bcc-${uid}`;
+  const shield = "M120 8 C148 12 182 18 194 22 V118 C194 166 164 202 120 222 C76 202 46 166 46 118 V22 C58 18 92 12 120 8 Z";
   return (
     <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
-      {/* الدرع الجانبي */}
-      <path d="M120 10 L200 30 V130 C200 178 168 210 120 228 C72 210 40 178 40 130 V30 Z" fill="#edbb00" stroke="#a50044" strokeWidth="4" />
+      <defs>
+        <clipPath id={c}>
+          <path d={shield} />
+        </clipPath>
+      </defs>
 
-      {/* الربع الأول: سان جوردي (أعلى يسار) */}
-      <clipPath id="bc-clip">
-        <path d="M120 10 L200 30 V130 C200 178 168 210 120 228 C72 210 40 178 40 130 V30 Z" />
-      </clipPath>
-      <g clipPath="url(#bc-clip)">
-        <rect x="40" y="10" width="80" height="100" fill="#ffffff" />
-        {[52, 66, 80, 94, 108].map((x) => (
-          <rect key={x} x={x} y="12" width="8" height="94" fill="#db0030" />
-        ))}
+      <path d={shield} fill="#f3c300" stroke="#a50044" strokeWidth="4" />
+      <g clipPath={`url(#${c})`}>
+        {/* صليب القديس جرجس */}
+        <rect x="46" y="8" width="74" height="56" fill="#ffffff" />
+        <rect x="78" y="8" width="10" height="56" fill="#db0030" />
+        <rect x="46" y="31" width="74" height="10" fill="#db0030" />
 
-        {/* الربع الثاني: بلاوقرانا (أعلى يمين) */}
-        <rect x="120" y="10" width="80" height="100" fill="#004d98" />
-        {[130, 146, 162, 178, 194].map((x) => (
-          <rect key={x} x={x} y="12" width="9" height="94" fill="#a50044" />
+        {/* أسنان كتالونيا */}
+        <rect x="120" y="8" width="74" height="56" fill="#f3c300" />
+        {[124, 138, 152, 166, 180].map((x) => (
+          <rect key={x} x={x} y="8" width="8" height="56" fill="#db0030" />
         ))}
 
         {/* الحزام الذهبي */}
-        <rect x="40" y="110" width="160" height="22" fill="#edbb00" />
-        <rect x="40" y="110" width="160" height="22" fill="none" stroke="#a50044" strokeWidth="2" />
+        <rect x="46" y="64" width="148" height="14" fill="#edbb00" stroke="#a50044" strokeWidth="1.6" />
 
-        {/* الربع السفلي: الكرة على خلفية مقلوبة */}
-        <rect x="40" y="132" width="160" height="100" fill="#a50044" />
+        {/* بلاوقرانا */}
+        <rect x="46" y="78" width="148" height="150" fill="#004d98" />
+        {[0, 2, 4].map((i) => (
+          <rect key={i} x={46 + i * 29.6} y="78" width="14.8" height="150" fill="#a50044" />
+        ))}
+
         {/* الكرة */}
-        <circle cx="120" cy="182" r="34" fill="#004d98" />
-        <path d="M120 148 A34 34 0 0 1 120 216 Z" fill="#a50044" opacity="0" />
-        <circle cx="120" cy="182" r="34" fill="none" stroke="#edbb00" strokeWidth="4" />
-        {/* خماسيات الكرة */}
-        <path d="M120 168 L133 178 L128 194 H112 L107 178 Z" fill="#ffffff" opacity="0.92" />
-        <path d="M120 148 L120 162 M99 172 L92 166 M141 172 L148 166 M104 200 L98 208 M136 200 L142 208" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
+        <circle cx="120" cy="158" r="30" fill="#004d98" />
+        <circle cx="120" cy="158" r="30" fill="none" stroke="#edbb00" strokeWidth="4" />
+        <path d="M120 144 L133 154 L128 169 H112 L107 154 Z" fill="#ffffff" opacity="0.94" />
+        <path d="M120 128 V142 M100 150 L91 143 M140 150 L149 143 M104 182 L97 191 M136 182 L143 191" stroke="#ffffff" strokeWidth="2.6" strokeLinecap="round" />
       </g>
 
-      {/* خطوط فاصلة بين الأرباع */}
-      <path d="M120 10 V228 M40 121 H200" stroke="#a50044" strokeWidth="3" opacity="0.55" />
-      <path d="M120 10 L200 30 V130 C200 178 168 210 120 228 C72 210 40 178 40 130 V30 Z" fill="none" stroke="#edbb00" strokeWidth="5" />
-      <path d="M120 10 L200 30 V130 C200 178 168 210 120 228 C72 210 40 178 40 130 V30 Z" fill="none" stroke="#a50044" strokeWidth="2" />
+      <path d="M120 8 V64 M46 64 H194" stroke="#a50044" strokeWidth="2" opacity="0.6" />
+      <path d={shield} fill="none" stroke="#edbb00" strokeWidth="5" />
+      <path d={shield} fill="none" stroke="#a50044" strokeWidth="2" />
     </svg>
   );
 }
 
+/* ============================================================
+ *  مانشستر يونايتد — السفينة + الشيطان الأصفر
+ * ============================================================ */
 export function UnitedCrest() {
+  const uid = safeId(useId());
+  const g = `mur-${uid}`;
   return (
     <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
       <defs>
-        <linearGradient id="mu-red" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={g} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#e8362a" />
-          <stop offset="1" stopColor="#b31217" />
+          <stop offset="1" stopColor="#a80f16" />
         </linearGradient>
       </defs>
 
-      {/* الدرع */}
-      <path d="M120 14 L192 34 V130 C192 172 164 202 120 222 C76 202 48 172 48 130 V34 Z" fill="url(#mu-red)" stroke="#fbe122" strokeWidth="6" />
+      <path d="M120 14 L192 34 V130 C192 172 164 202 120 222 C76 202 48 172 48 130 V34 Z" fill={`url(#${g})`} stroke="#fbe122" strokeWidth="6" />
+      <path d="M120 26 L182 43 V128 C182 164 158 190 120 208 C82 190 58 164 58 128 V43 Z" fill="none" stroke="#fbe122" strokeWidth="2.2" opacity="0.7" />
 
-      {/* الحدود الداخلية */}
-      <path d="M120 26 L182 43 V128 C182 164 158 190 120 208 C82 190 58 164 58 128 V43 Z" fill="none" stroke="#fbe122" strokeWidth="2.4" opacity="0.7" />
-
-      {/* السفينة العلوية */}
-      <g transform="translate(120,52)">
-        <path d="M-30 4 H30 L24 14 H-24 Z" fill="#fbe122" />
-        <path d="M-22 4 V-10 M-14 4 V-14 M-6 4 V-16 M2 4 V-14 M10 4 V-10" stroke="#fbe122" strokeWidth="3" strokeLinecap="round" />
-        <path d="M-30 8 H30" stroke="#fbe122" strokeWidth="2" opacity="0.7" />
+      {/* السفينة */}
+      <g transform="translate(120,56)">
+        <path d="M-32 6 H32 L25 17 H-25 Z" fill="#fbe122" stroke="#8b6d00" strokeWidth="1.2" />
+        <path d="M-20 6 V-14 M0 6 V-20 M20 6 V-14" stroke="#fbe122" strokeWidth="3" strokeLinecap="round" />
+        <path d="M-20 -14 L-27 -8 L-20 -4 Z M0 -20 L-9 -12 L0 -6 Z M20 -14 L13 -8 L20 -4 Z" fill="#fbe122" />
+        <path d="M-30 11 H30" stroke="#fbe122" strokeWidth="1.6" opacity="0.75" />
       </g>
 
-      {/* الشيطان الأصفر — رسم مفصل */}
-      <g transform="translate(120,132)">
-        {/* الرأس والجسم */}
+      {/* الشيطان */}
+      <g transform="translate(120,134)">
         <path
           d="M0 -34 C-9 -34 -14 -28 -14 -21 C-24 -18 -30 -11 -30 -2 C-30 8 -23 15 -14 16 C-19 22 -18 31 -12 36 C-6 41 2 41 6 36 C10 41 18 41 24 36 C30 31 31 22 26 16 C35 15 42 8 42 -2 C42 -11 36 -18 26 -21 C26 -28 21 -34 12 -34 Z"
           fill="#fbe122"
           stroke="#8b0000"
           strokeWidth="2.4"
         />
-        {/* الشعر الشائك */}
         <path d="M-14 -26 L-24 -40 M-6 -30 L-10 -46 M6 -30 L10 -46 M14 -26 L24 -40" stroke="#fbe122" strokeWidth="4" strokeLinecap="round" />
-        {/* العيون */}
+        <path d="M30 14 C40 20 44 12 38 6" stroke="#fbe122" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <path d="M38 6 L46 2 L42 12 Z" fill="#fbe122" />
+        <path d="M-30 -4 L-46 -12" stroke="#fbe122" strokeWidth="3" strokeLinecap="round" />
+        <path d="M-46 -12 L-52 -20 M-46 -12 L-44 -22 M-46 -12 L-54 -12" stroke="#fbe122" strokeWidth="2.6" strokeLinecap="round" />
+        <path d="M32 -2 L48 -8" stroke="#fbe122" strokeWidth="3" strokeLinecap="round" />
+        <path d="M48 -8 L54 -14 M48 -8 L52 -2 M48 -8 L56 -6" stroke="#fbe122" strokeWidth="2.4" strokeLinecap="round" />
         <circle cx="-8" cy="-6" r="4" fill="#8b0000" />
         <circle cx="8" cy="-6" r="4" fill="#8b0000" />
-        {/* الفم */}
         <path d="M-10 10 Q0 18 10 10" stroke="#8b0000" strokeWidth="2.6" fill="none" strokeLinecap="round" />
-        {/* الشوكة */}
-        <path d="M30 12 L46 2 M46 2 L44 10 M46 2 L38 0" stroke="#fbe122" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" />
       </g>
 
-      {/* الشريط السفلي */}
-      <path d="M48 172 H192" stroke="#fbe122" strokeWidth="3" />
-      <text x="120" y="206" textAnchor="middle" fontSize="20" fontWeight="900" fontFamily="serif" fill="#fbe122">MANCHESTER</text>
+      <path d="M58 176 H182" stroke="#fbe122" strokeWidth="2.4" opacity="0.7" />
+      <text x="120" y="206" textAnchor="middle" fontSize="19" fontWeight="900" fontFamily="serif" fill="#fbe122" letterSpacing="1">MANCHESTER</text>
     </svg>
   );
 }
 
+/* ============================================================
+ *  بايرن ميونخ — الحلقة + المركز البافاري بالمعيّنات
+ * ============================================================ */
 export function BayernCrest() {
-  return (
-    <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
-      {/* الحلقة الخارجية */}
-      <circle cx="120" cy="120" r="104" fill="#ffffff" stroke="#0066b2" strokeWidth="10" />
-      <circle cx="120" cy="120" r="88" fill="none" stroke="#0066b2" strokeWidth="3" />
-
-      {/* الحلقة الزرقاء بالكلمة */}
-      <circle cx="120" cy="120" r="96" fill="none" stroke="#0066b2" strokeWidth="14" />
-      <text x="120" y="42" textAnchor="middle" fontSize="15" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="3">FC BAYERN</text>
-      <text x="120" y="212" textAnchor="middle" fontSize="15" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="3">MÜNCHEN</text>
-      <text x="40" y="126" textAnchor="middle" fontSize="12" fontWeight="900" fontFamily="serif" fill="#ffffff" transform="rotate(-90 40 126)">1900</text>
-
-      {/* الدائرة الحمراء */}
-      <circle cx="120" cy="120" r="74" fill="#dc052d" stroke="#ffffff" strokeWidth="4" />
-
-      {/* الحلقة الداخلية الزرقاء */}
-      <circle cx="120" cy="120" r="50" fill="#0066b2" />
-
-      {/* أطواق الراين البيضاء الأفقية */}
-      <clipPath id="bay-clip">
-        <circle cx="120" cy="120" r="50" />
-      </clipPath>
-      <g clipPath="url(#bay-clip)">
-        <rect x="60" y="110" width="120" height="6" fill="#ffffff" />
-        <rect x="60" y="124" width="120" height="6" fill="#ffffff" />
-      </g>
-
-      {/* النجمة العلوية */}
-      <path
-        d="M120 6 L126 22 L143 24 L130.5 36 L134 53 L120 44 L106 53 L109.5 36 L97 24 L114 22 Z"
-        fill="#0066b2" stroke="#ffffff" strokeWidth="2.5" strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-export function LiverpoolCrest() {
+  const uid = safeId(useId());
+  const c = `byc-${uid}`;
+  const R = 12.5;
+  const lozenges: JSX.Element[] = [];
+  for (let row = -5; row <= 5; row++) {
+    for (let col = -5; col <= 5; col++) {
+      if ((row + col) % 2 !== 0) continue;
+      const cx = 120 + col * R;
+      const cy = 120 + row * R;
+      lozenges.push(
+        <path
+          key={`${row}-${col}`}
+          d={`M${cx} ${cy - R} L${cx + R} ${cy} L${cx} ${cy + R} L${cx - R} ${cy} Z`}
+          fill="#0066b2"
+        />,
+      );
+    }
+  }
   return (
     <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
       <defs>
-        <linearGradient id="liv-red" x1="0" y1="0" x2="0" y2="1">
+        <clipPath id={c}>
+          <circle cx="120" cy="120" r="62" />
+        </clipPath>
+      </defs>
+
+      <circle cx="120" cy="120" r="106" fill="#ffffff" />
+      <circle cx="120" cy="120" r="101" fill="#0066b2" stroke="#ffffff" strokeWidth="3" />
+      <circle cx="120" cy="120" r="80" fill="#ffffff" />
+      <text x="120" y="46" textAnchor="middle" fontSize="16.5" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="3">FC BAYERN</text>
+      <text x="120" y="208" textAnchor="middle" fontSize="16.5" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="3">MÜNCHEN</text>
+      <text x="38" y="126" textAnchor="middle" fontSize="12" fontWeight="900" fontFamily="serif" fill="#ffffff" transform="rotate(-90 38 126)">1900</text>
+      <text x="203" y="126" textAnchor="middle" fontSize="12" fontWeight="900" fontFamily="serif" fill="#ffffff" transform="rotate(90 203 126)">MÜNCHEN</text>
+
+      <circle cx="120" cy="120" r="76" fill="#dc052d" stroke="#ffffff" strokeWidth="3" />
+      <circle cx="120" cy="120" r="62" fill="#ffffff" />
+      <g clipPath={`url(#${c})`}>{lozenges}</g>
+      <circle cx="120" cy="120" r="62" fill="none" stroke="#0066b2" strokeWidth="2.5" />
+    </svg>
+  );
+}
+
+/* ============================================================
+ *  ليفربول — الدرع الذهبي + الليفر + شعلتا هيلسيبي
+ * ============================================================ */
+export function LiverpoolCrest() {
+  const uid = safeId(useId());
+  const g = `lvr-${uid}`;
+  return (
+    <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
+      <defs>
+        <linearGradient id={g} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#d41330" />
-          <stop offset="1" stopColor="#a50f24" />
+          <stop offset="1" stopColor="#9c0e22" />
         </linearGradient>
       </defs>
 
-      {/* الدرع */}
-      <path d="M120 12 L190 32 V128 C190 170 162 200 120 220 C78 200 50 170 50 128 V32 Z" fill="url(#liv-red)" stroke="#f6eb61" strokeWidth="6" />
-      <path d="M120 24 L180 41 V126 C180 162 156 188 120 206 C84 188 60 162 60 126 V41 Z" fill="none" stroke="#f6eb61" strokeWidth="2" opacity="0.7" />
+      <path d="M62 14 H178 V142 C178 186 152 210 120 222 C88 210 62 186 62 142 Z" fill={`url(#${g})`} stroke="#f6eb61" strokeWidth="6" />
+      <path d="M72 24 H168 V140 C168 176 146 198 120 208 C94 198 72 176 72 140 Z" fill="none" stroke="#f6eb61" strokeWidth="1.8" opacity="0.65" />
 
-      {/* تموّج ذهبي علوي */}
-      <path d="M60 44 Q75 38 90 44 T120 44 T150 44 T180 44" stroke="#f6eb61" strokeWidth="3" fill="none" opacity="0.6" />
+      <rect x="86" y="20" width="68" height="19" rx="9" fill="#f6eb61" stroke="#8b6d00" strokeWidth="1.2" />
+      <text x="120" y="34.5" textAnchor="middle" fontSize="12.5" fontWeight="900" fontFamily="serif" fill="#8b0000" letterSpacing="2">L.F.C.</text>
 
-      {/* طائر الليفر — رسم مفصل */}
-      <g transform="translate(120,118)">
-        {/* الجسم */}
+      <g transform="translate(120,116)">
         <path
           d="M4 -46 C-4 -46 -10 -40 -10 -33 L-30 -27 L-10 -22 C-11 -13 -7 -6 0 -3 L-16 20 L-2 14 L-4 30 L4 16 L12 30 L10 14 L24 20 L8 -3 C15 -6 19 -13 18 -22 L38 -27 L18 -33 C18 -40 12 -46 4 -46 Z"
           fill="#f6eb61"
@@ -228,368 +286,470 @@ export function LiverpoolCrest() {
           strokeWidth="1.8"
           strokeLinejoin="round"
         />
-        {/* الرأس والمنقار */}
         <path d="M8 -46 C14 -50 20 -48 22 -42 L14 -38 Z" fill="#f6eb61" stroke="#8b0000" strokeWidth="1.4" />
-        {/* العين */}
+        <path d="M22 -42 C28 -38 26 -30 20 -28 M22 -42 C30 -44 34 -38 30 -32" stroke="#f6eb61" strokeWidth="1.6" fill="none" strokeLinecap="round" />
         <circle cx="10" cy="-38" r="2.4" fill="#8b0000" />
-        {/* الريش التفصيلي */}
         <path d="M-6 -18 Q0 -14 6 -18 M-4 -8 Q0 -4 4 -8" stroke="#8b0000" strokeWidth="1.2" fill="none" opacity="0.7" />
       </g>
 
-      {/* الشريطان الذهبيان */}
-      <path d="M60 58 H180" stroke="#f6eb61" strokeWidth="3.4" />
-      <path d="M60 192 H180" stroke="#f6eb61" strokeWidth="3.4" />
-      <text x="120" y="184" textAnchor="middle" fontSize="14" fontWeight="900" fontFamily="serif" fill="#f6eb61" letterSpacing="2">EST. 1892</text>
+      {[
+        { x: 92, flip: 1 },
+        { x: 148, flip: -1 },
+      ].map(({ x, flip }) => (
+        <g key={x} transform={`translate(${x},188) scale(${flip},1)`}>
+          <path d="M0 12 C-9 4 -7 -7 0 -14 C7 -7 9 4 0 12 Z" fill="#f6eb61" />
+          <path d="M0 8 C-4 3 -3 -2 0 -6 C3 -2 4 3 0 8 Z" fill="#d41330" />
+        </g>
+      ))}
+      <text x="120" y="192" textAnchor="middle" fontSize="12" fontWeight="900" fontFamily="serif" fill="#f6eb61" letterSpacing="2">EST. 1892</text>
     </svg>
   );
 }
 
+/* ============================================================
+ *  الهلال السعودي
+ * ============================================================ */
 export function HilalCrest() {
+  const uid = safeId(useId());
+  const g = `hlb-${uid}`;
   return (
     <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
       <defs>
-        <linearGradient id="hl-blue" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#1476d2" />
-          <stop offset="1" stopColor="#0a3f8f" />
+        <linearGradient id={g} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#1c85e0" />
+          <stop offset="1" stopColor="#083a80" />
         </linearGradient>
       </defs>
-
-      {/* الدائرة الخارجية */}
-      <circle cx="120" cy="120" r="104" fill="url(#hl-blue)" stroke="#ffffff" strokeWidth="9" />
-      <circle cx="120" cy="120" r="88" fill="none" stroke="#ffffff" strokeWidth="2.4" opacity="0.65" />
-
-      {/* الهلال الكبير */}
-      <path d="M140 40 A82 82 0 1 0 140 200 A96 96 0 1 1 140 40 Z" fill="#ffffff" />
-
-      {/* النجمة */}
-      <path
-        d="M150 66 L157 87 L179 87 L161 100 L168 122 L150 108 L132 122 L139 100 L121 87 L143 87 Z"
-        fill="#ffffff" stroke="#0a3f8f" strokeWidth="1.6" strokeLinejoin="round"
-      />
-
-      {/* نص دائري */}
-      <text x="120" y="222" textAnchor="middle" fontSize="13" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="4">AL HILAL</text>
+      <circle cx="120" cy="120" r="106" fill="#ffffff" />
+      <circle cx="120" cy="120" r="99" fill={`url(#${g})`} stroke="#ffffff" strokeWidth="4" />
+      <circle cx="120" cy="120" r="90" fill="none" stroke="#ffffff" strokeWidth="2" opacity="0.55" />
+      <path d="M138 40 A80 80 0 1 0 138 200 A96 96 0 1 1 138 40 Z" fill="#ffffff" />
+      {star5(158, 88, 20, "#ffffff", "#083a80", 1.4)}
+      <path d="M84 66 A70 70 0 0 0 84 174" stroke="#ffffff" strokeWidth="3" fill="none" opacity="0.35" />
+      <text x="120" y="224" textAnchor="middle" fontSize="13" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="5">AL HILAL</text>
     </svg>
   );
 }
 
+/* ============================================================
+ *  يوفنتوس — الدرع المخطط + الحزام الذهبي
+ * ============================================================ */
 export function JuventusCrest() {
+  const uid = safeId(useId());
+  const c = `jvc-${uid}`;
+  const shield = "M120 12 C168 12 192 40 192 96 C192 156 162 210 120 228 C78 210 48 156 48 96 C48 40 72 12 120 12 Z";
   return (
     <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
-      {/* الدرع الأنيق */}
-      <path d="M120 12 L186 32 V126 C186 168 158 200 120 220 C82 200 54 168 54 126 V32 Z" fill="#ffffff" stroke="#111111" strokeWidth="7" />
-
-      {/* الخطوط الثلاثة العلوية */}
-      <clipPath id="juv-clip">
-        <path d="M120 12 L186 32 V126 C186 168 158 200 120 220 C82 200 54 168 54 126 V32 Z" />
-      </clipPath>
-      <g clipPath="url(#juv-clip)">
-        <path d="M120 12 L186 32 V70 L120 70 Z" fill="#111111" />
-        <path d="M54 32 L120 12 V70 L54 70 Z" fill="#ffffff" stroke="#111111" strokeWidth="2" />
-        {/* الخط الوسطي */}
-        <rect x="114" y="12" width="12" height="58" fill="#111111" />
+      <defs>
+        <clipPath id={c}>
+          <path d={shield} />
+        </clipPath>
+      </defs>
+      <path d={shield} fill="#ffffff" stroke="#111111" strokeWidth="6" />
+      <g clipPath={`url(#${c})`}>
+        <rect x="48" y="12" width="144" height="120" fill="#ffffff" />
+        {[58, 86, 114, 142, 170].map((x) => (
+          <rect key={x} x={x} y="12" width="14" height="120" fill="#111111" />
+        ))}
+        <rect x="48" y="116" width="144" height="20" fill="#d4af37" stroke="#111111" strokeWidth="2" />
       </g>
-
-      {/* تاج صغير علوي */}
-      <path d="M96 20 L102 8 L111 16 L120 4 L129 16 L138 8 L144 20 Z" fill="#111111" />
-
-      {/* الثور Taurus الشهير */}
-      <g transform="translate(120,128)" fill="#111111">
-        {/* رأس الثور الجانبي */}
-        <path d="M-34 8 C-34 -8 -22 -20 -6 -20 L8 -20 C24 -20 34 -8 34 8 C34 18 28 26 18 26 L18 12 C18 4 12 -2 4 -2 L-6 -2 C-14 -2 -20 4 -20 12 L-20 26 C-30 26 -34 18 -34 8 Z" />
-        {/* القرنان */}
-        <path d="M8 -20 C14 -30 24 -34 34 -30 C28 -24 22 -20 16 -16" fill="#111111" />
-        <path d="M-6 -20 C-2 -28 4 -32 10 -34 C8 -26 4 -22 0 -18" fill="#111111" />
-        {/* العين */}
-        <circle cx="16" cy="-6" r="2.6" fill="#ffffff" />
-        {/* الأنف */}
-        <circle cx="28" cy="12" r="2" fill="#ffffff" opacity="0.55" />
-      </g>
-
-      {/* النجوم الثلاث */}
-      {[86, 120, 154].map((x, i) => (
-        <path
-          key={i}
-          d={`M${x} 186 l3.4 7 7.8 1-5.6 5.5 1.4 7.7-7-3.7-7 3.7 1.4-7.7-5.6-5.5 7.8-1 Z`}
-          fill="#111111"
-        />
-      ))}
+      <path d={shield} fill="none" stroke="#111111" strokeWidth="6" />
+      <text x="120" y="131" textAnchor="middle" fontSize="13" fontWeight="900" fontFamily="serif" fill="#111111" letterSpacing="1">JUVENTUS</text>
+      {[88, 120, 152].map((x) => star5(x, 166, 8.5, "#111111"))}
+      <text x="120" y="204" textAnchor="middle" fontSize="14" fontWeight="900" fontFamily="serif" fill="#111111" letterSpacing="2">1897</text>
     </svg>
   );
 }
 
+/* ============================================================
+ *  إنتر ميلان
+ * ============================================================ */
 export function InterCrest() {
   return (
     <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
-      {/* الدائرة الخارجية */}
-      <circle cx="120" cy="120" r="104" fill="#ffffff" stroke="#0068a8" strokeWidth="7" />
-
-      {/* الحلقة الذهبية الخارجية */}
-      <circle cx="120" cy="120" r="92" fill="none" stroke="#a98d4b" strokeWidth="6" />
-
-      {/* الدائرة الزرقاء الداخلية */}
-      <circle cx="120" cy="120" r="80" fill="#0068a8" />
-
-      {/* الحلقة السوداء المتقطعة */}
-      <circle cx="120" cy="120" r="80" fill="none" stroke="#111111" strokeWidth="7" strokeDasharray="38 12" />
-
-      {/* الحرف I الذهبي */}
-      <text x="120" y="150" textAnchor="middle" fontSize="88" fontWeight="900" fontFamily="serif" fill="#ffffff" stroke="#a98d4b" strokeWidth="2.4">I</text>
-
-      {/* سنة التأسيس */}
-      <text x="120" y="184" textAnchor="middle" fontSize="17" fontWeight="900" fontFamily="serif" fill="#d9c07a" letterSpacing="2">1908</text>
-
-      {/* نجمة علوية */}
-      <path d="M120 14 L126 30 L143 32 L130 44 L134 61 L120 52 L106 61 L110 44 L97 32 L114 30 Z" fill="#0068a8" stroke="#a98d4b" strokeWidth="2" strokeLinejoin="round" />
+      <circle cx="120" cy="120" r="107" fill="#ffffff" stroke="#0068a8" strokeWidth="6" />
+      <circle cx="120" cy="120" r="93" fill="none" stroke="#c8a24b" strokeWidth="7" />
+      <circle cx="120" cy="120" r="84" fill="#0068a8" />
+      <circle cx="120" cy="120" r="84" fill="none" stroke="#111111" strokeWidth="8" />
+      <circle cx="120" cy="120" r="68" fill="#0068a8" stroke="#111111" strokeWidth="5" />
+      <text x="120" y="142" textAnchor="middle" fontSize="62" fontWeight="900" fontFamily="serif" fill="#d9c07a" letterSpacing="-4">IM</text>
+      <text x="120" y="176" textAnchor="middle" fontSize="14" fontWeight="900" fontFamily="serif" fill="#d9c07a" letterSpacing="2">1908</text>
+      {star5(120, 30, 14, "#0068a8", "#c8a24b", 2)}
     </svg>
   );
 }
 
+/* ============================================================
+ *  ميلان — البيضاوي بالنصفين
+ * ============================================================ */
 export function MilanCrest() {
-  return (
-    <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
-      {/* الدائرة الخارجية */}
-      <circle cx="120" cy="120" r="104" fill="#ffffff" stroke="#111111" strokeWidth="6" />
-
-      {/* النصفان: أحمر يسار، أسود يمين */}
-      <clipPath id="mil-clip">
-        <circle cx="120" cy="120" r="86" />
-      </clipPath>
-      <g clipPath="url(#mil-clip)">
-        <rect x="34" y="34" width="86" height="172" fill="#b01c2e" />
-        <rect x="120" y="34" width="86" height="172" fill="#111111" />
-      </g>
-      <circle cx="120" cy="120" r="86" fill="none" stroke="#111111" strokeWidth="3.4" />
-
-      {/* صليب سانت أمبروز — ميلانو */}
-      <g fill="#ffffff">
-        <rect x="113" y="52" width="14" height="70" rx="3" />
-        <rect x="85" y="80" width="70" height="14" rx="3" />
-      </g>
-
-      {/* النجمة والكأس الصغيرتان */}
-      <path d="M120 34 L124.5 45 L136 46 L127 54 L130 66 L120 59 L110 66 L113 54 L104 46 L115.5 45 Z" fill="#ffffff" opacity="0.95" />
-
-      {/* AC و MILAN */}
-      <text x="120" y="152" textAnchor="middle" fontSize="20" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="3">ACM</text>
-      <text x="120" y="176" textAnchor="middle" fontSize="13" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="2">1899</text>
-    </svg>
-  );
-}
-
-export function ArsenalCrest() {
+  const uid = safeId(useId());
+  const c = `mlc-${uid}`;
   return (
     <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
       <defs>
-        <linearGradient id="ars-red" x1="0" y1="0" x2="0" y2="1">
+        <clipPath id={c}>
+          <ellipse cx="120" cy="120" rx="78" ry="92" />
+        </clipPath>
+      </defs>
+      <circle cx="120" cy="120" r="107" fill="#ffffff" stroke="#111111" strokeWidth="5" />
+      <ellipse cx="120" cy="120" rx="78" ry="92" fill="#ffffff" stroke="#111111" strokeWidth="3" />
+      <g clipPath={`url(#${c})`}>
+        <rect x="42" y="28" width="78" height="184" fill="#b01c2e" />
+        {[50, 68, 86, 104].map((x) => (
+          <rect key={x} x={x} y="28" width="9" height="184" fill="#111111" />
+        ))}
+        <rect x="120" y="28" width="78" height="184" fill="#ffffff" />
+        <rect x="154" y="40" width="11" height="140" fill="#b01c2e" />
+        <rect x="124" y="104" width="71" height="11" fill="#b01c2e" />
+      </g>
+      <ellipse cx="120" cy="120" rx="78" ry="92" fill="none" stroke="#111111" strokeWidth="3" />
+      <rect x="93" y="184" width="54" height="19" rx="9.5" fill="#111111" />
+      <text x="120" y="198" textAnchor="middle" fontSize="12" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="2">ACM</text>
+      <text x="120" y="52" textAnchor="middle" fontSize="11" fontWeight="900" fontFamily="serif" fill="#b01c2e" letterSpacing="1">1899</text>
+    </svg>
+  );
+}
+
+/* ============================================================
+ *  أرسنال — الدرع + المدفع
+ * ============================================================ */
+export function ArsenalCrest() {
+  const uid = safeId(useId());
+  const g = `arg-${uid}`;
+  return (
+    <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
+      <defs>
+        <linearGradient id={g} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#ef4b3a" />
-          <stop offset="1" stopColor="#c1070f" />
+          <stop offset="1" stopColor="#bd070f" />
         </linearGradient>
       </defs>
+      <path d="M120 12 L192 34 V128 C192 172 164 204 120 224 C76 204 48 172 48 128 V34 Z" fill={`url(#${g})`} stroke="#9c824a" strokeWidth="6" />
+      <path d="M120 24 L181 43 V126 C181 162 156 190 120 208 C84 190 59 162 59 126 V43 Z" fill="none" stroke="#9c824a" strokeWidth="1.8" opacity="0.75" />
+      {star5(120, 40, 9, "#e3c987")}
 
-      {/* الدرع */}
-      <path d="M120 12 L190 32 V126 C190 168 162 200 120 220 C78 200 50 170 50 126 V32 Z" fill="url(#ars-red)" stroke="#063672" strokeWidth="6" />
-      <path d="M120 24 L180 41 V124 C180 160 156 186 120 206 C84 186 60 160 60 124 V41 Z" fill="none" stroke="#063672" strokeWidth="2" opacity="0.65" />
-
-      {/* الشعار الذهبي أعلى */}
-      <path d="M84 34 Q120 22 156 34 L150 50 Q120 40 90 50 Z" fill="#9c824a" opacity="0.9" />
-
-      {/* المدفع الغربي الشهير */}
-      <g transform="translate(120,116) rotate(-18)">
-        {/* السبطانة */}
-        <rect x="-52" y="-7" width="86" height="15" rx="7" fill="#063672" />
-        <rect x="-52" y="-7" width="86" height="6" rx="3" fill="#1a4d8f" />
-        {/* فتحة السبطانة */}
-        <circle cx="36" cy="0.5" r="5.4" fill="#0a2a52" />
-        {/* المؤخرة */}
-        <path d="M-52 -7 L-66 -2 Q-70 0 -66 3 L-52 8 Z" fill="#063672" />
-        {/* العجلة الكبيرة */}
-        <circle cx="-14" cy="18" r="15" fill="#063672" />
-        <circle cx="-14" cy="18" r="15" fill="none" stroke="#9c824a" strokeWidth="3" />
-        {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
-          <line key={a} x1="-14" y1="18" x2={-14 + Math.cos((a * Math.PI) / 180) * 13} y2={18 + Math.sin((a * Math.PI) / 180) * 13} stroke="#9c824a" strokeWidth="2" />
+      <g transform="translate(122,114) rotate(-14)">
+        <rect x="-58" y="-8" width="106" height="16" rx="8" fill="#063672" />
+        <rect x="-58" y="-8" width="106" height="6" rx="3" fill="#1a4d8f" />
+        <rect x="42" y="-10.5" width="9" height="21" rx="3" fill="#063672" />
+        <path d="M-58 -8 L-76 0 L-58 8 Z" fill="#063672" />
+        <circle cx="-2" cy="26" r="17.5" fill="#063672" stroke="#9c824a" strokeWidth="3" />
+        {[0, 60, 120, 180, 240, 300].map((a) => (
+          <line
+            key={a}
+            x1="-2"
+            y1="26"
+            x2={-2 + Math.cos((a * Math.PI) / 180) * 15}
+            y2={26 + Math.sin((a * Math.PI) / 180) * 15}
+            stroke="#9c824a"
+            strokeWidth="2.2"
+          />
         ))}
-        <circle cx="-14" cy="18" r="4" fill="#9c824a" />
+        <circle cx="-2" cy="26" r="4.4" fill="#e3c987" stroke="#063672" strokeWidth="1.4" />
       </g>
 
-      {/* النص */}
-      <text x="120" y="186" textAnchor="middle" fontSize="17" fontWeight="900" fontFamily="serif" fill="#063672" letterSpacing="3">ARSENAL</text>
+      <path d="M76 166 Q120 154 164 166 L158 188 Q120 178 82 188 Z" fill="#c8a24b" stroke="#8a6d20" strokeWidth="1.6" />
+      <text x="120" y="181" textAnchor="middle" fontSize="13.5" fontWeight="900" fontFamily="serif" fill="#063672" letterSpacing="2">ARSENAL</text>
     </svg>
   );
 }
 
+/* ============================================================
+ *  تشيلسي — الدائرة + الأسد المتواثي + العصا + الوردتان
+ * ============================================================ */
 export function ChelseaCrest() {
+  const uid = safeId(useId());
+  const g = `chg-${uid}`;
   return (
     <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
       <defs>
-        <linearGradient id="chl-blue" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={g} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#1b6ec2" />
           <stop offset="1" stopColor="#034694" />
         </linearGradient>
       </defs>
+      <circle cx="120" cy="120" r="106" fill={`url(#${g})`} stroke="#ffffff" strokeWidth="6" />
+      <circle cx="120" cy="120" r="92" fill="none" stroke="#d4af37" strokeWidth="2.5" />
+      <circle cx="120" cy="116" r="62" fill="#ffffff" />
 
-      {/* الدرع */}
-      <path d="M120 12 L192 34 V130 C192 172 164 202 120 222 C76 202 48 172 48 130 V34 Z" fill="url(#chl-blue)" stroke="#ffffff" strokeWidth="6.5" />
-      {/* حلقة داخلية ذهبية */}
-      <path d="M120 24 L182 43 V128 C182 164 158 190 120 208 C82 190 58 164 58 128 V43 Z" fill="none" stroke="#d4af37" strokeWidth="2.4" opacity="0.85" />
+      <rect x="74" y="72" width="5" height="88" rx="2.5" fill="#d4af37" />
+      <path d="M76.5 74 C64 66 62 52 74 48 C82 45 88 52 84 58" stroke="#d4af37" strokeWidth="5" fill="none" strokeLinecap="round" />
 
-      {/* الأباطرة الزرقاء الدائرية */}
-      <circle cx="120" cy="112" r="44" fill="#ffffff" opacity="0.12" />
-      <circle cx="120" cy="112" r="44" fill="none" stroke="#d4af37" strokeWidth="2" strokeDasharray="6 4" />
-
-      {/* العصا الرعوية والكرة */}
-      <g>
-        <path d="M104 62 C104 56 112 54 114 60 C116 64 112 68 108 68 L108 148" stroke="#d4af37" strokeWidth="5" fill="none" strokeLinecap="round" />
-        <circle cx="108" cy="58" r="5.4" fill="#d4af37" />
-        {/* الكرة الحمراء */}
-        <circle cx="134" cy="128" r="11" fill="#e53935" stroke="#ffffff" strokeWidth="1.6" />
-        <path d="M134 117 L134 139 M124 122 L144 122" stroke="#ffffff" strokeWidth="1.4" />
+      <g transform="translate(128,114)">
+        <path
+          d="M-14 34 C-22 24 -22 8 -14 0 C-20 -8 -16 -18 -6 -20 L-2 -30 L8 -22 C16 -26 24 -20 24 -10 L18 -2 C28 2 32 12 28 22 L38 18 L36 28 L24 32 C18 40 8 44 -2 40 L-8 48 L-12 38 Z"
+          fill="#c8102e"
+          stroke="#7c0a1c"
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+        <path d="M24 -14 C34 -22 36 -32 28 -38" stroke="#c8102e" strokeWidth="3.4" fill="none" strokeLinecap="round" />
+        <path d="M-10 34 L-12 40 M2 40 L2 46 M14 36 L16 42" stroke="#7c0a1c" strokeWidth="2.4" strokeLinecap="round" />
+        <circle cx="-1" cy="-14" r="1.8" fill="#ffffff" />
+        <path d="M-6 -32 L-3 -38 L0 -33 L3 -39 L6 -33 L9 -38 L10 -31 Z" fill="#d4af37" stroke="#8a6d20" strokeWidth="1" />
       </g>
 
-      {/* الوردة والنجمة */}
-      <path d="M136 66 l3 6.4 7 1-5 5 1.2 7-6.2-3.4-6.2 3.4 1.2-7-5-5 7-1 Z" fill="#d4af37" />
-
-      {/* النص */}
-      <text x="120" y="184" textAnchor="middle" fontSize="16" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="2">CHELSEA</text>
+      {[
+        { x: 62, y: 116 },
+        { x: 178, y: 116 },
+      ].map(({ x, y }) => (
+        <g key={`${x}${y}`}>
+          <circle cx={x} cy={y} r="8" fill="#c8102e" stroke="#7c0a1c" strokeWidth="1.2" />
+          <circle cx={x} cy={y} r="3" fill="#e35d6a" />
+          {[0, 90, 180, 270].map((a) => (
+            <circle
+              key={a}
+              cx={x + Math.cos((a * Math.PI) / 180) * 5}
+              cy={y + Math.sin((a * Math.PI) / 180) * 5}
+              r="2"
+              fill="#c8102e"
+              stroke="#7c0a1c"
+              strokeWidth="0.7"
+            />
+          ))}
+        </g>
+      ))}
+      <text x="120" y="206" textAnchor="middle" fontSize="15" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="3">CHELSEA</text>
     </svg>
   );
 }
 
+/* ============================================================
+ *  مانشستر سيتي — البحّارة
+ * ============================================================ */
 export function CityCrest() {
   return (
     <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
-      <defs>
-        <linearGradient id="mc-sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#8fc3ea" />
-          <stop offset="1" stopColor="#4a90c4" />
-        </linearGradient>
-      </defs>
+      <circle cx="120" cy="120" r="106" fill="#1c2c5b" stroke="#c8a24b" strokeWidth="6" />
+      <circle cx="120" cy="120" r="88" fill="#6cabdd" stroke="#ffffff" strokeWidth="2.5" />
+      <circle cx="120" cy="120" r="58" fill="#1c2c5b" />
 
-      {/* الدرع الدائري */}
-      <circle cx="120" cy="120" r="104" fill="url(#mc-sky)" stroke="#ffffff" strokeWidth="8" />
-      <circle cx="120" cy="120" r="86" fill="#1c2c5b" />
-
-      {/* الصقر الذهبي الفصيح */}
-      <g transform="translate(120,116)">
-        {/* الجسم الانسيابي */}
-        <path d="M0 -52 C-22 -44 -36 -24 -36 2 C-36 30 -18 48 0 56 C18 48 36 30 36 2 C36 -24 22 -44 0 -52 Z" fill="#6cabdd" />
-        {/* الرأس */}
-        <path d="M0 -52 C8 -48 14 -40 14 -30 L-14 -30 C-14 -40 -8 -48 0 -52 Z" fill="#1c2c5b" />
-        {/* المنقار */}
-        <path d="M6 -46 L20 -42 L8 -36 Z" fill="#d4af37" />
-        {/* العين */}
-        <circle cx="6" cy="-38" r="2.6" fill="#ffffff" />
-        {/* الجناحان */}
-        <path d="M-36 2 C-30 -8 -22 -14 -12 -16 L-16 8 C-24 10 -32 8 -36 2 Z" fill="#1c2c5b" opacity="0.85" />
-        <path d="M36 2 C30 -8 22 -14 12 -16 L16 8 C24 10 32 8 36 2 Z" fill="#1c2c5b" opacity="0.85" />
-        {/* الذيل */}
-        <path d="M-10 56 L0 70 L10 56 L0 52 Z" fill="#d4af37" />
-        {/* الصدر الأبيض */}
-        <path d="M0 -16 C10 -14 16 -4 16 8 C16 24 8 36 0 40 C-8 36 -16 24 -16 8 C-16 -4 -10 -14 0 -16 Z" fill="#ffffff" opacity="0.16" />
+      <g transform="translate(120,62)">
+        <path d="M-20 6 H20 L14 15 H-14 Z" fill="#ffffff" stroke="#1c2c5b" strokeWidth="1" />
+        <path d="M0 6 V-12" stroke="#ffffff" strokeWidth="2.4" strokeLinecap="round" />
+        <path d="M0 -12 L-11 -4 H0 Z M0 -12 L11 -4 H0 Z" fill="#ffffff" />
       </g>
 
-      {/* السهم العلوي */}
-      <path d="M120 30 L146 66 L120 56 L94 66 Z" fill="#ffffff" opacity="0.95" />
+      <g transform="translate(120,118)">
+        <path d="M0 -36 C16 -32 26 -18 26 0 C26 20 14 34 0 40 C-14 34 -26 20 -26 0 C-26 -18 -16 -32 0 -36 Z" fill="#d4af37" stroke="#ffffff" strokeWidth="2.4" />
+        <path d="M0 -36 C8 -33 12 -26 12 -18 L-12 -18 C-12 -26 -8 -33 0 -36 Z" fill="#1c2c5b" />
+        <path d="M7 -31 L18 -27 L8 -22 Z" fill="#d4af37" />
+        <circle cx="4" cy="-26" r="2" fill="#ffffff" />
+        <path d="M-26 0 C-22 -10 -14 -17 -6 -19 L-9 6 C-16 8 -23 6 -26 0 Z" fill="#1c2c5b" opacity="0.85" />
+        <path d="M26 0 C22 -10 14 -17 6 -19 L9 6 C16 8 23 6 26 0 Z" fill="#1c2c5b" opacity="0.85" />
+        <path d="M-9 40 L0 52 L9 40 L0 37 Z" fill="#d4af37" stroke="#ffffff" strokeWidth="1.4" />
+      </g>
 
-      {/* النجمة السفلية */}
-      <path d="M120 168 L124 179 L136 180 L126.5 188 L129.5 200 L120 193.5 L110.5 200 L113.5 188 L104 180 L116 179 Z" fill="#d4af37" />
+      <g transform="translate(120,178)" stroke="#ffffff" strokeWidth="2.6" fill="none" strokeLinecap="round">
+        <path d="M0 -8 V10 M-7 0 H7" />
+        <path d="M-10 4 C-10 12 -5 16 0 16 C5 16 10 12 10 4" />
+        <circle cx="0" cy="-10" r="2.4" fill="#ffffff" />
+      </g>
 
-      {/* النص الدائري */}
-      <text x="120" y="222" textAnchor="middle" fontSize="12" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="3">MANCHESTER CITY</text>
+      <text x="120" y="32" textAnchor="middle" fontSize="11.5" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="2.5">MANCHESTER</text>
+      <text x="120" y="218" textAnchor="middle" fontSize="11.5" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="2.5">CITY</text>
     </svg>
   );
 }
 
+/* ============================================================
+ *  أتلتيكو مدريد — الأرباع + الوشاح + الدب والشجرة
+ * ============================================================ */
 export function AtleticoCrest() {
+  const uid = safeId(useId());
+  const c = `atc-${uid}`;
+  const shield = "M120 12 L190 32 V126 C190 168 162 200 120 220 C78 200 50 168 50 126 V32 Z";
   return (
     <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
-      {/* الدرع */}
-      <path d="M120 12 L190 32 V126 C190 168 162 200 120 220 C78 200 50 170 50 126 V32 Z" fill="#ffffff" stroke="#262e62" strokeWidth="6" />
-
-      {/* الأرباع: أحمر/أزرق/أحمر/أزرق */}
-      <clipPath id="atl-clip">
-        <path d="M120 12 L190 32 V126 C190 168 162 200 120 220 C78 200 50 170 50 126 V32 Z" />
-      </clipPath>
-      <g clipPath="url(#atl-clip)">
+      <defs>
+        <clipPath id={c}>
+          <path d={shield} />
+        </clipPath>
+      </defs>
+      <path d={shield} fill="#ffffff" stroke="#262e62" strokeWidth="6" />
+      <g clipPath={`url(#${c})`}>
         <rect x="50" y="12" width="70" height="104" fill="#cb3524" />
-        <rect x="120" y="12" width="70" height="104" fill="#ffffff" />
-        <rect x="50" y="116" width="70" height="104" fill="#1a2f6e" />
         <rect x="120" y="116" width="70" height="104" fill="#cb3524" />
+        <path d="M50 46 L188 170 L188 202 L50 78 Z" fill="#1a2f6e" />
       </g>
+      <path d={shield} fill="none" stroke="#262e62" strokeWidth="6" />
+      <path d="M120 12 V220 M50 116 H190" stroke="#262e62" strokeWidth="2" opacity="0.5" />
 
-      {/* الحدود الفاصلة */}
-      <path d="M120 12 V220 M50 116 H190" stroke="#262e62" strokeWidth="3" />
-
-      {/* الدب والشجرة — رمز مدريد */}
-      <g transform="translate(120,112)">
-        {/* الشجرة (الفراولة الشجرية) */}
-        <path d="M-6 -14 C-14 -8 -16 2 -12 10 L0 10 L12 10 C16 2 14 -8 6 -14 Z" fill="#3f7d3a" />
-        <rect x="-2" y="10" width="4" height="10" fill="#7a4a21" />
-        {/* الدب */}
-        <g transform="translate(6,4)">
-          <ellipse cx="0" cy="6" rx="10" ry="8" fill="#7a4a21" />
-          <circle cx="-4" cy="-4" r="5.4" fill="#7a4a21" />
-          <circle cx="4" cy="-4" r="5.4" fill="#7a4a21" />
-          <circle cx="0" cy="0" r="6.4" fill="#8d5a30" />
-          <circle cx="-2.4" cy="-1" r="1.1" fill="#111111" />
-          <circle cx="2.4" cy="-1" r="1.1" fill="#111111" />
+      <g transform="translate(120,66)">
+        <path d="M8 -6 C0 -14 -12 -14 -18 -6 C-24 0 -22 10 -14 12 L8 12 C14 8 14 -1 8 -6 Z" fill="#3f7d3a" />
+        <rect x="-5" y="12" width="5" height="9" fill="#7a4a21" />
+        <g transform="translate(-22,4)">
+          <ellipse cx="0" cy="8" rx="11" ry="7.5" fill="#7a4a21" />
+          <circle cx="-8" cy="-2" r="5" fill="#7a4a21" />
+          <circle cx="-11" cy="-6" r="1.6" fill="#7a4a21" />
+          <circle cx="-5.4" cy="-6" r="1.6" fill="#7a4a21" />
+          <circle cx="-9.4" cy="-2.6" r="0.9" fill="#111111" />
+          <path d="M-7 14 L-7 20 M-2 15 L-2 21 M4 15 L4 21 M8 13 L9 19" stroke="#5d3617" strokeWidth="2.6" strokeLinecap="round" />
         </g>
       </g>
 
-      {/* السبعة نجوم */}
-      {[62, 84, 106, 128, 150, 172].map((x, i) => (
-        <path
-          key={i}
-          d={`M${x} 40 l2.6 5.6 6.2.8-4.5 4.4 1.1 6.1-5.4-3-5.4 3 1.1-6.1-4.5-4.4 6.2-.8 Z`}
-          fill="#ffffff"
-        />
-      ))}
+      {[64, 84, 104, 120, 136, 156, 176].map((x, i) => star5(x, 100 - Math.abs(i - 3) * 3.2, 4.6, "#ffffff"))}
 
-      {/* الحزام السفلي */}
-      <text x="120" y="196" textAnchor="middle" fontSize="14" fontWeight="900" fontFamily="serif" fill="#262e62" letterSpacing="2">ATM</text>
+      <text x="120" y="206" textAnchor="middle" fontSize="14" fontWeight="900" fontFamily="serif" fill="#262e62" letterSpacing="3">ATM</text>
     </svg>
   );
 }
 
+/* ============================================================
+ *  الأهلي المصري — النسر الذهبي
+ * ============================================================ */
 export function AhlyCrest() {
+  const uid = safeId(useId());
+  const g = `ahg-${uid}`;
   return (
     <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
       <defs>
-        <linearGradient id="ah-red" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={g} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#d42a2a" />
-          <stop offset="1" stopColor="#8f1111" />
+          <stop offset="1" stopColor="#8a1010" />
         </linearGradient>
       </defs>
+      <path d="M120 12 L190 32 V126 C190 168 162 200 120 220 C78 200 50 168 50 126 V32 Z" fill={`url(#${g})`} stroke="#ffffff" strokeWidth="6" />
+      <path d="M120 24 L179 42 V124 C179 160 154 188 120 204 C86 188 61 160 61 124 V42 Z" fill="none" stroke="#d4af37" strokeWidth="2" opacity="0.8" />
 
-      {/* الدرع */}
-      <path d="M120 12 L190 32 V126 C190 168 162 200 120 220 C78 200 50 170 50 126 V32 Z" fill="url(#ah-red)" stroke="#ffffff" strokeWidth="6" />
-      <path d="M120 24 L180 41 V124 C180 160 156 186 120 206 C84 186 60 160 60 124 V41 Z" fill="none" stroke="#d4af37" strokeWidth="2.2" opacity="0.8" />
+      <text x="120" y="42" textAnchor="middle" fontSize="12" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="3">AL AHLY</text>
 
-      {/* النسر الذهبي بجناحين مفتوحين */}
-      <g transform="translate(120,112)">
-        {/* الجناحان */}
-        <path d="M0 -8 C-8 -22 -22 -32 -44 -34 C-34 -22 -28 -12 -26 -2 C-34 2 -38 10 -36 20 C-24 16 -12 16 -4 20 Z" fill="#d4af37" stroke="#8b6914" strokeWidth="2" />
-        <path d="M0 -8 C8 -22 22 -32 44 -34 C34 -22 28 -12 26 -2 C34 2 38 10 36 20 C24 16 12 16 4 20 Z" fill="#d4af37" stroke="#8b6914" strokeWidth="2" />
-        {/* الجسم */}
-        <ellipse cx="0" cy="6" rx="12" ry="18" fill="#f0cf6e" stroke="#8b6914" strokeWidth="2" />
-        {/* الرأس */}
-        <circle cx="0" cy="-16" r="9" fill="#f0cf6e" stroke="#8b6914" strokeWidth="2" />
-        {/* المنقار */}
-        <path d="M0 -14 L8 -12 L0 -9 Z" fill="#8b6914" />
-        {/* العيون */}
-        <circle cx="-3" cy="-18" r="1.6" fill="#5d3a00" />
-        <circle cx="3" cy="-18" r="1.6" fill="#5d3a00" />
-        {/* الريش */}
-        <path d="M-8 2 L8 2 M-8 10 L8 10" stroke="#8b6914" strokeWidth="1.2" opacity="0.6" />
+      <g transform="translate(120,120)">
+        {[-1, 1].map((side) => (
+          <g key={side} transform={`scale(${side},1)`}>
+            <path d="M4 -10 C-2 -26 -16 -38 -40 -42 C-30 -30 -26 -20 -26 -10 C-36 -6 -42 4 -40 16 C-28 10 -16 10 -6 16 Z" fill="#d4af37" stroke="#8b6914" strokeWidth="2" strokeLinejoin="round" />
+            <path d="M-30 -32 C-24 -24 -22 -18 -22 -12 M-36 -8 C-30 -4 -26 0 -24 4 M-34 10 C-28 8 -22 10 -18 12" stroke="#8b6914" strokeWidth="1.4" fill="none" strokeLinecap="round" opacity="0.8" />
+          </g>
+        ))}
+        <ellipse cx="0" cy="10" rx="13" ry="20" fill="#f0cf6e" stroke="#8b6914" strokeWidth="2" />
+        <path d="M-6 4 H6 M-7 12 H7 M-6 20 H6" stroke="#8b6914" strokeWidth="1.2" opacity="0.6" />
+        <circle cx="0" cy="-18" r="9.5" fill="#f0cf6e" stroke="#8b6914" strokeWidth="2" />
+        <path d="M0 -15 L9 -12.5 L0 -9 Z" fill="#8b6914" />
+        <circle cx="-3.4" cy="-20" r="1.7" fill="#5d3a00" />
+        <circle cx="3.4" cy="-20" r="1.7" fill="#5d3a00" />
+        <path d="M-8 30 L0 38 L8 30 L0 26 Z" fill="#d4af37" stroke="#8b6914" strokeWidth="1.4" />
       </g>
 
-      {/* النص */}
-      <text x="120" y="192" textAnchor="middle" fontSize="15" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="2">1907</text>
+      <text x="120" y="198" textAnchor="middle" fontSize="15" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="3">1907</text>
     </svg>
   );
 }
 
-export const CREST_ART: Record<string, () => React.JSX.Element> = {
+/* ============================================================
+ *  باريس سان جيرمان
+ * ============================================================ */
+export function PsgCrest() {
+  const uid = safeId(useId());
+  const c = `pgc-${uid}`;
+  return (
+    <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
+      <defs>
+        <clipPath id={c}>
+          <circle cx="120" cy="120" r="98" />
+        </clipPath>
+      </defs>
+      <circle cx="120" cy="120" r="106" fill="#ffffff" />
+      <circle cx="120" cy="120" r="99" fill="#004170" />
+      <g clipPath={`url(#${c})`}>
+        <rect x="96" y="22" width="48" height="196" fill="#da291c" />
+      </g>
+      <circle cx="120" cy="120" r="88" fill="none" stroke="#d4af37" strokeWidth="2.5" />
+
+      <g transform="translate(120,104)">
+        <path d="M0 -52 C6 -30 12 -8 20 14 L-20 14 C-12 -8 -6 -30 0 -52 Z" fill="#da291c" stroke="#ffffff" strokeWidth="1.6" />
+        <rect x="-9" y="-20" width="18" height="5" fill="#ffffff" />
+        <rect x="-16" y="2" width="32" height="6" rx="2" fill="#ffffff" />
+        <path d="M-20 14 C-10 30 10 30 20 14" stroke="#ffffff" strokeWidth="2.4" fill="none" />
+        <path d="M-5 -40 L5 -40 M-8 -28 L8 -28 M-11 -8 L11 -8" stroke="#ffffff" strokeWidth="1.2" />
+      </g>
+
+      <path d="M78 140 Q120 158 162 140 L154 156 Q120 170 86 156 Z" fill="#ffffff" />
+      <g transform="translate(120,188)" fill="#d4af37">
+        <path d="M0 -10 C3 -4 3 2 0 8 C-3 2 -3 -4 0 -10 Z" />
+        <path d="M-9 2 C-5 4 -3 6 -2 10 C-7 9 -9 6 -9 2 Z M9 2 C5 4 3 6 2 10 C7 9 9 6 9 2 Z" />
+        <rect x="-1.6" y="8" width="3.2" height="7" rx="1.4" />
+      </g>
+
+      <text x="120" y="34" textAnchor="middle" fontSize="11" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="1.6">PARIS SAINT-GERMAIN</text>
+      <text x="120" y="216" textAnchor="middle" fontSize="11" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="3">1970</text>
+    </svg>
+  );
+}
+
+/* ============================================================
+ *  بوروسيا دورتموند
+ * ============================================================ */
+export function DortmundCrest() {
+  return (
+    <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
+      <circle cx="120" cy="120" r="106" fill="#fde100" stroke="#111111" strokeWidth="5" />
+      <circle cx="120" cy="120" r="90" fill="none" stroke="#111111" strokeWidth="15" />
+      <circle cx="120" cy="120" r="72" fill="#fde100" stroke="#111111" strokeWidth="3" />
+
+      <text x="120" y="42" textAnchor="middle" fontSize="15" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="2">BORUSSIA</text>
+      <text x="120" y="212" textAnchor="middle" fontSize="12.5" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="1">DORTMUND</text>
+
+      <circle cx="107" cy="104" r="24" fill="none" stroke="#111111" strokeWidth="8" />
+      <circle cx="133" cy="104" r="24" fill="none" stroke="#111111" strokeWidth="8" />
+      <text x="120" y="166" textAnchor="middle" fontSize="22" fontWeight="900" fontFamily="serif" fill="#111111" letterSpacing="1">09</text>
+    </svg>
+  );
+}
+
+/* ============================================================
+ *  بوكا جونيورز
+ * ============================================================ */
+export function BocaCrest() {
+  const uid = safeId(useId());
+  const c = `bkc-${uid}`;
+  const shield = "M120 12 L190 32 V126 C190 170 162 200 120 218 C78 200 50 170 50 126 V32 Z";
+  return (
+    <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
+      <defs>
+        <clipPath id={c}>
+          <path d={shield} />
+        </clipPath>
+      </defs>
+      <path d={shield} fill="#103f79" stroke="#f5d020" strokeWidth="6" />
+      <g clipPath={`url(#${c})`}>
+        <rect x="50" y="96" width="140" height="30" fill="#f5d020" />
+        <rect x="50" y="96" width="140" height="3" fill="#0d2c56" />
+        <rect x="50" y="123" width="140" height="3" fill="#0d2c56" />
+      </g>
+      <path d={shield} fill="none" stroke="#f5d020" strokeWidth="6" />
+      <path d="M120 22 L190 42" stroke="#ffffff" strokeWidth="1.4" opacity="0.5" />
+      <text x="120" y="118" textAnchor="middle" fontSize="20" fontWeight="900" fontFamily="serif" fill="#103f79" letterSpacing="2">CABJ</text>
+      {star5(96, 58, 6, "#ffffff")}
+      {star5(120, 52, 7, "#f5d020", "#0d2c56", 1)}
+      {star5(144, 58, 6, "#ffffff")}
+      <text x="120" y="196" textAnchor="middle" fontSize="12" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="2">1905</text>
+    </svg>
+  );
+}
+
+/* ============================================================
+ *  فلامنغو
+ * ============================================================ */
+export function FlamengoCrest() {
+  return (
+    <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
+      <circle cx="120" cy="120" r="106" fill="#ffffff" stroke="#111111" strokeWidth="4" />
+      <circle cx="120" cy="120" r="95" fill="none" stroke="#111111" strokeWidth="11" />
+      <circle cx="120" cy="120" r="82" fill="none" stroke="#c52613" strokeWidth="11" />
+      <circle cx="120" cy="120" r="70" fill="#ffffff" stroke="#c52613" strokeWidth="2" />
+      <text x="120" y="136" textAnchor="middle" fontSize="46" fontWeight="900" fontFamily="serif" fill="#111111" letterSpacing="-2">CRF</text>
+      {star5(96, 176, 6, "#c52613")}
+      {star5(120, 180, 6, "#111111")}
+      {star5(144, 176, 6, "#c52613")}
+    </svg>
+  );
+}
+
+/* ============================================================
+ *  السجل الموحّد
+ * ============================================================ */
+export const CREST_ART: Record<string, () => JSX.Element> = {
   real: RealCrest,
   barca: BarcaCrest,
   united: UnitedCrest,
@@ -604,4 +764,8 @@ export const CREST_ART: Record<string, () => React.JSX.Element> = {
   city: CityCrest,
   atletico: AtleticoCrest,
   ahly: AhlyCrest,
+  psg: PsgCrest,
+  dortmund: DortmundCrest,
+  boca: BocaCrest,
+  flamengo: FlamengoCrest,
 };

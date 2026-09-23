@@ -84,6 +84,8 @@ export interface CupMatch {
   awayGoals: number | null;
   /** حُسمت بالترجيح؟ */
   viaPenalties?: boolean;
+  /** من فاز فعليًا (ضروري للترجيح — الهدفان متساويان هناك) */
+  winner?: string;
 }
 
 export interface CupState {
@@ -267,9 +269,13 @@ function simulateMatch(seed: number, m: CupMatch): CupMatch {
     [1, 1],
   ];
   let [hg, ag] = scores[variant]!;
-  if (hg === ag) hg = homeWins ? hg + 1 : hg; // الترجيح يُظهر فارق هدف
+  if (hg === ag) {
+    // الترجيح يُسجل كفوز صريح — بدون هدف وهمي
+    const pkWinner = homeWins ? m.home : m.away;
+    return { ...m, homeGoals: hg, awayGoals: ag, viaPenalties: true, winner: pkWinner };
+  }
   if (!homeWins && hg > ag) [hg, ag] = [ag, hg];
-  return { ...m, homeGoals: hg, awayGoals: ag, viaPenalties: scores[variant]![0] === scores[variant]![1] };
+  return { ...m, homeGoals: hg, awayGoals: ag, viaPenalties: false, winner: hg > ag ? m.home : m.away };
 }
 
 /** إكمال شجرة كاملة حتى البطل — بعد حسم مباراة اللاعب */
@@ -277,7 +283,7 @@ function completeBracket(cup: CupState, round: CupRound, matches: CupMatch[]): {
   let cur = matches;
   let r = round;
   while (r !== "final") {
-    const winners = cur.map((m) => ((m.homeGoals ?? 0) >= (m.awayGoals ?? 0) ? m.home : m.away));
+    const winners = cur.map((m) => (m.winner ?? ((m.homeGoals ?? 0) >= (m.awayGoals ?? 0) ? m.home : m.away)));
     const nextMatches: CupMatch[] = [];
     for (let i = 0; i < winners.length; i += 2) {
       nextMatches.push({ home: winners[i]!, away: winners[i + 1] ?? winners[i]!, homeGoals: null, awayGoals: null });
@@ -285,7 +291,7 @@ function completeBracket(cup: CupState, round: CupRound, matches: CupMatch[]): {
     r = nextRound(r);
     cur = nextMatches.map((m) => (m.homeGoals === null ? simulateMatch(cup.seed + fnv1a(r), m) : m));
   }
-  const winners = cur.map((m) => ((m.homeGoals ?? 0) >= (m.awayGoals ?? 0) ? m.home : m.away));
+  const winners = cur.map((m) => (m.winner ?? ((m.homeGoals ?? 0) >= (m.awayGoals ?? 0) ? m.home : m.away)));
   return { champion: winners[0] ?? "" };
 }
 
@@ -303,14 +309,18 @@ export function finishMatch(cup: CupState, myPkCorrect = 0): CupState {
   }
 
   const iAmHome = m.home === cup.myTeamId;
-  const myFinal = Math.max(cup.myGoals, cup.oppGoals);
-  const oppFinal = Math.min(cup.myGoals, cup.oppGoals);
+  // النتيجة الحقيقية كما لُعبت — لا قلب ولا max/min
+  // (كانت تُقلب عند الخسارة: تخسر 0-2 فتُسجَّل 2-0!)
+  const myFinal = cup.myGoals;
+  const oppFinal = cup.oppGoals;
 
   const updated: CupMatch = {
     ...m,
     homeGoals: iAmHome ? myFinal : oppFinal,
     awayGoals: iAmHome ? oppFinal : myFinal,
     viaPenalties: viaPks,
+    // winner صريح — ضروري للترجيح (الهدفان متساويان) وأي نتيجة متساوية
+    winner: iWin ? cup.myTeamId : iAmHome ? m.away : m.home,
   };
 
   // حسم مباراة اللاعب + محاكاة باقي مباريات الدور
@@ -336,8 +346,10 @@ export function finishMatch(cup: CupState, myPkCorrect = 0): CupState {
     return { ...next, champion: cup.myTeamId, eliminated: false };
   }
 
-  // راكم الفائزين وابنِ الدور التالي
-  const winners = roundMatches.map((mm) => ((mm.homeGoals ?? 0) >= (mm.awayGoals ?? 0) ? mm.home : mm.away));
+  // راكم الفائزين وابنِ الدور التالي — winner إن وُجد وإلا الهدف الأكبر
+  const matchWinner = (mm: CupMatch): string =>
+    mm.winner ?? ((mm.homeGoals ?? 0) >= (mm.awayGoals ?? 0) ? mm.home : mm.away);
+  const winners = roundMatches.map(matchWinner);
   const nr = nextRound(cup.round);
   const nextMatches: CupMatch[] = [];
   for (let i = 0; i < winners.length; i += 2) {

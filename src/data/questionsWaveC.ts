@@ -38,8 +38,8 @@ export const QUESTIONS_WAVE_C: Question[] = [
   },
   {
     id: "wc3-messi-golden-ball", category: "worldcup", difficulty: "medium", answer: 1,
-    ar: { q: "كم مرة فاز ميسي بالكرة الذهبية للمونديال؟", options: ["مرة", "مرتين (2014 و2022)", "ثلاث مرات", "لم يفز"], fact: "2014 كأفضل لاعب رغم الخسارة، و2022 مع اللقب — الوحيد بالجائزة مرتين." },
-    en: { q: "How many World Cup Golden Balls has Messi won?", options: ["One", "Two (2014, 2022)", "Three", "None"], fact: "2014 despite losing, 2022 with the title — the only two-time winner." },
+    ar: { q: "كم مرة فاز ميسي بالكرة الذهبية لأفضل لاعب في المونديال؟", options: ["مرة (2014)", "مرتين (2014 و2022)", "ثلاث مرات", "لم يفز"], fact: "2014 كأفضل لاعب رغم الخسارة، و2022 مع اللقب — الوحيد بالجائزة مرتين." },
+    en: { q: "How many World Cup Golden Balls has Messi won?", options: ["One (2014)", "Two (2014, 2022)", "Three", "None"], fact: "2014 despite losing, 2022 with the title — the only two-time winner." },
   },
   {
     id: "wc3-2026-format", category: "worldcup", difficulty: "easy", answer: 0,
@@ -52,9 +52,9 @@ export const QUESTIONS_WAVE_C: Question[] = [
     en: { q: "When did Hurst complete his 1966 final hat-trick?", options: ["Regulation time", "Second half only", "In extra time (120th min)", "First half"], fact: "His third came in the 120th minute to make it 4-2 before 97,000 at Wembley." },
   },
   {
-    id: "wc3-refs-wc", category: "worldcup", difficulty: "hard", answer: 1,
-    ar: { q: "من أشهر حكام المونديال التاريخيين؟", options: ["بييرلويجي كولينا فقط", "كولينا وماركوس ميرك", "هوارد ويب", "ألي مبنج"], fact: "كولينا الإيطالي من أيقونات التحكيم العالمي — حكم نهائي 2002." },
-    en: { q: "Who is football's most iconic referee?", options: ["Pierluigi Collina only", "Collina & Markus Merk", "Howard Webb", "Ali Bin Nasser"], fact: "Italy's Collina — the bald icon — refereed the 2002 final." },
+    id: "wc3-refs-wc", category: "worldcup", difficulty: "hard", answer: 0,
+    ar: { q: "من الحكم الإيطالي الشهير الذي أدار نهائي مونديال 2002؟", options: ["بييرلويجي كولينا", "ماركوس ميرك", "هوارد ويب", "ألي مبنج"], fact: "كولينا الأصلع الأيقوني — أستاذ التحكيم العالمي ونجم نهائي البرازيل وألمانيا." },
+    en: { q: "Which iconic Italian referee officiated the 2002 final?", options: ["Pierluigi Collina", "Markus Merk", "Howard Webb", "Ali Bin Nasser"], fact: "The bald icon himself — Collina refereed Brazil vs Germany in Yokohama." },
   },
 
   // ——— تاريخ وقوانين ———
@@ -152,8 +152,8 @@ export const QUESTIONS_WAVE_C: Question[] = [
   },
   {
     id: "wc3-ny-team", category: "clubs", difficulty: "hard", answer: 2,
-    ar: { q: "أي نادٍ برازيلي يُلقَّب بـ«الملكي»؟", options: ["فلامنغو", "بالنتينس", "فاسكو دا غاما", "غريميو"], fact: "فاسكو دا غاما «الملكي» — من أعرق أندية ريو دي جانيرو." },
-    en: { q: "Which Brazilian club is called 'The Royal'?", options: ["Flamengo", "Palmeiras", "Vasco da Gama", "Grêmio"], fact: "Vasco da Gama — 'O Almirante' (The Admiral) — Rio's traditional giant." },
+    ar: { q: "أي نادٍ برازيلي يُلقَّب بـ«الأدميرال»؟", options: ["فلامنغو", "بالميراس", "فاسكو دا غاما", "غريميو"], fact: "فاسكو دا غاما «O Almirante» — النادي الشعبي التاريخي في ريو دي جانيرو." },
+    en: { q: "Which Brazilian club is nicknamed 'The Admiral'?", options: ["Flamengo", "Palmeiras", "Vasco da Gama", "Grêmio"], fact: "Vasco da Gama — 'O Almirante' — Rio's traditional giant." },
   },
   {
     id: "wc3-argentina-derby", category: "clubs", difficulty: "hard", answer: 0,
@@ -177,7 +177,7 @@ export const QUESTIONS_WAVE_C: Question[] = [
   },
   {
     id: "wc3-brazil-serie", category: "clubs", difficulty: "hard", answer: 1,
-    ar: { q: "من أكثر أندية البرازيل تحقيقًا للدوري؟", options: ["فلامنغو", "بالنتينس", "ساو باولو", "سانتوس"], fact: "بالنتينس تجاوز فلامنغو بعد لقبي 2022 و2023 المتتاليين." },
+    ar: { q: "من أكثر أندية البرازيل تحقيقًا للدوري؟", options: ["فلامنغو", "بالميراس", "ساو باولو", "سانتوس"], fact: "بالميراس تجاوز فلامنغو بعد لقبي 2022 و2023 المتتاليين." },
     en: { q: "Which club has won the most Brazilian titles?", options: ["Flamengo", "Palmeiras", "São Paulo", "Santos"], fact: "Palmeiras edged ahead with back-to-back titles in 2022 and 2023." },
   },
 
@@ -236,13 +236,13 @@ export const QUESTIONS_WAVE_C: Question[] = [
   // ——— الأساطير ———
   {
     id: "wc3-pele-goals", category: "legends", difficulty: "medium", answer: 1,
-    ar: { q: "كم هدفًا رسميًا سجل بيليه (تقريبًا)؟", options: ["أقل من 700", "حول 1000 (مع غير الرسمية)", "500", "1200"], fact: "بيليه سجل 1281 هدفًا في 1363 مباراة بحساب معظم المصادر." },
-    en: { q: "How many career goals did Pelé claim?", options: ["Under 700", "~1000 (including friendlies)", "500", "1200"], fact: "Pelé's tally reaches 1,281 goals in 1,363 matches by most counts." },
+    ar: { q: "كم هدفًا رسميًا وغير رسمي سجل بيليه في مسيرته؟", options: ["أقل من 700", "أكثر من 1200 في 1363 مباراة", "500 بالضبط", "900 فقط"], fact: "بيليه سجل 1281 هدفًا في 1363 مباراة بحساب معظم المصادر — رقم أسطوري." },
+    en: { q: "How many goals did Pelé claim in his career?", options: ["Under 700", "1,281 in 1,363 matches", "Exactly 500", "Just 900"], fact: "Pelé's tally reaches 1,281 goals in 1,363 matches by most counts." },
   },
   {
     id: "wc3-cruyff-number", category: "legends", difficulty: "hard", answer: 0,
-    ar: { q: "ما الرقم الذي اشتهر به كرويف؟", options: ["14", "10", "9", "7"], fact: "الرقم 14 كرويف — استخدمه لتمييز نفسه عن الـ10 التقليدي." },
-    en: { q: "Which number is Cruyff famous for?", options: ["14", "10", "9", "7"], fact: "Cruyff chose 14 to stand apart from the traditional number 10." },
+    ar: { q: "ما الرقم الذي اشتهر به كرويف في نهائي 1974؟", options: ["14", "10", "9", "7"], fact: "الرقم 14 — استخدمه بدل الـ10 التقليدي لتوقيع حركته الشهيرة بمنتصف الملعب." },
+    en: { q: "Which number did Cruyff famously wear in the 1974 final?", options: ["14", "10", "9", "7"], fact: "Number 14 — chosen over the traditional 10, forever tied to his signature turn." },
   },
   {
     id: "wc3-eusebio-goals", category: "legends", difficulty: "hard", answer: 1,
@@ -288,8 +288,8 @@ export const QUESTIONS_WAVE_C: Question[] = [
   // ——— الكرة العربية ———
   {
     id: "wc3-salah-egypt", category: "arab", difficulty: "easy", answer: 0,
-    ar: { q: "من حمل راية مصر في مونديال 2018؟", options: ["محمد صلاح", "أسامة حسني", "أحمد حسام", "عمرو وردة"], fact: "صلاح عاد من إصابة الكتف ليلعب مونديال روسيا — تسديدة من عرق البيض." },
-    en: { q: "Who led Egypt at the 2018 World Cup?", options: ["Mohamed Salah", "Osama Housny", "Ahmed Hassan", "Amr Warda"], fact: "Salah returned from a shoulder injury to play Russia '94 with his shoulder taped." },
+    ar: { q: "من حمل راية مصر في مونديال 2018؟", options: ["محمد صلاح", "أسامة حسني", "أحمد حسام", "عمرو وردة"], fact: "صلاح عاد من إصابة الكتف ليلعب مونديال روسيا بتلبيسة على الكتف المصابة." },
+    en: { q: "Who led Egypt at the 2018 World Cup?", options: ["Mohamed Salah", "Osama Housny", "Ahmed Hassan", "Amr Warda"], fact: "Salah returned from a shoulder injury to play in Russia with it strapped." },
   },
   {
     id: "wc3-mahrez-city", category: "arab", difficulty: "medium", answer: 2,
@@ -303,13 +303,13 @@ export const QUESTIONS_WAVE_C: Question[] = [
   },
   {
     id: "wc3-zidane-real-cups", category: "arab", difficulty: "medium", answer: 0,
-    ar: { q: "كم لقب أبطال أوروبا فاز بها زيدان لاعبًا؟", options: ["واحد (2002)", "اثنان", "ثلاثة", "صفر"], fact: "زيدان فاز بأبطال أوروبا 2002 كلاعب، وثلاثة كمدرب — خمسة إجمالًا مع دوري أبطال إيطاليا." },
-    en: { q: "How many Champions Leagues did Zidane win as a player?", options: ["One (2002)", "Two", "Three", "None"], fact: "Won 2002 as a player and three more as manager — five in total counting Juventus finals." },
+    ar: { q: "كم لقب أبطال أوروبا فاز بها زيدان كمدرب لريال مدريد؟", options: ["ثلاثة متتالية (2016-2018)", "اثنان", "واحد", "أربعة"], fact: "زيدان الوحيد الذي فاز بثلاثة أبطال متتالية في عصره — بعد أن فاز بها لاعبًا 2002." },
+    en: { q: "How many Champions Leagues did Zidane win coaching Real Madrid?", options: ["Three straight (2016-18)", "Two", "One", "Four"], fact: "The only coach to win three straight in the modern era — after lifting it as a player in 2002." },
   },
   {
     id: "wc3-omen-goal", category: "arab", difficulty: "hard", answer: 1,
-    ar: { q: "من سجل أول هدف عربي في تاريخ كأس العالم؟", options: ["مصطفى زيتوني", "عبد الرحمن البغدادي", "حسين صقال", "محمد الغامدي"], fact: "البغدادي المصري سجل ضد السويد 1934 — أول هدف أفريقي وعربي بالمونديال." },
-    en: { q: "Who scored the Arab world's first World Cup goal?", options: ["Mustafa Zitouni", "Abdelrahman Fawzi", "Hussein Sakal", "Mohammed Al-Ghamdi"], fact: "Egypt's Fawzi scored against Sweden in 1934 — Africa and Arabia's first." },
+    ar: { q: "من سجل أول هدف عربي وأفريقي في تاريخ كأس العالم؟", options: ["مصطفى زيتوني", "عبد الرحمن فوزي", "حسين صقال", "محمد الغامدي"], fact: "المصري عبد الرحمن فوزي سجل ثنائية ضد المجر 1934 — أول أهداف أفريقية بالمونديال." },
+    en: { q: "Who scored the Arab world's first World Cup goal?", options: ["Mustafa Zitouni", "Abdelrahman Fawzi", "Hussein Sakal", "Mohammed Al-Ghamdi"], fact: "Egypt's Fawzi struck twice vs Hungary in 1934 — Africa's first WC goals." },
   },
   {
     id: "wc3-algeria-2019", category: "arab", difficulty: "medium", answer: 2,
@@ -318,18 +318,18 @@ export const QUESTIONS_WAVE_C: Question[] = [
   },
   {
     id: "wc3-morocco-2022-gk", category: "arab", difficulty: "easy", answer: 0,
-    ar: { q: "من حارس المغرب البطل في مونديال 2022؟", options: ["ياسين بونو", "منير المحمدي", "أحمد ردا طغازوي", "زكرياء بوهلال"], fact: "بونو تصدى لركلات ترجيح حاسمة ضد إسبانيا — أفضل حارس بالبطولة." },
+    ar: { q: "من حارس المغرب البطل في مونديال 2022؟", options: ["ياسين بونو", "منير المحمدي", "أحمد رضا تاغناوتي", "زكرياء بوهلال"], fact: "بونو تصدى لركلات ترجيح حاسمة ضد إسبانيا — أفضل حارس بالبطولة." },
     en: { q: "Who was Morocco's heroic 2022 goalkeeper?", options: ["Yassine Bounou (Bono)", "Munir Mohamedi", "Ahmed Reda Tagnaouti", "Zakaria Bouloud"], fact: "Bono's shootout saves vs Spain powered Morocco's historic run." },
   },
   {
     id: "wc3-hilal-money", category: "arab", difficulty: "medium", answer: 1,
-    ar: { q: "من من نجوم كرة القدم انضم للدوري السعودي 2023؟", options: ["ميسي", "نيimar", "صلاح", "هالاند"], fact: "نيمار انضم للهلال 2023 بصفقة قياسية — ضمن موجة النجوم للسعودية." },
+    ar: { q: "من من نجوم كرة القدم انضم للدوري السعودي 2023؟", options: ["ميسي", "نيمار", "صلاح", "هالاند"], fact: "نيمار انضم للهلال 2023 بصفقة قياسية — ضمن موجة النجوم للسعودية." },
     en: { q: "Which superstar joined the Saudi league in 2023?", options: ["Messi", "Neymar", "Salah", "Haaland"], fact: "Neymar's Al-Hilal move capped the Saudi league's star recruitment wave." },
   },
   {
-    id: "wc3-egypt-legend", category: "arab", difficulty: "hard", answer: 0,
-    ar: { q: "من هو «الجنرال» في كرة مصر؟", options: ["أحمد حسام ميدو", "حسام حسن", "محمد زيدان", "عمرو زكي"], fact: "حسام حسن سجل 69 هدفًا دوليًا — رقم أفريقي تاريخي كمهاجم." },
-    en: { q: "Who is Egypt's 'General'?", options: ["Ahmed Hassan", "Hossam Hassan", "Mohamed Zidan", "Amr Zaki"], fact: "Hossam Hassan's 69 international goals remain an African record." },
+    id: "wc3-egypt-legend", category: "arab", difficulty: "hard", answer: 1,
+    ar: { q: "من هو الهداف التاريخي للمنتخب المصري بلقب «الجنرال»؟", options: ["أحمد حسام ميدو", "حسام حسن", "محمد زيدان", "عمرو زكي"], fact: "حسام حسن سجل 69 هدفًا دوليًا — رقم أفريقي تاريخي كمهاجم." },
+    en: { q: "Who is Egypt's all-time top scorer nicknamed 'The General'?", options: ["Ahmed Hassan", "Hossam Hassan", "Mohamed Zidan", "Amr Zaki"], fact: "Hossam Hassan's 69 international goals remain an African record." },
   },
   {
     id: "wc3-saudi-league", category: "arab", difficulty: "easy", answer: 1,
@@ -338,13 +338,13 @@ export const QUESTIONS_WAVE_C: Question[] = [
   },
   {
     id: "wc3-qatar-club", category: "arab", difficulty: "hard", answer: 2,
-    ar: { q: "أي نادٍ قطري فاز بأبطال آسيا؟", options: ["السد فقط", "الدحيل", "السد (2011)", "العربي"], fact: "السد القطري فاز بأبطال آسيا 2011 بقيادة خافيير باستوري." },
-    en: { q: "Which Qatari club won the AFC Champions League?", options: ["Al-Rayyan only", "Al-Duhail", "Al-Sadd (2011)", "Al-Arabi"], fact: "Al-Sadd won the 2011 AFC Champions League with Raúl in the squad." },
+    ar: { q: "أي نادٍ قطري فاز بدوري أبطال آسيا؟", options: ["الريان", "الدحيل", "السد (2011)", "العربي"], fact: "السد القطري فاز بأبطال آسيا 2011 — من أشهر إنجازات كرة قطر." },
+    en: { q: "Which Qatari club won the AFC Champions League?", options: ["Al-Rayyan", "Al-Duhail", "Al-Sadd (2011)", "Al-Arabi"], fact: "Al-Sadd won the 2011 AFC Champions League — Qatar's finest continental hour." },
   },
   {
-    id: "wc3-uae-club", category: "arab", difficulty: "hard", answer: 1,
-    ar: { q: "أي نادٍ إماراتي فاز بدوري أبطال آسيا؟", options: ["العين 2003 فقط", "العين (2003) والأهلي", "الوصل", "شباب الأهلي"], fact: "العين فاز بأول أبطال آسيا 2003 — أول نادٍ إماراتي يحقق الإنجاز." },
-    en: { q: "Which UAE club won the AFC Champions League?", options: ["Al-Ain 2003 only", "Al-Ain (2003)", "Al-Wasl", "Shabab Al-Ahli"], fact: "Al-Ain's 2003 triumph made them the UAE's first Asian champions." },
+    id: "wc3-uae-club", category: "arab", difficulty: "hard", answer: 0,
+    ar: { q: "أي نادٍ إماراتي فاز بدوري أبطال آسيا 2003؟", options: ["العين", "الوصل", "الجزيرة", "شباب الأهلي"], fact: "العين فاز بأول أبطال آسيا 2003 — أول نادٍ إماراتي يحقق الإنجاز." },
+    en: { q: "Which UAE club won the 2003 AFC Champions League?", options: ["Al-Ain", "Al-Wasl", "Al-Jazira", "Shabab Al-Ahli"], fact: "Al-Ain's 2003 triumph made them the UAE's first Asian champions." },
   },
   {
     id: "wc3-bahrain-gulf", category: "arab", difficulty: "hard", answer: 0,

@@ -80,8 +80,8 @@ export const QUESTIONS_WAVE_B: Question[] = [
   // ——— تاريخ وقوانين ———
   {
     id: "wb-ballout", category: "history", difficulty: "medium", answer: 1,
-    ar: { q: "ما حجم قطر كرة القدم القانوني؟", options: ["68-70 سم", "68-70 سم (الرقم الرسمي)", "65-67 سم", "72-74 سم"], fact: "68-70 سم حولية ووزن 410-450 غرامًا — قياس موحد عالميًا." },
-    en: { q: "What's the legal circumference of a football?", options: ["66-68cm", "68-70cm", "70-72cm", "72-74cm"], fact: "68-70cm around and 410-450g — standardized worldwide." },
+    ar: { q: "ما حجم قطر كرة القدم القانوني؟", options: ["62-64 سم", "68-70 سم", "74-76 سم", "80-82 سم"], fact: "68-70 سم حولية ووزن 410-450 غرامًا — قياس موحد عالميًا." },
+    en: { q: "What's the legal circumference of a football?", options: ["62-64cm", "68-70cm", "74-76cm", "80-82cm"], fact: "68-70cm around and 410-450g — standardized worldwide." },
   },
   {
     id: "wb-linesman-flag", category: "history", difficulty: "hard", answer: 2,

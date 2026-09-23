@@ -45,12 +45,10 @@ export function SeasonScreen({ lang, xp }: Props) {
   const got = ownedCount(season);
   const score = collectionScore(season);
 
-  const persist = (next: SeasonState) => {
-    setSeason(next);
-    saveSeason(next);
-  };
 
   const doOpen = (pack: PackDef) => {
+    // حماية الشراء المزدوج: لا فتح أثناء كشف ملصق، ولا بمستوى XP غير كافٍ
+    if (opening || currentReveal || revealQueue.length > 0) return;
     const cost = pack.costXp;
     const p = progressStore.getState();
     if (p.xp < cost) return;
@@ -58,16 +56,21 @@ export function SeasonScreen({ lang, xp }: Props) {
     progressStore.replace({ ...p, xp: p.xp - cost });
 
     const pulled = openPack(pack.id);
-    const queue: Reveal[] = pulled.map((st) => ({
-      sticker: st,
-      isNew: (season.owned[st.id] ?? 0) === 0,
-    }));
-    const owned = { ...season.owned };
-    for (const st of pulled) owned[st.id] = (owned[st.id] ?? 0) + 1;
-    persist({ ...season, owned });
+    // نقرأ أحدث حالة موسم (وليس نسخة الرندر) — يمنع فقدان الملصقات عند النقر السريع
+    setSeason((prev) => {
+      const queue: Reveal[] = pulled.map((st) => ({
+        sticker: st,
+        isNew: (prev.owned[st.id] ?? 0) === 0,
+      }));
+      const owned = { ...prev.owned };
+      for (const st of pulled) owned[st.id] = (owned[st.id] ?? 0) + 1;
+      const next = { ...prev, owned };
+      saveSeason(next);
+      setRevealQueue(queue);
+      return next;
+    });
 
     setOpening(pack);
-    setRevealQueue(queue);
     setCurrentReveal(null);
     if (prefsStore.getState().sound) stadium.drums();
   };

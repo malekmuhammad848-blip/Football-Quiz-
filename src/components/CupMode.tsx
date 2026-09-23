@@ -34,6 +34,8 @@ import type { LocalizedQuestion } from "../domain/types";
 import { cn } from "../utils/cn";
 import { Button } from "./ui/primitives";
 import { CheckBadge, CrossBadge, TrophyMark } from "./Icons";
+import { VisualQuestion } from "./VisualQuestion";
+import { FlagByRef } from "./VisualArt";
 
 interface Props {
   lang: Lang;
@@ -49,26 +51,12 @@ const ROUND_LABEL: Record<CupRound, { ar: string; en: string }> = {
   final: { ar: "النهائي", en: "Final" },
 };
 
-/** شارة القميص المصغّرة للمنتخب */
+/** شارة المنتخب المصغّرة — علم وطني حقيقي مرسوم */
 function TeamCrest({ teamId, size = 40 }: { teamId: string; size?: number }) {
-  const team = teamById(teamId);
   return (
-    <svg viewBox="0 0 48 48" width={size} height={size} aria-hidden className="shrink-0">
-      <path d="M12 10 L20 6 L28 6 L36 10 L36 34 Q36 38 32 40 L16 40 Q12 38 12 34 Z" fill={team.c1} stroke="rgba(0,0,0,0.3)" strokeWidth="1.4" />
-      {team.pattern === "stripes" && (
-        <g fill={team.c2}>
-          <rect x="19" y="6" width="3.5" height="34" />
-          <rect x="26" y="6" width="3.5" height="34" />
-        </g>
-      )}
-      {team.pattern === "hoops" && (
-        <g fill={team.c2}>
-          <rect x="12" y="16" width="24" height="5" />
-          <rect x="12" y="26" width="24" height="5" />
-        </g>
-      )}
-      {team.pattern === "sash" && <path d="M10 38 L30 4 L40 12 L20 46 Z" fill={team.c2} opacity="0.9" />}
-    </svg>
+    <div style={{ width: size, height: size }} className="shrink-0">
+      <FlagByRef ref={teamId} className="h-full w-full" />
+    </div>
   );
 }
 
@@ -83,6 +71,15 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
   const [lastResult, setLastResult] = useState<{ correct: boolean; oppScored: boolean } | null>(null);
   const [pkState, setPkState] = useState<{ qs: [LocalizedQuestion, LocalizedQuestion]; idx: number; myCorrect: number; selected: number | null } | null>(null);
   const [winXp, setWinXp] = useState(0);
+  /** نتيجة آخر مباراة انتهت — تُلتقط لحظة الانتهاء قبل تقدّم الشجرة (إصلاح شاشة النتيجة) */
+  const [lastMatch, setLastMatch] = useState<{
+    round: CupRound;
+    my: number;
+    their: number;
+    oppId: string;
+    viaPks: boolean;
+    won: boolean;
+  } | null>(null);
 
   const match = cup ? currentMatch(cup) : null;
   const opp = cup ? oppTeam(cup) : null;
@@ -130,28 +127,35 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
   };
 
   const nextQuestion = () => {
-    if (!cup) return;
+    if (!cup || selected === null || phase !== "playing") return;
     if (qIndex + 1 < qs.length) {
       setQIndex((q) => q + 1);
       setSelected(null);
       setLastResult(null);
       return;
     }
-    // انتهت المباراة
-    const won = cup.myGoals > cup.oppGoals;
-    const draw = cup.myGoals === cup.oppGoals;
+    // انتهت المباراة — نلتقط النتيجة الفعلية قبل أي تقدّم في الشجرة
+    // (كان الخلل: شاشة النتيجة تقرأ من دور الشجرة «الحالي» بعد تقدّمه فتعرض مباراة لم تُلعب)
+    const myFinal = cup.myGoals;
+    const oppFinal = cup.oppGoals;
+    const playedRound = cup.round;
+    const oppId = opp?.id ?? "";
+    const won = myFinal > oppFinal;
+    const draw = myFinal === oppFinal;
     if (won) {
-      const xp = roundWinXp(cup.round);
+      const xp = roundWinXp(playedRound);
       setWinXp(xp);
       progressStore.addXp(xp);
       const finished = finishMatch(cup);
       setCup(finished);
       saveCup(finished);
       if (finished.champion) recordCupResult(finished);
+      setLastMatch({ round: playedRound, my: myFinal, their: oppFinal, oppId, viaPks: false, won: true });
       setPhase(finished.champion ? "champion" : "matchOver");
       if (soundOn) stadium.whistle();
     } else if (draw) {
-      // ركلات الترجيح
+      // ركلات الترجيح — تُحسم النتيجة النهائية في nextPk
+      setLastMatch({ round: playedRound, my: myFinal, their: oppFinal, oppId, viaPks: true, won: false });
       setPkState({ qs: pkQuestions(cup, lang), idx: 0, myCorrect: 0, selected: null });
       setPhase("pks");
       if (soundOn) sfx.levelUp();
@@ -160,8 +164,9 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
       setCup(finished);
       saveCup(finished);
       if (finished.champion) recordCupResult(finished);
-      setPhase("eliminated");
-      if (soundOn) sfx.wrong();
+      setLastMatch({ round: playedRound, my: myFinal, their: oppFinal, oppId, viaPks: false, won: false });
+      setPhase("matchOver"); // نعرض النتيجة أولًا ثم شاشة الإقصاء عبر continueAfterMatch
+      if (soundOn) stadium.whistle();
     }
   };
 
@@ -189,11 +194,23 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
     setCup(result);
     saveCup(result);
     setWinXp(0);
+    const pkWon = !result.eliminated;
+    setLastMatch((prev) =>
+      prev
+        ? { ...prev, won: pkWon }
+        : { round: cup.round, my: cup.myGoals, their: cup.oppGoals, oppId: opp?.id ?? "", viaPks: true, won: pkWon },
+    );
     // حسم الترجيح: إذا لم يُقص اللاعب فقد فاز بالترجيح
-    if (!result.eliminated) {
+    const pkXp = pkWon ? Math.max(8, Math.round(roundWinXp(cup.round) / 2)) : 0;
+    if (pkXp > 0) {
+      setWinXp(pkXp);
+      progressStore.addXp(pkXp);
+      questsStore.track("trainMaster");
+    }
+    if (pkWon) {
       setPhase("matchOver");
     } else {
-      setPhase("eliminated");
+      setPhase("matchOver"); // نعرض نتيجة المباراة أولًا ثم الإقصاء
     }
     if (result.champion) recordCupResult(result);
     if (soundOn) (result.eliminated ? sfx.wrong : stadium.goal)();
@@ -201,7 +218,11 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
 
   const continueAfterMatch = () => {
     if (!cup) return;
-    if (cup.champion) {
+    const done = lastMatch ? !lastMatch.won : cup.champion === null && cup.eliminated;
+    setLastMatch(null);
+    if (done || cup.eliminated) {
+      setPhase("eliminated");
+    } else if (cup.champion) {
       setPhase("champion");
     } else {
       setPhase("bracket");
@@ -403,30 +424,23 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
     );
   }
 
-  /* ——— نتيجة المباراة ——— */
-  if ((phase === "matchOver" || phase === "pksResult") && cup && match === null) {
-    const lastRound = cup.round;
-    const ms = cup.bracket[lastRound] ?? [];
-    const myMatch = ms.find((m) => m.home === cup.myTeamId || m.away === cup.myTeamId);
-    const my = myMatch ? (myMatch.home === cup.myTeamId ? myMatch.homeGoals ?? 0 : myMatch.awayGoals ?? 0) : 0;
-    const their = myMatch ? (myMatch.home === cup.myTeamId ? myMatch.awayGoals ?? 0 : myMatch.homeGoals ?? 0) : 0;
-    const oppT = myMatch ? teamById(myMatch.home === cup.myTeamId ? myMatch.away : myMatch.home) : null;
+  /* ——— نتيجة المباراة — تُعرض من lastMatch الملتقطة لحظة الانتهاء ——— */
+  if ((phase === "matchOver" || phase === "pksResult") && lastMatch) {
+    const oppT = lastMatch.oppId ? teamById(lastMatch.oppId) : null;
     return (
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="glass-card relative w-full overflow-hidden rounded-3xl p-5 shadow-lg">
         <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-l from-amber-400 via-yellow-300 to-amber-400" />
         <p className="text-center text-xs font-black uppercase tracking-widest opacity-55">
-          {ROUND_LABEL[lastRound][lang]} · {t(lang, "cupMatchOver")}
+          {ROUND_LABEL[lastMatch.round][lang]} · {t(lang, "cupMatchOver")}
         </p>
         <div className="mt-4 flex items-center justify-center gap-5">
           <div className="flex flex-col items-center gap-1.5">
-            <TeamCrest teamId={cup.myTeamId} size={52} />
-            <p className="max-w-24 truncate text-[11px] font-black">{teamName(teamById(cup.myTeamId), lang)}</p>
+            <TeamCrest teamId={cup!.myTeamId} size={52} />
+            <p className="max-w-24 truncate text-[11px] font-black">{teamName(teamById(cup!.myTeamId), lang)}</p>
           </div>
           <div className="text-center">
-            <p className="text-4xl font-black tabular-nums">{my} - {their}</p>
-            {myMatch?.viaPenalties && (
-              <p className="mt-1 text-[10px] font-black text-gold">{t(lang, "cupViaPks")}</p>
-            )}
+            <p className="text-4xl font-black tabular-nums">{lastMatch.my} - {lastMatch.their}</p>
+            {lastMatch.viaPks && <p className="mt-1 text-[10px] font-black text-gold">{t(lang, "cupViaPks")}</p>}
           </div>
           {oppT && (
             <div className="flex flex-col items-center gap-1.5">
@@ -438,8 +452,11 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
         {winXp > 0 && (
           <p className="mt-3 text-center text-sm font-black text-grass-600 dark:text-grass-400">+{winXp} XP</p>
         )}
+        <p className="mt-2 text-center text-sm font-black" style={{ color: lastMatch.won ? undefined : "#ef4444" }}>
+          {lastMatch.won ? t(lang, "cupMatchWon") : t(lang, "cupMatchLost")}
+        </p>
         <Button onClick={continueAfterMatch} className="mt-4 w-full">
-          {t(lang, "cupNextMatch")}
+          {lastMatch.won ? t(lang, "cupNextMatch") : t(lang, "cupSeeExit")}
         </Button>
       </motion.div>
     );
@@ -457,6 +474,7 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
           <p className="text-[11px] font-bold opacity-55">{t(lang, "cupPksDesc")} · {t(lang, "question")} {pkState.idx + 1}/2</p>
         </div>
         <p className="mb-3 text-center text-base font-extrabold leading-7">{q.q}</p>
+        {q.visual && <VisualQuestion spec={q.visual} prompt="" className="mb-3" />}
         <div className="grid gap-2">
           {q.options.map((opt, i) => {
             const isAnswer = i === q.answer;
@@ -526,6 +544,7 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
           transition={{ duration: 0.18 }}
         >
           <p className="mb-3 text-center text-base font-extrabold leading-7 sm:text-lg">{q.q}</p>
+          {q.visual && <VisualQuestion spec={q.visual} prompt="" className="mb-3" />}
           <div className="grid gap-2">
             {q.options.map((opt, i) => {
               const isSelected = selected === i;
