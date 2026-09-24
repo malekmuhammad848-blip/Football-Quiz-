@@ -238,6 +238,60 @@ export function stadiumDrums(): void {
   crowdCheer(1.2, 0.07);
 }
 
+/** طقطقة نقر واجهة واقعية — نقرة خفيفة عريضة تسمع في التطبيقات الأصلية */
+export function uiClick(): void {
+  const c = getCtx();
+  if (!c || !master) return;
+  const t0 = c.currentTime;
+  const buf = getNoise(c);
+  if (!buf) return;
+  const src = c.createBufferSource();
+  src.buffer = buf;
+  const bp = c.createBiquadFilter();
+  bp.type = "bandpass";
+  bp.frequency.value = 2400;
+  bp.Q.value = 1.6;
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.07, t0);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.05);
+  src.connect(bp).connect(g).connect(master);
+  src.start(t0, Math.random());
+  src.stop(t0 + 0.06);
+}
+
+/**
+ * صوت الكرة في الشبكة — «شْوِيش» واقعي: ضوضاء عريضة النطاق
+ * ترتد قليلًا ثم تخفت سريعًا (الارتداد المميز لتأرجح الشبكة).
+ */
+export function netSwish(): void {
+  const c = getCtx();
+  if (!c || !master) return;
+  const t0 = c.currentTime;
+  const buf = getNoise(c);
+  if (!buf) return;
+
+  const src = c.createBufferSource();
+  src.buffer = buf;
+  src.loop = true;
+  src.playbackRate.value = 1.4 + Math.random() * 0.3;
+
+  const bp = c.createBiquadFilter();
+  bp.type = "bandpass";
+  bp.frequency.setValueAtTime(1400, t0);
+  bp.frequency.exponentialRampToValueAtTime(3600, t0 + 0.08);
+  bp.frequency.exponentialRampToValueAtTime(900, t0 + 0.3);
+  bp.Q.value = 0.9;
+
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(0.16, t0 + 0.025);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.32);
+
+  src.connect(bp).connect(g).connect(master);
+  src.start(t0, Math.random() * 1.5);
+  src.stop(t0 + 0.4);
+}
+
 /**
  * بوق هدف ناعم: نغمتان مثلثيتان دافئتان (الجذر + الخامسة)
  * بترنّح تردد خفيف — أقرب لصفير الملعب البعيد من الكلارين اللاذع.
@@ -282,62 +336,63 @@ export function goalHorn(dur = 0.7): void {
 }
 
 /**
- * صافرة حكّام هادئة: نغمة عالية قصيرة بترنّح خفيف.
- * أهدأ بكثير من v2 — واضحة دون وخز للآذان.
+ * صافرة حكّام واقعية: نغمة مزدوجة (شفتان) كما في صافرات الملاعب الحقيقية —
+ * 2100 + 2500 هرتز معًا تعطي «الطرقعة» المميزة، مع ترنّح الحبة ونفَس خلفي.
  */
 export function refWhistle(blasts = 1): void {
   const c = getCtx();
   if (!c || !master) return;
   const m = master; // التقاط للنوع داخل الدوال المتداخلة
   const blast = (t0: number, dur: number) => {
-    const osc = c.createOscillator();
-    osc.type = "triangle";
-    osc.frequency.value = 2100;
+    // الشفتان معًا — نغمتان متقاربتان تُنتجان طرقة حقيقية
+    for (const [freq, v] of [
+      [2100, 0.04],
+      [2540, 0.032],
+    ] as const) {
+      const osc = c.createOscillator();
+      osc.type = "sine";
+      osc.frequency.value = freq;
 
-    const bp = c.createBiquadFilter();
-    bp.type = "bandpass";
-    bp.frequency.value = 2150;
-    bp.Q.value = 4;
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(v, t0 + 0.015);
+      g.gain.setValueAtTime(v, t0 + dur - 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
 
-    const g = c.createGain();
-    g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(0.055, t0 + 0.02);
-    g.gain.setValueAtTime(0.055, t0 + dur - 0.03);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      // ترنّح الحبة
+      const trem = c.createOscillator();
+      trem.frequency.value = 27;
+      const tremG = c.createGain();
+      tremG.gain.value = v * 0.45;
+      trem.connect(tremG).connect(g.gain);
+      trem.start(t0);
+      trem.stop(t0 + dur);
 
-    // ترنّح الحبة خفيف
-    const trem = c.createOscillator();
-    trem.frequency.value = 26;
-    const tremG = c.createGain();
-    tremG.gain.value = 0.02;
-    trem.connect(tremG).connect(g.gain);
-    trem.start(t0);
-    trem.stop(t0 + dur);
+      osc.connect(g).connect(m);
+      osc.start(t0);
+      osc.stop(t0 + dur + 0.02);
+    }
 
-    // نفَس خفيف جدًا خلف النغمة
+    // نفَس خلفي خفيف
     const buf = getNoise(c);
     if (buf) {
       const src = c.createBufferSource();
       src.buffer = buf;
       const ng = c.createGain();
-      ng.gain.setValueAtTime(0.01, t0);
+      ng.gain.setValueAtTime(0.012, t0);
       ng.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
       src.connect(ng).connect(m);
       src.start(t0, Math.random());
       src.stop(t0 + dur);
     }
-
-    osc.connect(bp).connect(g).connect(m);
-    osc.start(t0);
-    osc.stop(t0 + dur);
   };
 
   const now = c.currentTime;
   if (blasts === 1) {
-    blast(now + 0.02, 0.42);
+    blast(now + 0.02, 0.45);
   } else {
-    blast(now + 0.02, 0.14);
-    blast(now + 0.22, 0.14);
+    blast(now + 0.02, 0.15);
+    blast(now + 0.24, 0.15);
   }
 }
 
@@ -372,15 +427,13 @@ export function softDud(): void {
 }
 
 /**
- * هدف! لحظة ملعب هادئة: هتاف خلفية + بوق ناعم + نغمتان دافئتان.
- * (v2 كانت تكدّس بوقًا مسننًا + هتافًا + 4 نغمات + طبلة معًا — مزعجة)
+ * هدف! لحظة ملعب واقعية: الكرة في الشبكة + تضخم جماهيري طبيعي.
+ * بلا بوق ولا نغمات مركبة — هذا ما تسمعه فعلاً عند تسجيل هدف.
  */
 export function goalMoment(): void {
-  crowdCheer(1.6, 0.18);
-  goalHorn(0.75);
-  pluckNote(523.25, 0.1, 0.22, 0.11);
-  pluckNote(783.99, 0.2, 0.4, 0.12);
-  thump(0.2, 0.1);
+  netSwish();
+  crowdCheer(1.7, 0.15);
+  thump(0.02, 0.08);
 }
 
 /** فتح حزمة: إيقاع ترقّب قصير — طبلتان + نغمة صاعدة */
@@ -414,9 +467,9 @@ export function levelUpArp(): void {
   thump(0.36, 0.12);
 }
 
-/** نقر واجهة — خفيف جدًا */
+/** نقر واجهة — نقرة قصيرة واقعية */
 export function tapTick(): void {
-  pluckNote(987.77, 0, 0.05, 0.04, { harmonicVol: 0 });
+  uiClick();
 }
 
 /** نغمة سلسلة صاعدة حسب المستوى (بنتاتونيك) */

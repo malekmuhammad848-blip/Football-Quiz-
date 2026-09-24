@@ -51,17 +51,37 @@ function stripeShapes(stripes: Stripe[]): ReactElement[] {
 
 /** شمس ذهبية بأشعة — للأرجنتين وأوروغواي */
 function Sun({ cx, cy, r = 8 }: { cx: number; cy: number; r?: number }) {
-  const rays = Array.from({ length: 12 }, (_, i) => {
-    const a = (i * Math.PI) / 6;
+  // شمس مايو الحقيقية: 16 شعاعًا مستقيمًا + 16 متموّجًا بالتبادل — نرسم 24 هنا (12+12) كفاية للوضوح
+  const rays = Array.from({ length: 24 }, (_, i) => {
+    const a = (i * Math.PI) / 12;
+    const straight = i % 2 === 0;
+    if (straight) {
+      return (
+        <line
+          key={i}
+          x1={cx + Math.cos(a) * r}
+          y1={cy + Math.sin(a) * r}
+          x2={cx + Math.cos(a) * (r + 5)}
+          y2={cy + Math.sin(a) * (r + 5)}
+          stroke="#f6b40e"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      );
+    }
+    const x1 = cx + Math.cos(a) * (r + 0.5);
+    const y1 = cy + Math.sin(a) * (r + 0.5);
+    const qx = cx + Math.cos(a + 0.14) * (r + 4.2);
+    const qy = cy + Math.sin(a + 0.14) * (r + 4.2);
+    const x2 = cx + Math.cos(a) * (r + 4.4);
+    const y2 = cy + Math.sin(a) * (r + 4.4);
     return (
-      <line
+      <path
         key={i}
-        x1={cx + Math.cos(a) * r}
-        y1={cy + Math.sin(a) * r}
-        x2={cx + Math.cos(a) * (r + 4)}
-        y2={cy + Math.sin(a) * (r + 4)}
+        d={`M${x1.toFixed(2)} ${y1.toFixed(2)} Q${qx.toFixed(2)} ${qy.toFixed(2)} ${x2.toFixed(2)} ${y2.toFixed(2)}`}
         stroke="#f6b40e"
-        strokeWidth="1.8"
+        strokeWidth="1.3"
+        fill="none"
         strokeLinecap="round"
       />
     );
@@ -89,22 +109,44 @@ function Star({ cx, cy, r, fill = "#ffffff" }: { cx: number; cy: number; r: numb
   return <polygon points={pts.join(" ")} fill={fill} />;
 }
 
-/** درع صغير — للبرتغال */
+/** درع البرتغال — كرة ذراعية خلف الدرع + كيوناس + قلاع ذهبية */
 function MiniShield({ cx, cy }: { cx: number; cy: number }) {
   return (
     <g>
-      <path d={`M${cx - 11} ${cy - 12} L${cx + 11} ${cy - 8} V${cy + 4} Q${cx + 11} ${cy + 10} ${cx} ${cy + 13} Q${cx - 11} ${cy + 10} ${cx - 11} ${cy + 4} Z`} fill="#da291c" stroke="#ffd700" strokeWidth="2" />
-      <circle cx={cx} cy={cy} r="5" fill="#ffffff" stroke="#046a38" strokeWidth="1.4" />
-      <circle cx={cx} cy={cy} r="2" fill="#da291c" />
+      {/* الكرة الذراعية */}
+      <circle cx={cx} cy={cy} r="13" fill="none" stroke="#f6b40e" strokeWidth="1.3" />
+      <ellipse cx={cx} cy={cy} rx="13" ry="5.2" fill="none" stroke="#f6b40e" strokeWidth="1" />
+      <ellipse cx={cx} cy={cy} rx="5.2" ry="13" fill="none" stroke="#f6b40e" strokeWidth="1" />
+      <line x1={cx - 16.5} y1={cy - 4} x2={cx + 16.5} y2={cy - 4} stroke="#f6b40e" strokeWidth="1" />
+      <line x1={cx - 16.5} y1={cy + 4} x2={cx + 16.5} y2={cy + 4} stroke="#f6b40e" strokeWidth="1" />
+      {/* الدرع الأحمر */}
+      <path d={`M${cx - 10} ${cy - 12} L${cx + 10} ${cy - 8} V${cy + 4} Q${cx + 10} ${cy + 10} ${cx} ${cy + 13} Q${cx - 10} ${cy + 10} ${cx - 10} ${cy + 4} Z`} fill="#da291c" stroke="#ffd700" strokeWidth="1.8" strokeLinejoin="round" />
+      {/* الدرع الأبيض الداخلي */}
+      <path d={`M${cx - 6.5} ${cy - 8.5} L${cx + 6.5} ${cy - 6} V${cy + 3} Q${cx + 6.5} ${cy + 7} ${cx} ${cy + 9.5} Q${cx - 6.5} ${cy + 7} ${cx - 6.5} ${cy + 3} Z`} fill="#ffffff" />
+      {/* خمس دروع زرقاء (الكيوناس) 2+1+2 */}
+      <circle cx={cx - 3.4} cy={cy - 3.6} r="1.3" fill="#046a38" />
+      <circle cx={cx + 3.4} cy={cy - 3.6} r="1.3" fill="#046a38" />
+      <circle cx={cx} cy={cy - 0.4} r="1.3" fill="#046a38" />
+      <circle cx={cx - 3.4} cy={cy + 3} r="1.3" fill="#046a38" />
+      <circle cx={cx + 3.4} cy={cy + 3} r="1.3" fill="#046a38" />
+      {/* قلاع ذهبية على الحدود الحمراء */}
+      {[
+        [cx - 7.5, cy - 7],
+        [cx + 7.5, cy - 7],
+        [cx - 7.5, cy + 2],
+        [cx + 7.5, cy + 2],
+      ].map(([x2, y2], i) => (
+        <rect key={i} x={x2 - 1} y={y2 - 1} width="2" height="2" fill="#ffd700" />
+      ))}
     </g>
   );
 }
 
-/** لوح شطرنجي كرواتي */
+/** لوح شطرنجي كرواتي — 5×4 كما في الدرع الرسمي */
 function Checker({ x, y }: { x: number; y: number }) {
   const cells: ReactElement[] = [];
   for (let r = 0; r < 4; r++) {
-    for (let c = 0; c < 4; c++) {
+    for (let c = 0; c < 5; c++) {
       cells.push(
         (r + c) % 2 === 0 ? (
           <rect key={`${r}${c}`} x={x + c * 5} y={y + r * 5} width="5" height="5" fill="#d00a2e" />
@@ -117,19 +159,32 @@ function Checker({ x, y }: { x: number; y: number }) {
   return (
     <g>
       {cells}
-      <rect x={x - 1.2} y={y - 1.2} width={20 + 2.4} height={20 + 2.4} rx="2" fill="none" stroke="#d00a2e" strokeWidth="1.6" />
+      <rect x={x - 1.2} y={y - 1.2} width={25 + 2.4} height={20 + 2.4} rx="2.4" fill="none" stroke="#d00a2e" strokeWidth="1.6" />
     </g>
   );
 }
 
-/** خنجر/آية مبسطة — السعودية (خط أبيض + سيف) */
+/** خنجر/آية مبسطة — السعودية (الشهادة بسطرين + سيف بمقبض) */
 function SaudiEmblem() {
   return (
     <g>
-      <path d="M28 52 Q40 47 52 51 Q66 55 74 51" stroke="#ffffff" strokeWidth="3" fill="none" strokeLinecap="round" />
-      <path d="M26 56 H64 L72 53.5 L70 57.5 L64 58.5 H26 Z" fill="#ffffff" />
+      <path d="M30 40 Q42 34 56 38 Q68 41 76 37" stroke="#ffffff" strokeWidth="3.2" fill="none" strokeLinecap="round" />
+      <path d="M32 46 Q44 41 58 44.5 Q68 47 74 44" stroke="#ffffff" strokeWidth="2.8" fill="none" strokeLinecap="round" />
+      {/* السيف */}
+      <path d="M28 54 H70 L80 51.5 L76 56.5 L70 57 H28 Z" fill="#ffffff" />
+      <path d="M28 52.5 h-4.5 q-2.2 1 0 2.6 l4.5 0.4 Z" fill="#ffffff" />
     </g>
   );
+}
+
+/** خماسية متشابكة سباقة — شعار علم المغرب الحقيقي */
+function pentagramPath(cx: number, cy: number, R: number): string {
+  const pts = Array.from({ length: 5 }, (_, i) => {
+    const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+    return `${(cx + Math.cos(a) * R).toFixed(1)} ${(cy + Math.sin(a) * R).toFixed(1)}`;
+  });
+  const order = [0, 2, 4, 1, 3, 0];
+  return order.map((idx, k) => `${k === 0 ? "M" : "L"}${pts[idx]}`).join(" ");
 }
 
 export const FLAG_ART: Record<string, FlagDef> = {
@@ -137,9 +192,21 @@ export const FLAG_ART: Record<string, FlagDef> = {
     bg: "#009c3b",
     overlay: (
       <g>
-        <path d={`M${FX + W / 2} ${FY + 8} L${FX + W - 10} ${FY + H / 2} L${FX + W / 2} ${FY + H - 8} L${FX + 10} ${FY + H / 2} Z`} fill="#ffdf00" />
-        <circle cx={FX + W / 2} cy={FY + H / 2} r="15" fill="#002776" />
-        <path d={`M${FX + 34} ${FY + 33} Q${FX + W / 2} ${FY + 27} ${FX + 66} ${FY + 36}`} stroke="#ffffff" strokeWidth="3" fill="none" strokeLinecap="round" />
+        {/* المعيّن يكاد يلمس الحواف كما في الرسمي */}
+        <path d={`M${FX + W / 2} ${FY + 5} L${FX + W - 6} ${FY + H / 2} L${FX + W / 2} ${FY + H - 5} L${FX + 6} ${FY + H / 2} Z`} fill="#ffdf00" />
+        {/* القطر الرسمي للدائرة = 3.5/14 من الارتفاع */}
+        <circle cx={FX + W / 2} cy={FY + H / 2} r="10" fill="#002776" />
+        <path d={`M${FX + W / 2 - 10.5} ${FY + H / 2 + 3.4} Q${FX + W / 2} ${FY + H / 2 - 3.6} ${FX + W / 2 + 10.5} ${FY + H / 2 - 0.6}`} stroke="#ffffff" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+        {[
+          [FX + W / 2 - 5, FY + H / 2 - 2],
+          [FX + W / 2 - 1.5, FY + H / 2 - 5.5],
+          [FX + W / 2 + 3, FY + H / 2 - 3.2],
+          [FX + W / 2 + 5.5, FY + H / 2 + 1.5],
+          [FX + W / 2 - 3, FY + H / 2 + 4.6],
+          [FX + W / 2 + 1, FY + H / 2 + 5.6],
+        ].map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r="0.9" fill="#ffffff" />
+        ))}
       </g>
     ),
   },
@@ -175,8 +242,13 @@ export const FLAG_ART: Record<string, FlagDef> = {
     ],
     overlay: (
       <g>
-        <rect x={FX + 7} y={FY + H / 2 - 9} width="9" height="18" rx="1.5" fill="#ad1519" />
-        <rect x={FX + 9.5} y={FY + H / 2 - 4} width="4.5" height="4" fill="#ffc400" />
+        {/* عمودا هرقل */}
+        <rect x={FX + 5} y={FY + H / 2 - 11} width="4.5" height="22" rx="2" fill="#d9d9d9" stroke="#8a8a8a" strokeWidth="0.8" />
+        <rect x={FX + 10.5} y={FY + H / 2 - 11} width="4.5" height="22" rx="2" fill="#d9d9d9" stroke="#8a8a8a" strokeWidth="0.8" />
+        {/* الدرع الرباعي */}
+        <path d={`M${FX + 17} ${FY + H / 2 - 8} h14 v9 q0 5 -7 7 q-7 -2 -7 -7 Z`} fill="#ad1519" stroke="#ffc400" strokeWidth="1.2" />
+        <rect x={FX + 17} y={FY + H / 2 - 8} width="7" height="8" fill="#ffc400" opacity="0.9" />
+        <circle cx={FX + 24} cy={FY + H / 2 + 2} r="2.4" fill="#ffc400" />
       </g>
     ),
   },
@@ -210,15 +282,7 @@ export const FLAG_ART: Record<string, FlagDef> = {
   },
   morocco: {
     bg: "#c1272d",
-    overlay: (
-      <path
-        d={`M${FX + W / 2} ${FY + 16} L${FX + W / 2 + 4.5} ${FY + 30.5} L${FX + W / 2 + 19.5} ${FY + 30.5} L${FX + W / 2 + 7.3} ${FY + 39.5} L${FX + W / 2 + 12} ${FY + 54} L${FX + W / 2} ${FY + 45} L${FX + W / 2 - 12} ${FY + 54} L${FX + W / 2 - 7.3} ${FY + 39.5} L${FX + W / 2 - 19.5} ${FY + 30.5} L${FX + W / 2 - 4.5} ${FY + 30.5} Z`}
-        fill="none"
-        stroke="#006233"
-        strokeWidth="3.2"
-        strokeLinejoin="round"
-      />
-    ),
+    overlay: <path d={pentagramPath(FX + W / 2, FY + H / 2, 15)} fill="none" stroke="#006233" strokeWidth="3.2" strokeLinejoin="round" />,
   },
   croatia: {
     stripes: [
@@ -226,17 +290,19 @@ export const FLAG_ART: Record<string, FlagDef> = {
       { axis: "h", color: "#ffffff", size: 25.4 },
       { axis: "h", color: "#171796", size: 25.3 },
     ],
-    overlay: <Checker x={FX + 36} y={FY + 26} />,
+    overlay: <Checker x={FX + 38} y={FY + 22} />,
   },
   uruguay: {
     bg: "#ffffff",
     overlay: (
       <g>
-        {[0, 1, 2, 3].map((i) => (
-          <rect key={i} x={FX} y={FY + i * 19} width="56" height="9.5" fill="#0038a8" />
+        {/* 9 خطوط (5 بيضاء 4 زرقاء) بالارتفاع الرسمي */}
+        {[1, 3, 5, 7].map((i) => (
+          <rect key={i} x={FX} y={FY + i * (H / 9)} width={W} height={H / 9} fill="#0038a8" />
         ))}
-        <rect x={FX} y={FY} width="38" height="28.5" fill="#ffffff" />
-        <Sun cx={FX + 19} cy={FY + 14} r={7} />
+        {/* الكانتون الأبيض فوق أول 5 خطوط بنصف الطول */}
+        <rect x={FX} y={FY} width="50" height={(H / 9) * 5} fill="#ffffff" />
+        <Sun cx={FX + 25} cy={FY + (H / 9) * 2.5} r={6.5} />
       </g>
     ),
   },
@@ -251,8 +317,9 @@ export const FLAG_ART: Record<string, FlagDef> = {
     bg: "#ffffff",
     overlay: (
       <g>
-        <circle cx={FX + W / 2} cy={FY + H / 2} r="16" fill="#bc002d" />
-        <circle cx={FX + W / 2} cy={FY + H / 2} r="16" fill="none" stroke="rgba(0,0,0,0.12)" strokeWidth="1" />
+        {/* القطر الرسمي 3/5 من ارتفاع العلم */}
+        <circle cx={FX + W / 2} cy={FY + H / 2} r="20" fill="#bc002d" />
+        <circle cx={FX + W / 2} cy={FY + H / 2} r="20" fill="none" stroke="rgba(0,0,0,0.12)" strokeWidth="1" />
       </g>
     ),
   },
@@ -264,13 +331,22 @@ export const FLAG_ART: Record<string, FlagDef> = {
     bg: "#ffffff",
     overlay: (
       <g>
-        {[0, 1, 2, 3, 4, 5].map((i) => (
-          <rect key={i} x={FX} y={FY + i * 13} width={W} height="6.5" fill="#b22234" />
+        {/* 13 خطًا (7 حمراء) بالارتفاع الرسمي */}
+        {Array.from({ length: 7 }, (_, i) => (
+          <rect key={i} x={FX} y={FY + i * 2 * (H / 13)} width={W} height={H / 13} fill="#b22234" />
         ))}
-        <rect x={FX} y={FY} width="44" height="33" fill="#3c3b6e" />
-        {Array.from({ length: 12 }, (_, i) => (
-          <Star key={i} cx={FX + 7 + (i % 4) * 10} cy={FY + 6 + Math.floor(i / 4) * 10} r={2.6} />
-        ))}
+        {/* الكانتون 2/5 من الطول × 7/13 من الارتفاع — 49 نجمة بصفوف 6/5 */}
+        <rect x={FX} y={FY} width="40" height={(H / 13) * 7} fill="#3c3b6e" />
+        {Array.from({ length: 9 }, (_, row) =>
+          Array.from({ length: row % 2 === 0 ? 6 : 5 }, (_, col) => (
+            <Star
+              key={`${row}${col}`}
+              cx={FX + 4.5 + col * 6.4 + (row % 2 === 1 ? 3.2 : 0)}
+              cy={FY + 4 + row * 4.2}
+              r={1.5}
+            />
+          )),
+        )}
       </g>
     ),
   },
@@ -281,10 +357,16 @@ export const FLAG_ART: Record<string, FlagDef> = {
       { axis: "h", color: "#000000", size: 25.3 },
     ],
     overlay: (
-      <path
-        d={`M${FX + W / 2 - 7} ${FY + H / 2 + 6} L${FX + W / 2 - 4} ${FY + H / 2 - 5} L${FX + W / 2} ${FY + H / 2 - 8} L${FX + W / 2 + 4} ${FY + H / 2 - 5} L${FX + W / 2 + 7} ${FY + H / 2 + 6} Z`}
-        fill="#c09300"
-      />
+      <g>
+        {/* نسر صلاح الدين — هيكل مجنّح */}
+        <path
+          d={`M${FX + W / 2 - 9} ${FY + H / 2 + 7} Q${FX + W / 2 - 13} ${FY + H / 2 - 2} ${FX + W / 2 - 5} ${FY + H / 2 - 7} L${FX + W / 2 - 2} ${FY + H / 2 - 3} L${FX + W / 2} ${FY + H / 2 - 9.5} L${FX + W / 2 + 2} ${FY + H / 2 - 3} L${FX + W / 2 + 5} ${FY + H / 2 - 7} Q${FX + W / 2 + 13} ${FY + H / 2 - 2} ${FX + W / 2 + 9} ${FY + H / 2 + 7} Z`}
+          fill="#c09300"
+          stroke="#7a5c00"
+          strokeWidth="0.7"
+          strokeLinejoin="round"
+        />
+      </g>
     ),
   },
   qatar: {

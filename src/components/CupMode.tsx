@@ -122,7 +122,8 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
   };
 
   const choose = (i: number) => {
-    if (!cup || selected !== null || !qs[qIndex]) return;
+    // حماية النقر المزدوج: لا تسجيل هدفين من لمسة واحدة (كان يفسد النتيجة)
+    if (!cup || selected !== null || !qs[qIndex] || phase !== "playing") return;
     setSelected(i);
     const correct = i === qs[qIndex]!.answer;
     const next = answerResult(cup, qIndex + 1, correct);
@@ -200,7 +201,8 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
 
   /* ——— ركلات الترجيح ——— */
   const choosePk = (i: number) => {
-    if (!pkState || pkState.selected !== null || !cup) return;
+    // حماية النقر المزدوج في الترجيح أيضًا
+    if (!pkState || pkState.selected !== null || !cup || phase !== "pks") return;
     const q = pkState.qs[pkState.idx]!;
     const correct = i === q.answer;
     const myCorrect = pkState.myCorrect + (correct ? 1 : 0);
@@ -216,7 +218,7 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
   };
 
   const nextPk = () => {
-    if (!pkState || !cup) return;
+    if (!pkState || !cup || phase !== "pks" || pkState.selected === null) return;
     if (pkState.idx + 1 < 2) {
       setPkState({ ...pkState, idx: pkState.idx + 1, selected: null });
       return;
