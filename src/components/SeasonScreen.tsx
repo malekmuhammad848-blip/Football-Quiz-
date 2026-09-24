@@ -1,12 +1,12 @@
 /** ============================================================
  *  SeasonScreen — الموسم التقييمي
- *  الحزم تُشترى بالعملات 🪙 (لا تلمس XP)، والملصقات المكررة
- *  تُباع لعملات إضافية. أنيميشن كشف ملصق-بل-ملصق، ألبوم يُكمل باللعب.
+ *  الحزم تُشترى بالعملات (بأيقونة مرسومة لا إيموجي)، والمكررات
+ *  تُباع لعملات إضافية. كشف خفيف وسلس بلا طبقات أنيميشن متداخلة.
  *  ============================================================ */
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Coins as CoinsIcon, Lock, PackageOpen, Sparkles, TrendingUp } from "lucide-react";
+import { Coins as CoinsIcon, Lock, Sparkles, TrendingUp } from "lucide-react";
 import {
   PACKS,
   TOTAL_STICKERS,
@@ -25,12 +25,13 @@ import { STICKERS as STICKERS_LIST } from "../domain/season";
 import { progressStore } from "../stores/progressStore";
 import { prefsStore } from "../stores/prefsStore";
 import { useStore } from "../core/store";
-import { stadium } from "../lib/stadium";
+import { stadium, chordBright } from "../lib/stadium";
 import { sfx } from "../lib/feedback";
 import { t, type Lang } from "../lib/i18n";
 import { cn } from "../utils/cn";
 import { ProgressBar } from "./ui/primitives";
 import { StickerAlbum, StickerCard } from "./StickerCard";
+import { CoinMark, PackArt } from "./Icons";
 
 interface Props {
   lang: Lang;
@@ -84,8 +85,8 @@ export function SeasonScreen({ lang }: Props) {
       purchaseLockRef.current = false;
       setNeedCoinsToast(
         lang === "ar"
-          ? `تحتاج ${cost - coins} 🪙 إضافية — اجمعها من المهام والألعاب`
-          : `You need ${cost - coins} more 🪙 — earn them from quests and games`,
+          ? `تحتاج ${cost - coins} عملة إضافية — اجمعها من المهام والألعاب`
+          : `You need ${cost - coins} more coins — earn them from quests and games`,
       );
       if (needCoinsTimer.current) clearTimeout(needCoinsTimer.current);
       needCoinsTimer.current = setTimeout(() => setNeedCoinsToast(null), 2600);
@@ -116,7 +117,7 @@ export function SeasonScreen({ lang }: Props) {
 
     setOpening(pack);
     setCurrentReveal(null);
-    if (prefsStore.getState().sound) stadium.drums();
+    if (prefsStore.getState().sound) stadium.packOpen();
     // فُتحت الحزمة — نرفع القفل (تُكمل الحماية عبر opening/revealQueue)
     purchaseLockRef.current = false;
   };
@@ -139,7 +140,7 @@ export function SeasonScreen({ lang }: Props) {
     saveSeason(next);
     setSeason(next);
     progressStore.addCoins(earned);
-    setSoldToast(lang === "ar" ? `تم البيع! +${earned} 🪙` : `Sold! +${earned} 🪙`);
+    setSoldToast(lang === "ar" ? `تم البيع! +${formatCoins(earned)}` : `Sold! +${formatCoins(earned)}`);
     if (soldTimer.current) clearTimeout(soldTimer.current);
     soldTimer.current = setTimeout(() => setSoldToast(null), 2600);
     if (prefsStore.getState().sound) sfx.unlock();
@@ -155,8 +156,9 @@ export function SeasonScreen({ lang }: Props) {
     setCurrentReveal(head);
     setRevealQueue(rest);
     if (prefsStore.getState().sound) {
-      if (head?.isNew) sfx.unlock();
-      stadium.goal();
+      // صوت كشف واحد قصير (كان صفيران مكدسان: unlock + هدف كامل — مزعج)
+      if (head?.isNew) chordBright();
+      else sfx.tap();
     }
   };
 
@@ -239,9 +241,9 @@ export function SeasonScreen({ lang }: Props) {
               <motion.span
                 animate={p.affordable && opening === null ? { y: [0, -5, 0] } : {}}
                 transition={{ duration: 1.6, repeat: 2 }}
-                className="text-4xl"
+                className="block w-fit"
               >
-                {p.emoji}
+                <PackArt id={p.id} className="size-14 drop-shadow-md" />
               </motion.span>
               <p className="text-xs font-black">{lang === "ar" ? p.ar : p.en}</p>
               <span
@@ -250,8 +252,8 @@ export function SeasonScreen({ lang }: Props) {
                   p.affordable ? "bg-gold/25 text-amber-700 dark:text-amber-200" : "bg-ink/10 text-faint dark:bg-white/10",
                 )}
               >
-                {p.affordable ? <PackageOpen className="size-3" /> : <Lock className="size-3" />}
-                🪙 {p.price} · {p.pulls}×
+                <CoinMark className="size-3.5" /> {p.price} · {p.pulls}×
+                {p.affordable ? null : <Lock className="size-3" />}
               </span>
               {/* تقدم جمع نوع الحزمة */}
               <span className="text-[9px] font-bold tabular-nums opacity-50">
@@ -283,68 +285,61 @@ export function SeasonScreen({ lang }: Props) {
         <StickerAlbum owned={season.owned} lang={lang} />
       </section>
 
-      {/* ——— أنيميشن فتح الحزمة ——— */}
+      {/* ——— أنيميشن فتح الحزمة — طبقة واحدة خفيفة (كانت AnimatePresence متداخلة تُثقل) ——— */}
       <AnimatePresence>
         {opening && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.16 }}
             className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80"
             onClick={revealNext}
           >
             {/* الحزمة قبل الكشف */}
             {!currentReveal && (
               <motion.div
-                initial={{ scale: 0.6, rotate: -8 }}
-                animate={{ scale: [0.6, 1.05, 1], rotate: [0, -3, 0] }}
-                transition={{ duration: 0.7 }}
+                initial={{ scale: 0.7 }}
+                animate={{ scale: 1, y: [0, -8, 0] }}
+                transition={{ duration: 0.45, y: { duration: 1.1, repeat: Infinity, ease: "easeInOut" } }}
                 className="text-center"
               >
-                <motion.div
-                  animate={{ y: [0, -12, 0] }}
-                  transition={{ duration: 1, repeat: 3 }}
-                  className="text-8xl"
-                >
-                  {opening.emoji}
-                </motion.div>
+                <PackArt id={opening.id} className="mx-auto size-32 drop-shadow-2xl" />
                 <p className="mt-4 animate-pulse text-sm font-black text-white/80">
                   {t(lang, "packTapToOpen")}
                 </p>
               </motion.div>
             )}
 
-            {/* كشف الملصق */}
-            <AnimatePresence>
-              {currentReveal && (
-                <motion.div
-                  key={currentReveal.seq ?? currentReveal.sticker.id}
-                  initial={{ scale: 0.3, rotateY: 90, opacity: 0 }}
-                  animate={{ scale: 1, rotateY: 0, opacity: 1 }}
-                  exit={{ scale: 0.8, opacity: 0 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 17 }}
-                  className="flex flex-col items-center gap-3"
-                >
-                  {currentReveal.isNew && (
-                    <motion.span
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="rounded-full bg-grass-500 px-4 py-1 text-xs font-black text-white shadow-lg"
-                    >
-                      {lang === "ar" ? "جديد!" : "NEW!"} +{COINS.newSticker} 🪙
-                    </motion.span>
-                  )}
-                  <div className="w-64">
-                    <StickerCard sticker={currentReveal.sticker} copies={1} lang={lang} />
-                  </div>
-                  <p className="text-lg font-black text-white">{lang === "ar" ? currentReveal.sticker.ar : currentReveal.sticker.en}</p>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-white/50">
-                    {currentReveal.sticker.rarity}
-                  </p>
-                  <p className="mt-2 text-xs font-bold text-white/40">{t(lang, "packTapContinue")}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* كشف الملصق — مبادلة مباشرة بلا exit (أسرع وأسلس على الأجهزة الضعيفة) */}
+            {currentReveal && (
+              <motion.div
+                key={currentReveal.seq ?? currentReveal.sticker.id}
+                initial={{ scale: 0.55, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 320, damping: 24, mass: 0.7 }}
+                className="flex flex-col items-center gap-3"
+              >
+                {currentReveal.isNew && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="flex items-center gap-1 rounded-full bg-grass-500 px-4 py-1 text-xs font-black text-white shadow-lg"
+                  >
+                    {lang === "ar" ? "جديد!" : "NEW!"}
+                    <CoinMark className="size-3.5" />+{COINS.newSticker}
+                  </motion.span>
+                )}
+                <div className="w-64">
+                  <StickerCard sticker={currentReveal.sticker} copies={1} lang={lang} />
+                </div>
+                <p className="text-lg font-black text-white">{lang === "ar" ? currentReveal.sticker.ar : currentReveal.sticker.en}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-white/50">
+                  {currentReveal.sticker.rarity}
+                </p>
+                <p className="mt-2 text-xs font-bold text-white/40">{t(lang, "packTapContinue")}</p>
+              </motion.div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -403,8 +398,8 @@ function DupesPanel({
             <h3 className="text-sm font-black">{lang === "ar" ? "الملصقات المكررة" : "Duplicate stickers"}</h3>
             <p className="text-[10px] font-bold opacity-50">
               {lang === "ar"
-                ? `${dupes.items.length} نوعاً · قيمتها ${formatCoins(dupes.totalValue)} 🪙`
-                : `${dupes.items.length} types · worth ${formatCoins(dupes.totalValue)} 🪙`}
+                ? `${dupes.items.length} نوعاً · قيمتها ${formatCoins(dupes.totalValue)}`
+                : `${dupes.items.length} types · worth ${formatCoins(dupes.totalValue)}`}
             </p>
           </div>
         </div>
@@ -412,7 +407,7 @@ function DupesPanel({
           onClick={onSellAll}
           className="shrink-0 rounded-xl bg-gradient-to-l from-amber-500 to-gold px-3.5 py-2 text-xs font-black text-amber-950 shadow-md transition-all hover:brightness-105 active:scale-95"
         >
-          {lang === "ar" ? `بيع الكل +${formatCoins(dupes.totalValue)} 🪙` : `Sell all +${formatCoins(dupes.totalValue)} 🪙`}
+          {lang === "ar" ? `بيع الكل +${formatCoins(dupes.totalValue)}` : `Sell all +${formatCoins(dupes.totalValue)}`}
         </button>
       </div>
 
@@ -446,4 +441,3 @@ function DupesPanel({
     </section>
   );
 }
-

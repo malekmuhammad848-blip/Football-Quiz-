@@ -8,6 +8,7 @@ import { fetchWeeklyLeaderboard, type LeaderRow, type Session } from "../lib/bac
 import { t, type Lang } from "../lib/i18n";
 import { cn } from "../utils/cn";
 import { Sheet } from "./ui/Sheet";
+import { BallMark, FlameMark } from "./Icons";
 
 interface Props {
   open: boolean;
@@ -82,11 +83,11 @@ export function LeaderboardSheet({ open, onClose, session, lang }: Props) {
                   {r.display_name}
                   {me && <span className="ms-1.5 text-[10px] font-black opacity-60">({t(lang, "you")})</span>}
                 </span>
-                <span className="shrink-0 text-xs font-bold tabular-nums text-soft">
-                  ⚽ {r.correct_count}
+                <span className="flex shrink-0 items-center gap-1 text-xs font-bold tabular-nums text-soft">
+                  <BallMark className="size-3.5" /> {r.correct_count}
                 </span>
-                <span className="shrink-0 text-xs font-bold tabular-nums text-orange-300">
-                  🔥 {r.streak}
+                <span className="flex shrink-0 items-center gap-1 text-xs font-bold tabular-nums text-orange-300">
+                  <FlameMark className="size-3.5" /> {r.streak}
                 </span>
               </motion.li>
             );

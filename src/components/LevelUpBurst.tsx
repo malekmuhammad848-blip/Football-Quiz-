@@ -76,7 +76,7 @@ export function LevelUpBurst({ open, level, levelName, onClose }: Props) {
               transition={{ delay: 0.5 }}
               className="text-sm font-bold opacity-60"
             >
-              + استمر في اللمعان ⚽
+              + استمر في اللمعان
             </motion.p>
           </motion.div>
         </motion.div>

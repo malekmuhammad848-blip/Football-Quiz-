@@ -3,6 +3,7 @@
  *  ============================================================ */
 
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { BallMark } from "./Icons";
 
 interface Props {
   children: ReactNode;
@@ -26,7 +27,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.error) {
       return (
         <div className="flex min-h-dvh flex-col items-center justify-center gap-4 p-8 text-center" dir="rtl">
-          <div className="text-5xl">⚽</div>
+          <BallMark className="size-16" />
           <h1 className="text-xl font-black">حدث خطأ غير متوقع</h1>
           <p className="max-w-sm text-sm opacity-60">
             نعتذر، حدث خلل بسيط. جرّب إعادة تحميل الصفحة.

@@ -203,6 +203,66 @@ export function ZapMark({ className }: IconProps) {
   );
 }
 
+/** عملة ذهبية — بدل الإيموجي 🪙 (تعبئة صلبة بلا تعريفات مكررة) */
+export function CoinMark({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
+      <circle cx="12" cy="12" r="9.5" fill="#f59e0b" stroke="#b45309" strokeWidth="1.6" />
+      <circle cx="12" cy="12" r="6.4" fill="none" stroke="#fde68a" strokeWidth="1.5" opacity="0.9" />
+      <circle cx="9.2" cy="9" r="1.5" fill="#fef3c7" opacity="0.85" />
+    </svg>
+  );
+}
+
+/** صناديق الحزم الأربعة — فن مرسوم بدل الإيموجي (👑⭐🏟️🌍) */
+export function PackArt({ id, className }: IconProps & { id: "legends" | "stars" | "clubs" | "nations" }) {
+  const theme = {
+    legends: { body: "#d97706", band: "#fbbf24", edge: "#92400e" },
+    stars: { body: "#ea580c", band: "#fdba74", edge: "#9a3412" },
+    clubs: { body: "#059669", band: "#6ee7b7", edge: "#065f46" },
+    nations: { body: "#2563eb", band: "#93c5fd", edge: "#1e40af" },
+  }[id];
+
+  return (
+    <svg viewBox="0 0 48 48" fill="none" className={className} aria-hidden>
+      {/* صندوق الحزمة */}
+      <rect x="7" y="5" width="34" height="38" rx="6" fill={theme.body} stroke={theme.edge} strokeWidth="1.6" />
+      {/* الطية العلوية */}
+      <path d="M7 11a6 6 0 016-6h22a6 6 0 016 6v4.5H7V11z" fill={theme.band} />
+      <path d="M11 15.5h26" stroke={theme.edge} strokeWidth="1.2" opacity="0.5" />
+      {/* لمعة جانبية */}
+      <path d="M12 20l5 18" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" opacity="0.18" />
+      {/* الشعار المميز لكل حزمة */}
+      {id === "legends" && (
+        <g fill="#ffffff">
+          <path d="M16.5 33l2.6-7 4 3.4L24 22.5l2.9 6.9 4-3.4 2.6 7h-17z" />
+          <rect x="16.5" y="34" width="15" height="2.6" rx="1.2" />
+        </g>
+      )}
+      {id === "stars" && (
+        <path
+          transform="translate(24 29) scale(0.62) translate(-12 -12)"
+          d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.3l-5.8 3.1 1.1-6.5L2.6 9.3l6.5-.9L12 2.5z"
+          fill="#ffffff"
+        />
+      )}
+      {id === "clubs" && (
+        <g>
+          <circle cx="24" cy="29" r="6.4" fill="#ffffff" />
+          <path d="M24 25.2l3.4 2.5-1.3 4h-4.2l-1.3-4 3.4-2.5z" fill={theme.edge} />
+        </g>
+      )}
+      {id === "nations" && (
+        <g stroke="#ffffff" strokeWidth="1.7" fill="none">
+          <circle cx="24" cy="29" r="6.6" />
+          <ellipse cx="24" cy="29" rx="2.9" ry="6.6" />
+          <path d="M17.6 27h12.8M17.6 31h12.8" />
+        </g>
+      )}
+    </svg>
+  );
+}
+
 /** خريطة الأيقونات للإنجازات */
 export const ACHIEVEMENT_ICONS = {
   flame: FlameMark,

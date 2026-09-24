@@ -631,10 +631,10 @@ export const StickerAlbum = memo(function StickerAlbum({
   lang: "ar" | "en";
 }) {
   const groups: { title: string; items: typeof STICKERS }[] = [
-    { title: lang === "ar" ? "الأساطير 👑" : "Legends 👑", items: STICKERS.filter((s) => s.kind === "legend") },
-    { title: lang === "ar" ? "نجوم الحاضر ⭐" : "Stars ⭐", items: STICKERS.filter((s) => s.kind === "star") },
-    { title: lang === "ar" ? "الأندية 🏟️" : "Clubs 🏟️", items: STICKERS.filter((s) => s.kind === "club") },
-    { title: lang === "ar" ? "المنتخبات 🌍" : "Nations 🌍", items: STICKERS.filter((s) => s.kind === "nation") },
+    { title: lang === "ar" ? "الأساطير" : "Legends", items: STICKERS.filter((s) => s.kind === "legend") },
+    { title: lang === "ar" ? "نجوم الحاضر" : "Stars", items: STICKERS.filter((s) => s.kind === "star") },
+    { title: lang === "ar" ? "الأندية" : "Clubs", items: STICKERS.filter((s) => s.kind === "club") },
+    { title: lang === "ar" ? "المنتخبات" : "Nations", items: STICKERS.filter((s) => s.kind === "nation") },
   ];
 
   return (

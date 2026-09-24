@@ -16,7 +16,7 @@ import { prefsStore } from "../stores/prefsStore";
 import { t, type Lang } from "../lib/i18n";
 import { cn } from "../utils/cn";
 import { ProgressBar } from "./ui/primitives";
-import { ShieldMark } from "./Icons";
+import { CoinMark, ShieldMark } from "./Icons";
 
 const QUEST_ICONS = {
   answerDaily: Volleyball,
@@ -111,10 +111,9 @@ export function DailyQuests({ lang }: { lang: Lang }) {
                 <div className="flex items-center justify-between gap-2">
                   <p className={cn("truncate text-xs font-black sm:text-sm", claimed && "opacity-50 line-through")}>
                     {questTitle(lang, def)}
-                  </p>
-                  <span className="shrink-0 text-[10px] font-black text-amber-600 tabular-nums dark:text-amber-300">
-                    +{def.rewardXp} XP · +{COINS.quest[def.id] ?? 0} 🪙
-                  </span>
+                  </p>                    <span className="flex shrink-0 items-center gap-1 text-[10px] font-black text-amber-600 tabular-nums dark:text-amber-300">
+                      +{def.rewardXp} XP · <CoinMark className="size-3" />+{COINS.quest[def.id] ?? 0}
+                    </span>
                 </div>
                 <div className="mt-1 flex items-center gap-2">
                   <ProgressBar value={pct} className="h-1.5 flex-1" />
@@ -154,8 +153,8 @@ export function DailyQuests({ lang }: { lang: Lang }) {
             className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-gold/50 bg-gradient-to-l from-gold/25 via-gold/15 to-transparent px-4 py-3 shadow-lg"
           >
             <ShieldMark className="size-5" />
-            <span className="text-sm font-black text-amber-700 dark:text-amber-200">
-              {t(lang, "questsAllBonus")} +{ALL_BONUS_XP} XP · +{COINS.quest.allBonus} 🪙 — {t(lang, "questsShieldReward")}
+            <span className="flex items-center gap-1.5 text-sm font-black text-amber-700 dark:text-amber-200">
+              {t(lang, "questsAllBonus")} +{ALL_BONUS_XP} XP · <CoinMark className="size-4" />+{COINS.quest.allBonus} — {t(lang, "questsShieldReward")}
             </span>
           </motion.button>
         )}

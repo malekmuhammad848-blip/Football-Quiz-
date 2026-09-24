@@ -1,17 +1,19 @@
 /** ============================================================
- *  Stadium Audio — المحرك الصوتي الموحد للتطبيق كله (v2)
+ *  Stadium Audio — المحرك الصوتي الموحد للتطبيق كله (v3 ناعم)
  *  سياق Web Audio واحد فقط (تُشارَك مع feedback.ts).
  *
- *  الجديد: طبقات ملعب حقيقية مُصنّعة رقميًا:
- *  - هتاف جماهير يتضخم (ضوضاء مُرشّحة + طبقات الصوت البشري)
- *  - طبول ملعب (توم منخفض + قشطرة)
- *  - بوق هدف (كورد هوائي متذبذب كما في الملاعب الكبرى)
- *  - صافرة حكّام بترنّح الحبة (pea trill)
- *  - تأوه خيبة جماهيري هابط
+ *  فلسفة v3: أصوات قصيرة دافئة ومريحة — بلا خشونة ولا ازدحام:
+ *  - الماستر منخفض (0.5) حتى لا يُصمّ الآذان على مكبرات الهاتف
+ *  - بوق الهدف مثلث ناعم بدل الموجة المسننة الحادة
+ *  - الهتاف خلفية هادئة فقط — لا يطغى أبدًا على النغمات
+ *  - صافرة أهدأ وأقصر، طبول أقل ونعومة
  *  ============================================================ */
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
+
+/** الماستر النهائي — قيمة مريحة لمكبرات الهاتف */
+const MASTER_GAIN = 0.5;
 
 function getCtx(): AudioContext | null {
   if (typeof window === "undefined") return null;
@@ -23,7 +25,7 @@ function getCtx(): AudioContext | null {
     ctx ??= new AC();
     if (ctx.state === "suspended") void ctx.resume();
     master ??= ctx.createGain();
-    master.gain.value = 0.8;
+    master.gain.value = MASTER_GAIN;
     master.connect(ctx.destination);
     return ctx;
   } catch {
@@ -119,15 +121,14 @@ function thump(start: number, vol = 0.14): void {
 }
 
 /* ============================================================
- *  طبقات الملعب الحقيقية
+ *  طبقات الملعب — كلها خلفية هادئة لا تطغى
  * ============================================================ */
 
 /**
- * هتاف جماهير: 3 طبقات ضوضاء مُرشّحة تتضخم وتتلاشى —
- * طبقة احتكاك منخفضة (الوقوف) + وسطى (الأصوات) + عالية (الصيحات).
- * randomstart/offset يجعله مختلفًا في كل مرة.
+ * هتاف جماهير هادئ: طبقتا ضوضاء مُرشّحة تتضخم وتتلاشى بنعومة.
+ * المستوى الافتراضي منخفض عمدًا — خلفية لا صخب.
  */
-export function crowdCheer(dur = 1.8, vol = 0.34): void {
+export function crowdCheer(dur = 1.4, vol = 0.16): void {
   const c = getCtx();
   if (!c || !master) return;
   const t0 = c.currentTime;
@@ -135,24 +136,23 @@ export function crowdCheer(dur = 1.8, vol = 0.34): void {
   if (!buf) return;
 
   const layers: Array<{ f: number; q: number; v: number; attack: number; hold: number }> = [
-    { f: 220, q: 0.7, v: vol * 0.5, attack: 0.14, hold: dur * 0.45 },
-    { f: 650, q: 0.9, v: vol * 0.42, attack: 0.1, hold: dur * 0.4 },
-    { f: 1500, q: 1.4, v: vol * 0.2, attack: 0.07, hold: dur * 0.3 },
+    { f: 300, q: 0.6, v: vol * 0.6, attack: 0.22, hold: dur * 0.4 },
+    { f: 800, q: 0.7, v: vol * 0.3, attack: 0.16, hold: dur * 0.32 },
   ];
   for (const L of layers) {
     const src = c.createBufferSource();
     src.buffer = buf;
     src.loop = true;
-    src.playbackRate.value = 0.9 + Math.random() * 0.25;
+    src.playbackRate.value = 0.92 + Math.random() * 0.2;
 
     const bp = c.createBiquadFilter();
     bp.type = "bandpass";
     bp.frequency.value = L.f;
     bp.Q.value = L.q;
 
-    // تضخّم التردد صعودًا أثناء الهتاف (يشبه فتح الحلق)
-    bp.frequency.setValueAtTime(L.f * 0.8, t0);
-    bp.frequency.linearRampToValueAtTime(L.f * 1.25, t0 + L.attack + L.hold);
+    // انتفاخ تردد لطيف — يشبه فتح الحلق دون حدّة
+    bp.frequency.setValueAtTime(L.f * 0.85, t0);
+    bp.frequency.linearRampToValueAtTime(L.f * 1.15, t0 + L.attack + L.hold);
     bp.frequency.linearRampToValueAtTime(L.f * 0.9, t0 + dur);
 
     const g = c.createGain();
@@ -167,8 +167,8 @@ export function crowdCheer(dur = 1.8, vol = 0.34): void {
   }
 }
 
-/** تأوه خيبة: ضوضاء هابطة منخفضة — «أااااه» الجمهور عند إضاعة فرصة */
-export function crowdAww(dur = 1.1, vol = 0.22): void {
+/** تأوه خيبة هادئ: ضوضاء هابطة منخفضة قصيرة */
+export function crowdAww(dur = 0.9, vol = 0.12): void {
   const c = getCtx();
   if (!c || !master) return;
   const t0 = c.currentTime;
@@ -181,13 +181,13 @@ export function crowdAww(dur = 1.1, vol = 0.22): void {
 
   const bp = c.createBiquadFilter();
   bp.type = "bandpass";
-  bp.frequency.setValueAtTime(850, t0);
+  bp.frequency.setValueAtTime(700, t0);
   bp.frequency.exponentialRampToValueAtTime(320, t0 + dur);
-  bp.Q.value = 1.1;
+  bp.Q.value = 0.8;
 
   const g = c.createGain();
   g.gain.setValueAtTime(0.0001, t0);
-  g.gain.exponentialRampToValueAtTime(vol, t0 + 0.09);
+  g.gain.exponentialRampToValueAtTime(vol, t0 + 0.12);
   g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
 
   src.connect(bp).connect(g).connect(master);
@@ -195,8 +195,8 @@ export function crowdAww(dur = 1.1, vol = 0.22): void {
   src.stop(t0 + dur + 0.1);
 }
 
-/** طبلة ملعب: توم عميق + قشطرة قصيرة */
-export function drumHit(start: number, pitch = 90, vol = 0.4, snap = true): void {
+/** طبلة ملعب هادئة: توم عميق قصير + قشطرة خفيفة */
+export function drumHit(start: number, pitch = 90, vol = 0.26, snap = true): void {
   const c = getCtx();
   if (!c || !master) return;
   const t = c.currentTime + start;
@@ -206,78 +206,74 @@ export function drumHit(start: number, pitch = 90, vol = 0.4, snap = true): void
   const og = c.createGain();
   osc.type = "sine";
   osc.frequency.setValueAtTime(pitch * 1.6, t);
-  osc.frequency.exponentialRampToValueAtTime(pitch * 0.6, t + 0.22);
+  osc.frequency.exponentialRampToValueAtTime(pitch * 0.6, t + 0.2);
   og.gain.setValueAtTime(vol, t);
-  og.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+  og.gain.exponentialRampToValueAtTime(0.0001, t + 0.28);
   osc.connect(og).connect(master);
   osc.start(t);
-  osc.stop(t + 0.34);
+  osc.stop(t + 0.32);
 
   if (!snap) return;
-  // القشطرة: ضوضاء قصيرة عالية
+  // القشطرة: ضوضاء قصيرة هادئة
   const buf = getNoise(c);
   if (!buf) return;
   const src = c.createBufferSource();
   src.buffer = buf;
   const hp = c.createBiquadFilter();
   hp.type = "highpass";
-  hp.frequency.value = 3200;
+  hp.frequency.value = 3600;
   const ng = c.createGain();
-  ng.gain.setValueAtTime(vol * 0.35, t);
-  ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+  ng.gain.setValueAtTime(vol * 0.22, t);
+  ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
   src.connect(hp).connect(ng).connect(master);
   src.start(t, Math.random());
-  src.stop(t + 0.12);
+  src.stop(t + 0.1);
 }
 
-/** إيقاع طبول ملعب: بوم-بوم-كاتشك |
- *  three hits building into the rhythm */
+/** إيقاع طبول هادئ: ثلاث ضربات فقط متدرجة — بلا صخب */
 export function stadiumDrums(): void {
-  drumHit(0, 95, 0.42);
-  drumHit(0.16, 95, 0.34);
-  drumHit(0.32, 120, 0.46);
-  drumHit(0.44, 120, 0.3);
-  drumHit(0.56, 80, 0.5);
-  crowdCheer(1.4, 0.16);
+  drumHit(0, 95, 0.26);
+  drumHit(0.18, 95, 0.22);
+  drumHit(0.36, 120, 0.3);
+  crowdCheer(1.2, 0.07);
 }
 
 /**
- * بوق هدف: كورد نحاسي هوائي (مي♭) بتذبذب سريع —
- * صوت أبواق الملاعب الأوروبية عند التسجيل.
+ * بوق هدف ناعم: نغمتان مثلثيتان دافئتان (الجذر + الخامسة)
+ * بترنّح تردد خفيف — أقرب لصفير الملعب البعيد من الكلارين اللاذع.
  */
-export function goalHorn(dur = 1.15): void {
+export function goalHorn(dur = 0.7): void {
   const c = getCtx();
   if (!c || !master) return;
   const m = master; // التقاط للنوع داخل الدوال المتداخلة
   const t0 = c.currentTime;
 
-  // كورد هوائي: الجذر + الخامسة (233 + 349 هرتز) بتشويش خفيف
-  const freqs = [233.08, 349.23, 233.08 * 2];
-  const vols = [0.16, 0.11, 0.07];
+  const freqs = [233.08, 349.23];
+  const vols = [0.09, 0.06];
   freqs.forEach((f, i) => {
     const osc = c.createOscillator();
-    osc.type = "sawtooth";
-    osc.frequency.setValueAtTime(f * 0.985, t0);
-    osc.frequency.linearRampToValueAtTime(f, t0 + 0.08); // صعود البوق
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(f * 0.99, t0);
+    osc.frequency.linearRampToValueAtTime(f, t0 + 0.06); // صعود لطيف
+
+    // ترنّح ترددي خفيف جدًا — حيوية بلا خشونة
+    const vib = c.createOscillator();
+    vib.frequency.value = 5;
+    const vibG = c.createGain();
+    vibG.gain.value = 2.2;
+    vib.connect(vibG).connect(osc.frequency);
+    vib.start(t0);
+    vib.stop(t0 + dur);
 
     const lp = c.createBiquadFilter();
     lp.type = "lowpass";
-    lp.frequency.value = 2200;
+    lp.frequency.value = 1400;
 
     const g = c.createGain();
     g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(vols[i]!, t0 + 0.05);
-    g.gain.setValueAtTime(vols[i]!, t0 + dur * 0.75);
+    g.gain.exponentialRampToValueAtTime(vols[i]!, t0 + 0.07);
+    g.gain.setValueAtTime(vols[i]!, t0 + dur * 0.7);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-
-    // تذبذب سريع (نفس رجفة الأبواق المضغوطة)
-    const lfo = c.createOscillator();
-    lfo.frequency.value = 7 + i;
-    const lfoG = c.createGain();
-    lfoG.gain.value = 0.035;
-    lfo.connect(lfoG).connect(g.gain);
-    lfo.start(t0);
-    lfo.stop(t0 + dur);
 
     osc.connect(lp).connect(g).connect(m);
     osc.start(t0);
@@ -286,46 +282,45 @@ export function goalHorn(dur = 1.15): void {
 }
 
 /**
- * صافرة حكّام حقيقية: صافرة بترنّح الحبة —
- * نغمة عالية ~2400 هرتز معدَّلة اتساعًا بسرعة 28 هرتز (الترنّح)
- * + تشويش نفَس خفيف. نفخة أو نفختين.
+ * صافرة حكّام هادئة: نغمة عالية قصيرة بترنّح خفيف.
+ * أهدأ بكثير من v2 — واضحة دون وخز للآذان.
  */
-export function refWhistle(blasts = 2): void {
+export function refWhistle(blasts = 1): void {
   const c = getCtx();
   if (!c || !master) return;
   const m = master; // التقاط للنوع داخل الدوال المتداخلة
   const blast = (t0: number, dur: number) => {
     const osc = c.createOscillator();
-    osc.type = "square";
-    osc.frequency.value = 2350;
+    osc.type = "triangle";
+    osc.frequency.value = 2100;
 
     const bp = c.createBiquadFilter();
     bp.type = "bandpass";
-    bp.frequency.value = 2400;
-    bp.Q.value = 9;
+    bp.frequency.value = 2150;
+    bp.Q.value = 4;
 
     const g = c.createGain();
     g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(0.09, t0 + 0.02);
-    g.gain.setValueAtTime(0.09, t0 + dur - 0.03);
+    g.gain.exponentialRampToValueAtTime(0.055, t0 + 0.02);
+    g.gain.setValueAtTime(0.055, t0 + dur - 0.03);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
 
-    // ترنّح الحبة: تعديل اتساع سريع
+    // ترنّح الحبة خفيف
     const trem = c.createOscillator();
-    trem.frequency.value = 28;
+    trem.frequency.value = 26;
     const tremG = c.createGain();
-    tremG.gain.value = 0.05;
+    tremG.gain.value = 0.02;
     trem.connect(tremG).connect(g.gain);
     trem.start(t0);
     trem.stop(t0 + dur);
 
-    // نفَس: ضوضاء خفيفة خلف النغمة
+    // نفَس خفيف جدًا خلف النغمة
     const buf = getNoise(c);
     if (buf) {
       const src = c.createBufferSource();
       src.buffer = buf;
       const ng = c.createGain();
-      ng.gain.setValueAtTime(0.02, t0);
+      ng.gain.setValueAtTime(0.01, t0);
       ng.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
       src.connect(ng).connect(m);
       src.start(t0, Math.random());
@@ -339,10 +334,10 @@ export function refWhistle(blasts = 2): void {
 
   const now = c.currentTime;
   if (blasts === 1) {
-    blast(now + 0.02, 0.5);
+    blast(now + 0.02, 0.42);
   } else {
-    blast(now + 0.02, 0.16);
-    blast(now + 0.24, 0.16);
+    blast(now + 0.02, 0.14);
+    blast(now + 0.22, 0.14);
   }
 }
 
@@ -352,79 +347,84 @@ export function fullTimeWhistle(): void {
 }
 
 /* ============================================================
- *  مكتبة الأصوات — كلها عزف طبيعي بلا خشونة مجانية
+ *  مكتبة الأصوات — قصيرة دافئة مريحة
  * ============================================================ */
 
 /** نجاح سريع: نغمتا ماريمبا صاعدتان (دو → مي) */
 export function chime(): void {
-  pluckNote(783.99, 0, 0.22, 0.15, { harmonicVol: 0.22 });
-  pluckNote(1046.5, 0.07, 0.3, 0.14);
+  pluckNote(783.99, 0, 0.2, 0.12, { harmonicVol: 0.2 });
+  pluckNote(1046.5, 0.07, 0.28, 0.11);
 }
 
 /** كورد نجاح أكمل — للنتائج المهمة */
 export function chordBright(): void {
-  pluckNote(523.25, 0, 0.3, 0.12);
-  pluckNote(659.25, 0.05, 0.32, 0.11);
-  pluckNote(783.99, 0.1, 0.38, 0.11);
-  pluckNote(1046.5, 0.16, 0.55, 0.12);
-  thump(0, 0.08);
+  pluckNote(523.25, 0, 0.28, 0.1);
+  pluckNote(659.25, 0.05, 0.3, 0.09);
+  pluckNote(783.99, 0.1, 0.36, 0.09);
+  pluckNote(1046.5, 0.16, 0.5, 0.1);
+  thump(0, 0.07);
 }
 
 /** خطأ لطيف: نغمة هابطة واحدة منخفضة — واضحة بلا قسوة */
 export function softDud(): void {
-  pluckNote(293.66, 0, 0.22, 0.13, { type: "triangle", harmonicVol: 0.12 }); // ره
-  pluckNote(246.94, 0.09, 0.3, 0.11, { type: "triangle", harmonicVol: 0.1 }); // سي
+  pluckNote(293.66, 0, 0.2, 0.11, { type: "triangle", harmonicVol: 0.1 }); // ره
+  pluckNote(246.94, 0.09, 0.28, 0.09, { type: "triangle", harmonicVol: 0.08 }); // سي
 }
 
 /**
- * هدف! لحظة الملعب الكاملة:
- * بوق الهدف + هتاف الجماهير + فانفار نغمي + طبلة.
+ * هدف! لحظة ملعب هادئة: هتاف خلفية + بوق ناعم + نغمتان دافئتان.
+ * (v2 كانت تكدّس بوقًا مسننًا + هتافًا + 4 نغمات + طبلة معًا — مزعجة)
  */
 export function goalMoment(): void {
-  crowdCheer(2.2, 0.34);
-  goalHorn(1.1);
-  pluckNote(392, 0.02, 0.2, 0.13, { harmonicVol: 0.2 });
-  pluckNote(523.25, 0.11, 0.22, 0.13);
-  pluckNote(659.25, 0.2, 0.24, 0.13);
-  pluckNote(783.99, 0.29, 0.5, 0.15);
-  drumHit(0.05, 90, 0.4);
-  thump(0.29, 0.16);
+  crowdCheer(1.6, 0.18);
+  goalHorn(0.75);
+  pluckNote(523.25, 0.1, 0.22, 0.11);
+  pluckNote(783.99, 0.2, 0.4, 0.12);
+  thump(0.2, 0.1);
+}
+
+/** فتح حزمة: إيقاع ترقّب قصير — طبلتان + نغمة صاعدة */
+export function packOpen(): void {
+  drumHit(0, 95, 0.24);
+  drumHit(0.22, 110, 0.28);
+  pluckNote(392, 0.24, 0.24, 0.1);
+  pluckNote(523.25, 0.36, 0.34, 0.11);
+  crowdCheer(1.0, 0.06);
 }
 
 /** فتح حزمة: أربيجيو متصاعد يبني الترقب ثم يتصاعد */
 export function packArp(): void {
   const notes = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];
-  notes.forEach((f, i) => pluckNote(f, i * 0.075, 0.3, 0.12, { harmonicVol: 0.25 }));
-  pluckNote(1318.5, notes.length * 0.075, 0.65, 0.14);
-  thump(notes.length * 0.075, 0.14);
+  notes.forEach((f, i) => pluckNote(f, i * 0.075, 0.28, 0.1, { harmonicVol: 0.22 }));
+  pluckNote(1318.5, notes.length * 0.075, 0.6, 0.12);
+  thump(notes.length * 0.075, 0.11);
 }
 
 /** صفير نهاية جولة — نغمتان نظيفتان قصيرتان */
 export function whistleNice(): void {
-  pluckNote(1396.9, 0, 0.1, 0.09, { type: "triangle", harmonicVol: 0 });
-  pluckNote(1760, 0.12, 0.26, 0.1, { type: "triangle", harmonicVol: 0 });
+  pluckNote(1396.9, 0, 0.1, 0.08, { type: "triangle", harmonicVol: 0 });
+  pluckNote(1760, 0.12, 0.24, 0.09, { type: "triangle", harmonicVol: 0 });
 }
 
 /** ترقية مستوى: سلم خماسي كامل صاعد — لحظة احتفال */
 export function levelUpArp(): void {
   const notes = [392, 493.88, 587.33, 783.99, 987.77];
-  notes.forEach((f, i) => pluckNote(f, i * 0.065, 0.34, 0.12, { harmonicVol: 0.22 }));
-  pluckNote(1174.66, 0.36, 0.8, 0.14);
-  thump(0.36, 0.16);
-  pluckNote(1568, 0.4, 0.5, 0.06, { harmonicVol: 0 });
+  notes.forEach((f, i) => pluckNote(f, i * 0.065, 0.3, 0.1, { harmonicVol: 0.2 }));
+  pluckNote(1174.66, 0.36, 0.7, 0.12);
+  thump(0.36, 0.12);
 }
 
 /** نقر واجهة — خفيف جدًا */
 export function tapTick(): void {
-  pluckNote(987.77, 0, 0.06, 0.05, { harmonicVol: 0 });
+  pluckNote(987.77, 0, 0.05, 0.04, { harmonicVol: 0 });
 }
 
 /** نغمة سلسلة صاعدة حسب المستوى (بنتاتونيك) */
 export function streakNote(level: number): void {
   const scale = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.5];
   const f = scale[Math.min(level, scale.length - 1)]!;
-  pluckNote(f, 0, 0.2, 0.12, { harmonicVol: 0.2 });
-  pluckNote(f * 1.5, 0.08, 0.3, 0.1);
+  pluckNote(f, 0, 0.18, 0.1, { harmonicVol: 0.18 });
+  pluckNote(f * 1.5, 0.08, 0.26, 0.08);
 }
 
 /** واجهة موحدة تُستدعى من مكونات اللعب */
@@ -436,15 +436,17 @@ export const stadium = {
   aww: () => crowdAww(),
   whistle: () => fullTimeWhistle(),
   drums: () => stadiumDrums(),
+  /** فتح حزمة — إيقاع ترقّب قصير */
+  packOpen: () => packOpen(),
   levelUp: () => levelUpArp(),
   tap: () => tapTick(),
   streak: streakNote,
-  /** مباشرة: هتاف جماهير */
+  /** مباشرة: هتاف جماهير هادئ */
   cheer: (dur?: number, vol?: number) => crowdCheer(dur, vol),
-  /** مباشرة: بوق هدف */
+  /** مباشرة: بوق هدف ناعم */
   horn: (dur?: number) => goalHorn(dur),
-  /** مباشرة: طبول ملعب */
+  /** مباشرة: طبول ملعب هادئة */
   hitDrums: () => stadiumDrums(),
-  /** مباشرة: صافرة الحكّام (نفخة/نفختان) */
+  /** مباشرة: صافرة الحكّام */
   refWhistle: (blasts?: number) => refWhistle(blasts),
 };

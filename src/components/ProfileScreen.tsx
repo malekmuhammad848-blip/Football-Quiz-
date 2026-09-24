@@ -9,7 +9,7 @@ import { Check, Lock, Pencil, Shirt, Trophy, X } from "lucide-react";
 import { levelFor } from "../domain/progression";
 import { leagueFor, nextLeague, leagueProgress, leagueName, LEAGUES } from "../domain/leagues";
 import { BADGES } from "../domain/badges";
-import { ACHIEVEMENT_ICONS } from "./Icons";
+import { ACHIEVEMENT_ICONS, BallMark, CoinMark, FlameMark, TargetMark, TrophyMark } from "./Icons";
 import { useProgress, usePrefs } from "../hooks/useAppStores";
 import { prefsStore } from "../stores/prefsStore";
 import {
@@ -38,11 +38,13 @@ interface Props {
   embedded?: boolean;
 }
 
-function CupStatChip({ value, label, tone, emoji }: { value: number; label: string; tone: string; emoji: string }) {
+function CupStatChip({ value, label, tone, icon }: { value: number; label: string; tone: string; icon: "trophy" | "ball" | "target" }) {
+  const Icon = icon === "trophy" ? TrophyMark : icon === "ball" ? BallMark : TargetMark;
   return (
     <div className="rounded-2xl border border-card-edge bg-card-soft p-3 text-center">
-      <p className={cn("text-xl font-black tabular-nums", tone)}>
-        {emoji} {value}
+      <p className={cn("flex items-center justify-center gap-1 text-xl font-black tabular-nums", tone)}>
+        <Icon className="size-4" />
+        {value}
       </p>
       <p className="mt-0.5 text-[10px] font-bold text-soft">{label}</p>
     </div>
@@ -240,9 +242,9 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
           if (cs.played === 0) return null;
           return (
             <section className="grid grid-cols-3 gap-3">
-              <CupStatChip value={cs.cups} label={lang === "ar" ? "كؤوس" : "Cups"} tone="text-gold" emoji="🏆" />
-              <CupStatChip value={cs.played} label={lang === "ar" ? "مباريات الكأس" : "Cup matches"} tone="text-sky-300" emoji="⚽" />
-              <CupStatChip value={cs.bestRun} label={lang === "ar" ? "أطول مشوار" : "Best run"} tone="text-fuchsia-300" emoji="🎯" />
+              <CupStatChip value={cs.cups} label={lang === "ar" ? "كؤوس" : "Cups"} tone="text-gold" icon="trophy" />
+              <CupStatChip value={cs.played} label={lang === "ar" ? "مباريات الكأس" : "Cup matches"} tone="text-sky-300" icon="ball" />
+              <CupStatChip value={cs.bestRun} label={lang === "ar" ? "أطول مشوار" : "Best run"} tone="text-fuchsia-300" icon="target" />
             </section>
           );
         })()}
@@ -254,7 +256,7 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
             {
               label: lang === "ar" ? "العملات" : "Coins",
               value: `${progress.coins}`,
-              suffix: "🪙",
+              suffix: "coin",
               tone: "text-amber-400",
             },
             {
@@ -279,9 +281,10 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
               transition={{ delay: 0.05 * i }}
               className="rounded-2xl border border-card-edge bg-card-soft p-4 text-center"
             >
-              <p className={cn("text-2xl font-black tabular-nums", s.tone)}>
+              <p className={cn("flex items-center justify-center gap-1 text-2xl font-black tabular-nums", s.tone)}>
                 {s.value}
-                {s.flame && " 🔥"}
+                {s.flame && <FlameMark className="size-5" />}
+                {s.suffix === "coin" && <CoinMark className="size-5" />}
               </p>
               <p className="mt-0.5 text-[11px] font-bold text-soft">
                 {s.suffix ? `${s.suffix} ${s.label}` : s.label}
@@ -327,7 +330,7 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
             if (!locked) return null;
             return (
               <p className="mt-3 text-center text-[11px] font-medium text-faint">
-                🔒 {locked.hint[lang]}
+                <Lock className="me-1 inline size-3 align-[-2px]" /> {locked.hint[lang]}
               </p>
             );
           })()}

@@ -4,13 +4,14 @@
  * → تعادل؟ ترجيح حاسم (سؤالان) → شجرة تتطور → لقب أو إقصاء.
  */
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Crown, X } from "lucide-react";
 import {
   ROUND_NAMES,
   answerResult,
   currentMatch,
+  loadCup,
   finishMatch,
   matchQuestions,
   newCup,
@@ -34,7 +35,7 @@ import { t, tr, type Lang } from "../lib/i18n";
 import type { LocalizedQuestion } from "../domain/types";
 import { cn } from "../utils/cn";
 import { Button } from "./ui/primitives";
-import { CheckBadge, CrossBadge, TrophyMark } from "./Icons";
+import { BallMark, CheckBadge, CrossBadge, TrophyMark } from "./Icons";
 import { VisualQuestion } from "./VisualQuestion";
 import { FlagByRef } from "./VisualArt";
 
@@ -66,6 +67,19 @@ type Phase = "pick" | "bracket" | "playing" | "matchOver" | "pks" | "pksResult" 
 export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
   const [cup, setCup] = useState<CupState | null>(null);
   const [phase, setPhase] = useState<Phase>("pick");
+
+  // استئناف البطولة المحفوظة عند العودة لتبويب الكأس — كان يُهمَل دائمًا
+  // فتضيع البطولة الجارية عند أي خروج من الشاشة (شكوى «مشاكل الكأس الكبيرة»)
+  const resumedRef = useRef(false);
+  useEffect(() => {
+    if (resumedRef.current) return;
+    resumedRef.current = true;
+    const saved = loadCup();
+    if (saved && !saved.champion && !saved.eliminated) {
+      setCup(saved);
+      setPhase("bracket");
+    }
+  }, []);
   const [qs, setQs] = useState<LocalizedQuestion[]>([]);
   const [qIndex, setQIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -495,7 +509,7 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="glass-card relative w-full overflow-hidden rounded-3xl p-4 shadow-lg sm:p-6">
         <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-l from-rose-400 via-red-400 to-rose-400" />
         <div className="mb-3 text-center">
-          <p className="text-sm font-black text-red-500">🥁 {t(lang, "cupPksTitle")}</p>
+          <p className="text-sm font-black text-red-500">{t(lang, "cupPksTitle")}</p>
           <p className="text-[11px] font-bold opacity-55">{t(lang, "cupPksDesc")} · {t(lang, "question")} {pkState.idx + 1}/2</p>
         </div>
         <p className="mb-3 text-center text-base font-extrabold leading-7">{q.q}</p>
@@ -597,7 +611,7 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
           {revealed && (
             <div className="mt-3 space-y-2.5">
               <p className="flex items-start gap-2 text-xs leading-6 opacity-80">
-                <span className="mt-0.5 font-black text-gold">⚽</span>
+                <BallMark className="mt-0.5 size-3.5 shrink-0 text-gold" />
                 {q.fact}
               </p>
               {lastResult && !lastResult.correct && (

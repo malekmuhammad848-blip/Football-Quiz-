@@ -15,7 +15,7 @@ import { stadium } from "../lib/stadium";
 import { t, type Lang } from "../lib/i18n";
 import { cn } from "../utils/cn";
 import { Button } from "./ui/primitives";
-import { CheckBadge, CrossBadge, ZapMark } from "./Icons";
+import { CheckBadge, CrossBadge, FlameMark, TrophyMark, ZapMark } from "./Icons";
 import { VisualQuestion } from "./VisualQuestion";
 
 interface Props {
@@ -181,8 +181,8 @@ export function RushMode({ lang }: Props) {
           <p className="mx-auto mt-2 max-w-xs text-sm font-medium leading-6 text-soft">{t(lang, "rushDesc")}</p>
 
           <div className="mt-4 flex items-center justify-center gap-2">
-            <span className="rounded-full bg-gold/15 px-3 py-1 text-xs font-black text-amber-600 dark:text-amber-300">
-              🔥 {t(lang, "rushBest")}: {record.best}
+            <span className="flex items-center gap-1 rounded-full bg-gold/15 px-3 py-1 text-xs font-black text-amber-600 dark:text-amber-300">
+              <FlameMark className="size-3.5" /> {t(lang, "rushBest")}: {record.best}
             </span>
             {record.matches > 0 && (
               <span className="rounded-full bg-grass-500/15 px-3 py-1 text-xs font-black text-grass-700 dark:text-grass-400">
@@ -275,8 +275,8 @@ export function RushMode({ lang }: Props) {
             <p className="mt-3 text-sm font-black text-amber-600 dark:text-amber-300">+{xpEarned} XP</p>
           )}
           {bestBeaten && (
-            <p className="mt-1 text-xs font-black text-grass-600 dark:text-grass-400">
-              🏆 {t(lang, "rushNewBest")}
+            <p className="mt-1 flex items-center justify-center gap-1 text-xs font-black text-grass-600 dark:text-grass-400">
+              <TrophyMark className="size-4" /> {t(lang, "rushNewBest")}
             </p>
           )}
 

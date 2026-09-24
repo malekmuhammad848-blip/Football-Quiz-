@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { t, type Lang } from "../lib/i18n";
 import { setDisplayName, displayNameOf, type Session } from "../lib/backend";
 import { Button } from "./ui/primitives";
+import { BallMark } from "./Icons";
 
 interface Props {
   session: Session;
@@ -41,7 +42,7 @@ export function NamePrompt({ session, lang, onDone }: Props) {
       className="glass-card mx-auto w-full max-w-md rounded-3xl p-6 text-center"
     >
       <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-grass-500 to-grass-700 text-xl font-black text-white shadow-lg">
-        {name.trim().slice(0, 1).toUpperCase() || "⚽"}
+        {name.trim().slice(0, 1).toUpperCase() || <BallMark className="size-7" />}
       </div>
       <h2 className="text-xl font-black">{t(lang, "nameTitle")}</h2>
       <p className="mt-1 text-xs font-medium opacity-60">{t(lang, "nameHint")}</p>

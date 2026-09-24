@@ -2,7 +2,7 @@
  *  TiQ App — الجذر
  *  ============================================================ */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { GraduationCap } from "lucide-react";
 import { APP } from "./core/config";
@@ -26,10 +26,8 @@ import { AppHeader } from "./components/AppHeader";
 import { QuestionCard } from "./components/QuestionCard";
 import { DailyQuests } from "./components/DailyQuests";
 import { LevelUpBurst } from "./components/LevelUpBurst";
-import { RushMode } from "./components/RushMode";
 import { GrassGrid } from "./components/GrassGrid";
 import { ScoutReport } from "./components/ScoutReport";
-import { SeasonScreen } from "./components/SeasonScreen";
 import { ShieldMark } from "./components/Icons";
 import { ResultPanel } from "./components/ResultPanels";
 import { SettingsSheet } from "./components/SettingsSheet";
@@ -37,16 +35,30 @@ import { StreakOrb } from "./components/StreakOrb";
 import { StatsGrid } from "./components/StatsGrid";
 import { LevelBar } from "./components/LevelBar";
 import { AchievementsPanel, UnlockToast } from "./components/AchievementsPanel";
-import { TrainingMode } from "./components/TrainingMode";
 import { AuthPanel } from "./components/AuthPanel";
+import { TrainingMode } from "./components/TrainingMode";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { NamePrompt } from "./components/NamePrompt";
-import { ProfileScreen } from "./components/ProfileScreen";
-import { PenaltyArena } from "./components/PenaltyArena";
 import { TabBar, type TabId } from "./components/TabBar";
-import { CupMode } from "./components/CupMode";
 import { Badge, Button } from "./components/ui/primitives";
 import { initAuthUrlOpen, displayNameOf } from "./lib/backend";
+
+// الشاشات الثقيلة تُحمَّل عند أول طلب فقط — إقلاع أسرع وأخف
+// (كانت كلها تُجمع في الحزمة الأولى فتثقل الدخول على هواتف ضعيفة)
+const RushMode = lazy(() => import("./components/RushMode").then((m) => ({ default: m.RushMode })));
+const SeasonScreen = lazy(() => import("./components/SeasonScreen").then((m) => ({ default: m.SeasonScreen })));
+const PenaltyArena = lazy(() => import("./components/PenaltyArena").then((m) => ({ default: m.PenaltyArena })));
+const CupMode = lazy(() => import("./components/CupMode").then((m) => ({ default: m.CupMode })));
+const ProfileScreen = lazy(() => import("./components/ProfileScreen").then((m) => ({ default: m.ProfileScreen })));
+
+/** حامل تحميل خفيف متوافق مع تصميم التطبيق */
+function TabFallback() {
+  return (
+    <div className="flex h-48 items-center justify-center">
+      <div className="size-8 animate-spin rounded-full border-2 border-grass-500 border-t-transparent" />
+    </div>
+  );
+}
 
 const STREAK_MILESTONES = [3, 7, 14, 30, 50, 100] as const;
 
@@ -277,18 +289,26 @@ export default function App() {
 
       <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 px-3 py-5 sm:gap-5 sm:px-8 sm:py-7">
         {tab === "penalty" ? (
-          <PenaltyArena session={session} lang={lang} onRequireAuth={() => setPenaltyAuthPrompt(true)} />
+          <Suspense fallback={<TabFallback />}>
+            <PenaltyArena session={session} lang={lang} onRequireAuth={() => setPenaltyAuthPrompt(true)} />
+          </Suspense>
         ) : tab === "cup" ? (
-          <CupMode lang={lang} soundOn={prefs.sound} hapticsOn={prefs.haptics} onExit={() => setTab("today")} />
+          <Suspense fallback={<TabFallback />}>
+            <CupMode lang={lang} soundOn={prefs.sound} hapticsOn={prefs.haptics} onExit={() => setTab("today")} />
+          </Suspense>
         ) : tab === "season" ? (
-          <SeasonScreen lang={lang} />
+          <Suspense fallback={<TabFallback />}>
+            <SeasonScreen lang={lang} />
+          </Suspense>
         ) : tab === "profile" ? (
-          <ProfileTab
-            session={session}
-            lang={lang}
-            onOpenLegacyProfile={() => setProfileOpen(true)}
-            onGoToday={() => setTab("today")}
-          />
+          <Suspense fallback={<TabFallback />}>
+            <ProfileTab
+              session={session}
+              lang={lang}
+              onOpenLegacyProfile={() => setProfileOpen(true)}
+              onGoToday={() => setTab("today")}
+            />
+          </Suspense>
         ) : training ? (
           <TrainingMode
             lang={lang}

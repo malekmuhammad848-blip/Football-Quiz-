@@ -4,9 +4,13 @@
  * الكابتن: قبعة وشريط كابتن · الذهبي: نظارة ذهبية وشعر مصفف
  * النجمة: نجمة شعر وصمّام أذن · الأسطورة: لحية بيضاء وسوار
  * الإمبراطور: تاج ذهبي وعباءة فخمة. تعبيرات وألوان فريدة لكل واحدة.
+ *
+ * إصلاح عيوب الصورة: كل نسخة SVG تستخدم معرّفات فريدة عبر useId —
+ * سابقًا كانت المعرّفات ثابتة (av-bg…) فتتعارض النسخ المتزامنة
+ * (بروفايل + ورقة التخصيص معًا) فيتلفت التدرج/القص وتظهر صورة تالفة.
  */
 
-import type { ReactElement } from "react";
+import { memo, useId, type ComponentType } from "react";
 
 export interface AvatarDef {
   id: string;
@@ -58,20 +62,24 @@ export function avatarLabel(id: string | null | undefined, lang: "ar" | "en"): s
 
 /* ============================================================
  *  الشخصيات — كل واحدة مرسومة مستقلة بالكامل (viewBox 64)
+ *  كل المعرّفات لاحقة بـ uid فريد لكل نسخة مثبتة
  * ============================================================ */
 
 /** اللاعب — شعر منعش بعروق وابتسامة عريضة وقميص أخضر بياقة */
-function StrikerFace() {
+const StrikerFace = memo(function StrikerFace() {
+  const u = useId();
+  const bg = `av-bg-${u}`;
+  const clip = `av-c-${u}`;
   return (
     <svg viewBox="0 0 64 64" className="h-full w-full" aria-hidden>
       <defs>
-        <clipPath id="av-c"><circle cx="32" cy="32" r="30" /></clipPath>
-        <linearGradient id="av-bg" x1="0" y1="0" x2="1" y2="1">
+        <clipPath id={clip}><circle cx="32" cy="32" r="30" /></clipPath>
+        <linearGradient id={bg} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#34d399" /><stop offset="1" stopColor="#047857" />
         </linearGradient>
       </defs>
-      <circle cx="32" cy="32" r="30" fill="url(#av-bg)" />
-      <g clipPath="url(#av-c)">
+      <circle cx="32" cy="32" r="30" fill={`url(#${bg})`} />
+      <g clipPath={`url(#${clip})`}>
         <path d="M10 64 Q10 46 22 44 L32 50 L42 44 Q54 46 54 64 Z" fill="#16a34a" />
         <path d="M22 44 L32 50 L42 44 L42 49 L32 55 L22 49 Z" fill="#ffffff" opacity="0.9" />
         {/* شعر منعش بأعراف */}
@@ -92,20 +100,23 @@ function StrikerFace() {
       <circle cx="32" cy="32" r="30" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2" />
     </svg>
   );
-}
+});
 
 /** الحارس — قلنسوة كابوش + قفازان مرفوعان جانب الوجه + نظارة رياضية */
-function KeeperFace() {
+const KeeperFace = memo(function KeeperFace() {
+  const u = useId();
+  const bg = `kp-bg-${u}`;
+  const clip = `kp-c-${u}`;
   return (
     <svg viewBox="0 0 64 64" className="h-full w-full" aria-hidden>
       <defs>
-        <clipPath id="kp-c"><circle cx="32" cy="32" r="30" /></clipPath>
-        <linearGradient id="kp-bg" x1="0" y1="0" x2="1" y2="1">
+        <clipPath id={clip}><circle cx="32" cy="32" r="30" /></clipPath>
+        <linearGradient id={bg} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#38bdf8" /><stop offset="1" stopColor="#1e40af" />
         </linearGradient>
       </defs>
-      <circle cx="32" cy="32" r="30" fill="url(#kp-bg)" />
-      <g clipPath="url(#kp-c)">
+      <circle cx="32" cy="32" r="30" fill={`url(#${bg})`} />
+      <g clipPath={`url(#${clip})`}>
         <path d="M10 64 Q10 47 24 45 L32 50 L40 45 Q54 47 54 64 Z" fill="#0ea5e9" />
         {/* خطوط القميص */}
         <path d="M16 52 H48 M14 58 H50" stroke="#e0f2fe" strokeWidth="2.4" opacity="0.6" />
@@ -136,20 +147,23 @@ function KeeperFace() {
       <circle cx="32" cy="32" r="30" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2" />
     </svg>
   );
-}
+});
 
 /** الكابتن — قبعة سوداء مقلوبة + شريط كابتن أحمر على الذراع */
-function CaptainFace() {
+const CaptainFace = memo(function CaptainFace() {
+  const u = useId();
+  const bg = `cp-bg-${u}`;
+  const clip = `cp-c-${u}`;
   return (
     <svg viewBox="0 0 64 64" className="h-full w-full" aria-hidden>
       <defs>
-        <clipPath id="cp-c"><circle cx="32" cy="32" r="30" /></clipPath>
-        <linearGradient id="cp-bg" x1="0" y1="0" x2="1" y2="1">
+        <clipPath id={clip}><circle cx="32" cy="32" r="30" /></clipPath>
+        <linearGradient id={bg} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#f87171" /><stop offset="1" stopColor="#991b1b" />
         </linearGradient>
       </defs>
-      <circle cx="32" cy="32" r="30" fill="url(#cp-bg)" />
-      <g clipPath="url(#cp-c)">
+      <circle cx="32" cy="32" r="30" fill={`url(#${bg})`} />
+      <g clipPath={`url(#${clip})`}>
         {/* ذراع بشريط الكابتن */}
         <path d="M44 50 Q52 44 56 48 L56 64 L40 64 Z" fill="#c98d5e" />
         <rect x="46" y="50" width="10" height="5" rx="1.6" fill="#dc2626" transform="rotate(12 51 52)" />
@@ -176,27 +190,31 @@ function CaptainFace() {
       <circle cx="32" cy="32" r="30" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2" />
     </svg>
   );
-}
+});
 
 /** الذهبي — نظارة ذهبية + شعر مصفف للخلف لامع */
-function GoldenFace() {
+const GoldenFace = memo(function GoldenFace() {
+  const u = useId();
+  const bg = `gd-bg-${u}`;
+  const clip = `gd-c-${u}`;
+  const hair = `gd-hair-${u}`;
   return (
     <svg viewBox="0 0 64 64" className="h-full w-full" aria-hidden>
       <defs>
-        <clipPath id="gd-c"><circle cx="32" cy="32" r="30" /></clipPath>
-        <linearGradient id="gd-bg" x1="0" y1="0" x2="1" y2="1">
+        <clipPath id={clip}><circle cx="32" cy="32" r="30" /></clipPath>
+        <linearGradient id={bg} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#fcd34d" /><stop offset="1" stopColor="#92400e" />
         </linearGradient>
-        <linearGradient id="gd-hair" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={hair} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#d97706" /><stop offset="1" stopColor="#92400e" />
         </linearGradient>
       </defs>
-      <circle cx="32" cy="32" r="30" fill="url(#gd-bg)" />
-      <g clipPath="url(#gd-c)">
+      <circle cx="32" cy="32" r="30" fill={`url(#${bg})`} />
+      <g clipPath={`url(#${clip})`}>
         <path d="M10 64 Q10 46 22 44 L32 50 L42 44 Q54 46 54 64 Z" fill="#eab308" />
         <path d="M22 44 L32 50 L42 44 L42 49 L32 55 L22 49 Z" fill="#7c2d12" />
         {/* شعر مصفف للخلف بلمعان */}
-        <path d="M19 25 Q18 12 32 11 Q46 12 45 25 Q45 18 40 16 Q32 14.5 24 16 Q19 18 19 25 Z" fill="url(#gd-hair)" />
+        <path d="M19 25 Q18 12 32 11 Q46 12 45 25 Q45 18 40 16 Q32 14.5 24 16 Q19 18 19 25 Z" fill={`url(#${hair})`} />
         <path d="M24 14.5 Q28 13 32 13 M36 13.4 Q40 14 43 16" stroke="#fde68a" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity="0.85" />
         <ellipse cx="32" cy="28.5" rx="13" ry="13.2" fill="#f2c9a0" />
         {/* نظارة ذهبية أنيقة */}
@@ -215,20 +233,23 @@ function GoldenFace() {
       <circle cx="32" cy="32" r="30" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2" />
     </svg>
   );
-}
+});
 
 /** النجمة — صمّام أذن + نجمة على الشعر + نظرة ساحرة */
-function StarFace() {
+const StarFace = memo(function StarFace() {
+  const u = useId();
+  const bg = `st-bg-${u}`;
+  const clip = `st-c-${u}`;
   return (
     <svg viewBox="0 0 64 64" className="h-full w-full" aria-hidden>
       <defs>
-        <clipPath id="st-c"><circle cx="32" cy="32" r="30" /></clipPath>
-        <linearGradient id="st-bg" x1="0" y1="0" x2="1" y2="1">
+        <clipPath id={clip}><circle cx="32" cy="32" r="30" /></clipPath>
+        <linearGradient id={bg} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#d8b4fe" /><stop offset="1" stopColor="#6b21a8" />
         </linearGradient>
       </defs>
-      <circle cx="32" cy="32" r="30" fill="url(#st-bg)" />
-      <g clipPath="url(#st-c)">
+      <circle cx="32" cy="32" r="30" fill={`url(#${bg})`} />
+      <g clipPath={`url(#${clip})`}>
         <path d="M10 64 Q10 46 22 44 L32 50 L42 44 Q54 46 54 64 Z" fill="#a855f7" />
         {/* لمعات القميص */}
         <path d="M14 54 L18 52 M46 52 L50 54" stroke="#f3e8ff" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
@@ -252,20 +273,23 @@ function StarFace() {
       <circle cx="32" cy="32" r="30" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2" />
     </svg>
   );
-}
+});
 
 /** الأسطورة — لحية بيضاء كاملة + شعر رمادي + نظرة حكيمة */
-function LegendFace() {
+const LegendFace = memo(function LegendFace() {
+  const u = useId();
+  const bg = `lg-bg-${u}`;
+  const clip = `lg-c-${u}`;
   return (
     <svg viewBox="0 0 64 64" className="h-full w-full" aria-hidden>
       <defs>
-        <clipPath id="lg-c"><circle cx="32" cy="32" r="30" /></clipPath>
-        <linearGradient id="lg-bg" x1="0" y1="0" x2="1" y2="1">
+        <clipPath id={clip}><circle cx="32" cy="32" r="30" /></clipPath>
+        <linearGradient id={bg} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#fda4af" /><stop offset="1" stopColor="#9f1239" />
         </linearGradient>
       </defs>
-      <circle cx="32" cy="32" r="30" fill="url(#lg-bg)" />
-      <g clipPath="url(#lg-c)">
+      <circle cx="32" cy="32" r="30" fill={`url(#${bg})`} />
+      <g clipPath={`url(#${clip})`}>
         <path d="M10 64 Q10 46 22 44 L32 50 L42 44 Q54 46 54 64 Z" fill="#f43f5e" />
         <path d="M22 44 L32 50 L42 44 L42 49 L32 55 L22 49 Z" fill="#fecdd3" />
         {/* شعر رمادي منسدل */}
@@ -288,33 +312,37 @@ function LegendFace() {
       <circle cx="32" cy="32" r="30" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2" />
     </svg>
   );
-}
+});
 
 /** الإمبراطور — تاج ذهبي بجواهر + عباءة فاخرة + نظرة قوية */
-function EmperorFace() {
+const EmperorFace = memo(function EmperorFace() {
+  const u = useId();
+  const bg = `em-bg-${u}`;
+  const clip = `em-c-${u}`;
+  const gold = `em-gold-${u}`;
   return (
     <svg viewBox="0 0 64 64" className="h-full w-full" aria-hidden>
       <defs>
-        <clipPath id="em-c"><circle cx="32" cy="32" r="30" /></clipPath>
-        <linearGradient id="em-bg" x1="0" y1="0" x2="1" y2="1">
+        <clipPath id={clip}><circle cx="32" cy="32" r="30" /></clipPath>
+        <linearGradient id={bg} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#475569" /><stop offset="1" stopColor="#0f172a" />
         </linearGradient>
-        <linearGradient id="em-gold" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={gold} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#fde68a" /><stop offset="1" stopColor="#b45309" />
         </linearGradient>
       </defs>
-      <circle cx="32" cy="32" r="30" fill="url(#em-bg)" />
-      <g clipPath="url(#em-c)">
+      <circle cx="32" cy="32" r="30" fill={`url(#${bg})`} />
+      <g clipPath={`url(#${clip})`}>
         {/* العباءة الفاخرة */}
         <path d="M8 64 Q8 45 22 43 L32 50 L42 43 Q56 45 56 64 Z" fill="#0f172a" />
-        <path d="M22 43 L32 50 L42 43 L42 49 L32 56 L22 49 Z" fill="url(#em-gold)" />
+        <path d="M22 43 L32 50 L42 43 L42 49 L32 56 L22 49 Z" fill={`url(#${gold})`} />
         {/* فرو العباءة */}
         <path d="M10 58 Q20 52 32 52 Q44 52 54 58" stroke="#64748b" strokeWidth="3" fill="none" opacity="0.6" />
         {/* شعر أسود أنيق */}
         <path d="M18 26 Q17.5 12 32 11.5 Q46.5 12 46 26 Q46 19 41 16.5 Q32 15 23 16.5 Q18 19 18 26 Z" fill="#18181b" />
         {/* التاج الذهبي */}
-        <path d="M22 14 L26 6 L30 11 L32 4 L34 11 L38 6 L42 14 Z" fill="url(#em-gold)" stroke="#92400e" strokeWidth="1.2" strokeLinejoin="round" />
-        <rect x="22" y="13" width="20" height="3.6" rx="1.4" fill="url(#em-gold)" stroke="#92400e" strokeWidth="1" />
+        <path d="M22 14 L26 6 L30 11 L32 4 L34 11 L38 6 L42 14 Z" fill={`url(#${gold})`} stroke="#92400e" strokeWidth="1.2" strokeLinejoin="round" />
+        <rect x="22" y="13" width="20" height="3.6" rx="1.4" fill={`url(#${gold})`} stroke="#92400e" strokeWidth="1" />
         <circle cx="27" cy="14.8" r="1.2" fill="#e53935" /><circle cx="32" cy="14.8" r="1.2" fill="#22d3ee" /><circle cx="37" cy="14.8" r="1.2" fill="#4ade80" />
         <ellipse cx="32" cy="29" rx="13" ry="13" fill="#d9a066" />
         {/* عيون قوية */}
@@ -330,9 +358,9 @@ function EmperorFace() {
       <circle cx="32" cy="32" r="30" fill="none" stroke="rgba(251,191,36,0.55)" strokeWidth="2.4" />
     </svg>
   );
-}
+});
 
-const ART: Record<string, () => ReactElement> = {
+const ART: Record<string, ComponentType> = {
   classic: StrikerFace,
   keeper: KeeperFace,
   captain: CaptainFace,
@@ -343,11 +371,11 @@ const ART: Record<string, () => ReactElement> = {
 };
 
 /** يرسم الأفاتار المطلوب — يطبّع المعرف أولًا ثم يرسم الشخصية الفريدة */
-export function AvatarArt({ id, className }: { id: string | null | undefined; className?: string }) {
-  const Art = ART[normalizeAvatarId(id)] ?? StrikerFace;
+export const AvatarArt = memo(function AvatarArt({ id, className }: { id: string | null | undefined; className?: string }) {
+  const Art: ComponentType = ART[normalizeAvatarId(id)] ?? StrikerFace;
   return (
     <div className={className} style={{ borderRadius: "inherit", background: "transparent" }}>
       <Art />
     </div>
   );
-}
+});

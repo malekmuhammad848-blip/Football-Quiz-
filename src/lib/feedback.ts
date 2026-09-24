@@ -5,7 +5,7 @@
  *  ============================================================ */
 
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
-import { chime, softDud, levelUpArp, tapTick, streakNote } from "./stadium";
+import { chime, softDud, levelUpArp, tapTick, streakNote, chordBright } from "./stadium";
 
 export { primeAudio } from "./stadium";
 
@@ -16,8 +16,8 @@ export const sfx = {
   tap: () => tapTick(),
   levelUp: () => levelUpArp(),
   unlock: () => {
-    chime();
-    setTimeout(() => chime(), 160);
+    // نغمة واحدة قصيرة بدل وابل النغمات المزدوج (كان مزعجًا)
+    chordBright();
   },
 };
 
@@ -38,9 +38,10 @@ export async function celebrate(colors: string[] = ["#10b981", "#fbbf24", "#ffff
   try {
     const confetti = (await import("canvas-confetti")).default;
     void confetti({
-      particleCount: heavy ? 120 : 65,
-      spread: heavy ? 80 : 60,
-      startVelocity: heavy ? 38 : 30,
+      // جسيمات أقل وسرعة أخفض — احتفال لطيف لا يضرب الأداء
+      particleCount: heavy ? 70 : 40,
+      spread: heavy ? 70 : 55,
+      startVelocity: heavy ? 32 : 26,
       disableForReducedMotion: true,
       origin: { y: 0.65 },
       colors,

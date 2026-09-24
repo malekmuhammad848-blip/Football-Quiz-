@@ -26,7 +26,7 @@ import { progressStore } from "../stores/progressStore";
 import { questsStore } from "../stores/questsStore";
 import { cn } from "../utils/cn";
 import { Button } from "./ui/primitives";
-import { BallMark, CheckBadge, CrossBadge } from "./Icons";
+import { BallMark, CheckBadge, CrossBadge, TrophyMark } from "./Icons";
 
 type Phase = "ready" | "shooting" | "done";
 
@@ -403,7 +403,9 @@ export function LocalPenalty({ lang, onXpGain }: Props) {
               </p>
             )}
             {bestBeaten && (
-              <p className="mt-1 text-xs font-black text-grass-300">🏆 {t(lang, "localPenaltyNewBest")}</p>
+              <p className="mt-1 flex items-center justify-center gap-1 text-xs font-black text-grass-300">
+                <TrophyMark className="size-4" /> {t(lang, "localPenaltyNewBest")}
+              </p>
             )}
 
             <div className="mt-6 flex gap-2">

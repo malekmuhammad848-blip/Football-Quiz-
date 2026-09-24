@@ -126,14 +126,13 @@ export interface PackDef {
   luck: number;
   ar: string;
   en: string;
-  emoji: string;
 }
 
 export const PACKS: readonly PackDef[] = [
-  { id: "legends", costXp: 120, pulls: 2, luck: 2.5, ar: "حزمة الأساطير", en: "Legends Pack", emoji: "👑" },
-  { id: "stars", costXp: 80, pulls: 2, luck: 1.6, ar: "حزمة النجوم", en: "Stars Pack", emoji: "⭐" },
-  { id: "clubs", costXp: 50, pulls: 2, luck: 1, ar: "حزمة الأندية", en: "Clubs Pack", emoji: "🏟️" },
-  { id: "nations", costXp: 50, pulls: 2, luck: 1, ar: "حزمة المنتخبات", en: "Nations Pack", emoji: "🌍" },
+  { id: "legends", costXp: 120, pulls: 2, luck: 2.5, ar: "حزمة الأساطير", en: "Legends Pack" },
+  { id: "stars", costXp: 80, pulls: 2, luck: 1.6, ar: "حزمة النجوم", en: "Stars Pack" },
+  { id: "clubs", costXp: 50, pulls: 2, luck: 1, ar: "حزمة الأندية", en: "Clubs Pack" },
+  { id: "nations", costXp: 50, pulls: 2, luck: 1, ar: "حزمة المنتخبات", en: "Nations Pack" },
 ] as const;
 
 /** أوزان الندرة الأساسية — تعاد المعايرة مع luck */
