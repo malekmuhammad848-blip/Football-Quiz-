@@ -92,7 +92,7 @@ export const STICKERS: readonly Sticker[] = [
   { id: "benzema", kind: "star", rarity: "epic", c1: "#ffffff", c2: "#febe10", art: "kit", pattern: "solid", number: 9, ar: "بنزيما", en: "Benzema", rating: 94 },
   { id: "neymar", kind: "star", rarity: "epic", c1: "#ffdc26", c2: "#1d9e4b", art: "kit", pattern: "solid", number: 10, ar: "نيمار", en: "Neymar", rating: 93 },
   { id: "vinicius", kind: "star", rarity: "rare", c1: "#ffffff", c2: "#febe10", art: "kit", pattern: "solid", number: 7, ar: "فينيسيوس", en: "Vinícius", rating: 92 },
-  { id: "bellingham-star", kind: "star", rarity: "rare", c1: "#ffffff", c2: "#1a2f6e", art: "kit", pattern: "solid", number: 5, ar: "بيلينغهام", en: "Bellingham", rating: 92 },
+  { id: "wirtz", kind: "star", rarity: "rare", c1: "#111111", c2: "#ffdc26", art: "kit", pattern: "solid", number: 10, ar: "فيرتز", en: "Wirtz", rating: 90 },
   { id: "yamal", kind: "star", rarity: "rare", c1: "#a50044", c2: "#004d98", art: "kit", pattern: "stripes", number: 19, ar: "يامال", en: "Yamal", rating: 91 },
 
   // ——— أندية إضافية ———

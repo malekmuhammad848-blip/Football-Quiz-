@@ -11,6 +11,7 @@ import { getDailyQuestion, localizeQuestion } from "./domain/dailyEngine";
 import { fnv1a } from "./core/date";
 import { QUESTIONS } from "./data/questions";
 import { levelFor } from "./domain/progression";
+import { COINS } from "./domain/coinEconomy";
 import { useProgress, usePrefs, useSession, useIsDark, useLang } from "./hooks/useAppStores";
 import { SplashScreen } from "./components/SplashScreen";
 import { questsStore } from "./stores/questsStore";
@@ -147,10 +148,16 @@ export default function App() {
 
       if (prefs.sound) (correct ? sfx.correct : sfx.wrong)();
       if (prefs.haptics && isNative) void buzz(correct ? "medium" : "heavy");
-      if (correct) void celebrate(undefined, result.leveledUp);
+      if (correct) {
+        // عملات سؤال اليوم حسب الصعوبة
+        progressStore.addCoins(COINS.daily[daily.question.difficulty]);
+        // بونص سلسلة
+        const streakAfter = result.after.streak;
+        if (streakAfter >= 2) progressStore.addCoins(COINS.streakBonus);
+      }
       if (prefs.sound && result.leveledUp) setTimeout(() => sfx.levelUp(), 350);
 
-      // ترقية المستوى → احتفال كامل الشاشة
+      if (correct) void celebrate(undefined, result.leveledUp);
       if (result.leveledUp) {
         const after = levelFor(result.after.xp);
         setTimeout(() => setLevelBurst({ level: after.current, name: after.name }), 600);
@@ -274,7 +281,7 @@ export default function App() {
         ) : tab === "cup" ? (
           <CupMode lang={lang} soundOn={prefs.sound} hapticsOn={prefs.haptics} onExit={() => setTab("today")} />
         ) : tab === "season" ? (
-          <SeasonScreen lang={lang} xp={progress.xp} />
+          <SeasonScreen lang={lang} />
         ) : tab === "profile" ? (
           <ProfileTab
             session={session}

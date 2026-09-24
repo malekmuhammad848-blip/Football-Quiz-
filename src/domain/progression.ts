@@ -100,6 +100,7 @@ export function emptyProgress(): Progress {
     correctCount: 0,
     playedCount: 0,
     xp: 0,
+    coins: 0,
     unlocked: [],
     history: {},
     lastAnswered: null,

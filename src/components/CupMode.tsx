@@ -4,7 +4,7 @@
  * → تعادل؟ ترجيح حاسم (سؤالان) → شجرة تتطور → لقب أو إقصاء.
  */
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Crown, X } from "lucide-react";
 import {
@@ -26,6 +26,7 @@ import {
   type CupState,
 } from "../domain/cupEngine";
 import { progressStore } from "../stores/progressStore";
+import { COINS } from "../domain/coinEconomy";
 import { questsStore } from "../stores/questsStore";
 import { sfx } from "../lib/feedback";
 import { stadium } from "../lib/stadium";
@@ -72,6 +73,8 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
   const [pkState, setPkState] = useState<{ qs: [LocalizedQuestion, LocalizedQuestion]; idx: number; myCorrect: number; selected: number | null } | null>(null);
   const [winXp, setWinXp] = useState(0);
   /** نتيجة آخر مباراة انتهت — تُلتقط لحظة الانتهاء قبل تقدّم الشجرة (إصلاح شاشة النتيجة) */
+  /** البطولة التي مُنح فيها بونص اللقب — يمنع التكرار داخل البطولة ويسمح بالجديدة */
+  const championBonusCupRef = useRef<number | null>(null);
   const [lastMatch, setLastMatch] = useState<{
     round: CupRound;
     my: number;
@@ -87,6 +90,8 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
   /* ——— اختيار المنتخب ——— */
   const pick = (teamId: string) => {
     const fresh = newCup(teamId);
+    // بطولة جديدة = فرصة جديدة لبونص اللقب
+    championBonusCupRef.current = null;
     setCup(fresh);
     saveCup(fresh);
     setPhase("bracket");
@@ -113,6 +118,7 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
     if (correct) {
       questsStore.track("trainMaster");
       progressStore.addXp(8);
+      progressStore.addCoins(COINS.cupGoal); // عملة لكل هدف في الكأس
     }
     progressStore.trackCategory(qs[qIndex]!.category, correct);
     if (soundOn) {
@@ -146,10 +152,18 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
       const xp = roundWinXp(playedRound);
       setWinXp(xp);
       progressStore.addXp(xp);
+      progressStore.addCoins(COINS.cupWin[playedRound]); // مكافأة فوز المباراة
       const finished = finishMatch(cup);
       setCup(finished);
       saveCup(finished);
-      if (finished.champion) recordCupResult(finished);
+      if (finished.champion) {
+        recordCupResult(finished);
+        // مكافأة اللقب — مرة واحدة لكل بطولة (ببطاقة البطولة وليس علمًا دائمًا)
+        if (finished.champion === cup.myTeamId && championBonusCupRef.current !== cup.seed) {
+          championBonusCupRef.current = cup.seed;
+          progressStore.addCoins(COINS.cupChampionBonus);
+        }
+      }
       setLastMatch({ round: playedRound, my: myFinal, their: oppFinal, oppId, viaPks: false, won: true });
       setPhase(finished.champion ? "champion" : "matchOver");
       if (soundOn) stadium.whistle();
@@ -179,7 +193,10 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
     setSelected(i);
     setPkState({ ...pkState, selected: i, myCorrect });
     progressStore.trackCategory(q.category, correct);
-    if (correct) progressStore.addXp(5);
+    if (correct) {
+      progressStore.addXp(5);
+      progressStore.addCoins(COINS.penaltyGoal); // عملات تسديدات الترجيح
+    }
     if (soundOn) (correct ? sfx.correct : sfx.wrong)();
     if (hapticsOn && navigator.vibrate) navigator.vibrate(correct ? 40 : 90);
   };
@@ -205,6 +222,7 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
     if (pkXp > 0) {
       setWinXp(pkXp);
       progressStore.addXp(pkXp);
+      progressStore.addCoins(Math.max(10, Math.round(COINS.cupWin[cup.round] / 2))); // نصف مكافأة الفوز
       questsStore.track("trainMaster");
     }
     if (pkWon) {
@@ -212,7 +230,14 @@ export function CupMode({ lang, soundOn, hapticsOn, onExit }: Props) {
     } else {
       setPhase("matchOver"); // نعرض نتيجة المباراة أولًا ثم الإقصاء
     }
-    if (result.champion) recordCupResult(result);
+    if (result.champion) {
+      recordCupResult(result);
+      // فوز بالنهائي عبر الترجيح = لقب كامل — بونص اللقب يُمنح هنا أيضًا (كان غائبًا!)
+      if (result.champion === cup.myTeamId && championBonusCupRef.current !== cup.seed) {
+        championBonusCupRef.current = cup.seed;
+        progressStore.addCoins(COINS.cupChampionBonus);
+      }
+    }
     if (soundOn) (result.eliminated ? sfx.wrong : stadium.goal)();
   };
 

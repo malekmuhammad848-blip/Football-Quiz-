@@ -65,5 +65,20 @@ for (const q of QUESTIONS) {
   }
 }
 
+// 7) سؤال بطل + سؤال تكرار بصري: نفس الفن البصري يُستخدم في سؤالين بإجابتين مختلفتين
+const visualOwners = new Map<string, string>();
+for (const q of QUESTIONS) {
+  if (!q.visual) continue;
+  const vKey = `${q.visual.kind}:${q.visual.ref}`;
+  const correctName = q.en.options[q.answer];
+  const prev = visualOwners.get(vKey);
+  if (prev && prev !== correctName) {
+    console.error(`❌ VISUAL CONFLICT: ${vKey} claimed by "${prev}" AND "${correctName}" (${q.id})`);
+    errors++;
+  } else {
+    visualOwners.set(vKey, correctName);
+  }
+}
+
 console.log(`\n📊 BANK: ${QUESTIONS.length} questions · ${errors} errors · ${warnings} warnings`);
 if (errors > 0) process.exit(1);

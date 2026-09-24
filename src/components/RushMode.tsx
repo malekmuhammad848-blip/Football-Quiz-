@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Play, RotateCcw, Timer, TrendingUp, Zap } from "lucide-react";
 import { RUSH, buildRushSet, loadRushRecord, roundSeed, rushPoints, rushXp, saveRushResult, type RushRecord } from "../domain/rushEngine";
+import { COINS } from "../domain/coinEconomy";
 import { progressStore } from "../stores/progressStore";
 import { questsStore } from "../stores/questsStore";
 import { prefsStore } from "../stores/prefsStore";
@@ -61,6 +62,8 @@ export function RushMode({ lang }: Props) {
     const xp = rushXp(finalScore);
     setXpEarned(xp);
     if (xp > 0) progressStore.addXp(xp);
+    // مكافأة إكمال جولة السرعة
+    if (finalCorrect > 0) progressStore.addCoins(COINS.rushFinish);
     if (prefsStore.getState().sound) {
       if (beaten) {
         stadium.whistle();
@@ -114,6 +117,7 @@ export function RushMode({ lang }: Props) {
       if (hapticsOn) void import("../lib/feedback").then((m) => m.buzz("light"));
       // إتقان الفئات + تتبع المهمة الجانبية
       progressStore.trackCategory(current.category, true);
+      progressStore.addCoins(COINS.rushCorrect); // عملات السرعة
       questsStore.track("trainMaster");
     } else {
       setCombo(0);

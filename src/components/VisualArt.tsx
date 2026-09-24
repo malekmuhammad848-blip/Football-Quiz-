@@ -6,7 +6,7 @@
  * كل شيء SVG محلي بلا شبكة ولا صور خارجية.
  */
 
-import type { ReactElement } from "react";
+import { memo, type ReactElement } from "react";
 import { CREST_ART } from "./ClubCrests";
 
 /* ============================================================
@@ -310,8 +310,8 @@ const CUP_FLAG_REF: Record<string, string> = {
   uy: "uruguay", sa: "saudi", jp: "japan", us: "usa",
 };
 
-/** رسم علم كامل بإطار وسارية داخل viewBox 120×120 */
-export function FlagByRef({ ref: flagRef, className }: { ref: string; className?: string }) {
+/** رسم علم كامل بإطار وسارية داخل viewBox 120×120 — memo لشجرة الكأس (16 علمًا تُرسم كلها) */
+export const FlagByRef = memo(function FlagByRef({ ref: flagRef, className }: { ref: string; className?: string }) {
   const key = CUP_FLAG_REF[flagRef] ?? flagRef;
   const def = FLAG_ART[key];
   return (
@@ -336,7 +336,7 @@ export function FlagByRef({ ref: flagRef, className }: { ref: string; className?
       <rect x="5" y="16" width="3.6" height="88" rx="1.8" fill="rgba(0,0,0,0.3)" />
     </svg>
   );
-}
+});
 
 /* ============================================================
  *  الأطقم — بنية قميص كاملة بارامترية
@@ -389,8 +389,8 @@ function isLight(hex: string): boolean {
   }
 }
 
-/** رسم قميص كامل — يُستخدم للأسئلة البصرية والملصقات */
-export function KitByRef({ kit, className }: { kit: KitDef; className?: string }) {
+/** رسم قميص كامل — memo (يُستخدم في الأسئلة البصرية والملصقات) */
+export const KitByRef = memo(function KitByRef({ kit, className }: { kit: KitDef; className?: string }) {
   const { c1, c2, pattern, number, crest } = kit;
   const numColor = isLight(c1) ? "#1e293b" : "#ffffff";
   const uid = `vk-${c1}${c2}${pattern}${number ?? ""}`.replace(/[^a-zA-Z0-9]/g, "");
@@ -470,7 +470,7 @@ export function KitByRef({ kit, className }: { kit: KitDef; className?: string }
       <circle cx="82" cy="33.5" r="3.4" fill={c2} stroke="rgba(0,0,0,0.2)" strokeWidth="0.7" />
     </svg>
   );
-}
+});
 
 /* ============================================================
  *  البوابة الموحدة: kind + ref

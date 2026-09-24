@@ -2,14 +2,17 @@
  *  AppHeader — الشريط العلوي
  *  ============================================================ */
 
+import { memo } from "react";
 import { Moon, Settings, Sun } from "lucide-react";
+import { formatCoins } from "../domain/coinEconomy";
 import { APP } from "../core/config";
 import { t, type Lang } from "../lib/i18n";
 import { prefsStore } from "../stores/prefsStore";
+import { progressStore } from "../stores/progressStore";
 import { useStore } from "../core/store";
-import { useProgress } from "../hooks/useAppStores";
 import { cn } from "../utils/cn";
 import { Avatar } from "./Avatar";
+import { Coins as CoinsIcon } from "lucide-react";
 
 interface Props {
   lang: Lang;
@@ -20,9 +23,12 @@ interface Props {
   onOpenProfile: () => void;
 }
 
-export function AppHeader({ lang, isDark, onToggleLang, onOpenSettings, onOpenProfile }: Props) {
+/** memo: الترويسة لا تحتاج إعادة رسم إلا عند تغيّر العملات/الأفاتار/اللغة/الثيم */
+export const AppHeader = memo(function AppHeader({ lang, isDark, onToggleLang, onOpenSettings, onOpenProfile }: Props) {
   const avatarId = useStore(prefsStore, (s) => s.avatarId);
-  const xp = useProgress().xp;
+  // مُحدِّدات دقيقة: العملات فقط (كان useProgress الكامل يعيد الرسم عند كل تغيّر XP)
+  const coins = useStore(progressStore, (s) => s.coins);
+  const xp = useStore(progressStore, (s) => Math.floor(s.xp / 100)); // تُحدَّث كل 100 XP فقط
 
   return (
     <header
@@ -46,6 +52,16 @@ export function AppHeader({ lang, isDark, onToggleLang, onOpenSettings, onOpenPr
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5">
+        {/* رصيد العملات — عملة شراء الحزم */}
+        <button
+          onClick={onOpenProfile}
+          aria-label={lang === "ar" ? "رصيد العملات" : "Coin balance"}
+          className="glass-card flex h-9 items-center gap-1.5 rounded-full px-2.5 shadow-sm transition-transform active:scale-95 sm:h-10 sm:px-3"
+        >
+          <CoinsIcon className="size-4 text-amber-500" />
+          <span className="text-xs font-black tabular-nums text-amber-600 dark:text-amber-300">{formatCoins(coins)}</span>
+        </button>
+
         <button
           onClick={onToggleLang}
           aria-label="Language"
@@ -75,4 +91,4 @@ export function AppHeader({ lang, isDark, onToggleLang, onOpenSettings, onOpenPr
       </div>
     </header>
   );
-}
+});

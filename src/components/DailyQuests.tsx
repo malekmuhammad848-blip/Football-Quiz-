@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, Circle, Flame, GraduationCap, Gift, Volleyball } from "lucide-react";
 import { ALL_BONUS_XP, QUEST_DEFS, allComplete, type QuestDef } from "../domain/quests";
+import { COINS } from "../domain/coinEconomy";
 import { useStore } from "../core/store";
 import { questsStore } from "../stores/questsStore";
 import { progressStore } from "../stores/progressStore";
@@ -112,7 +113,7 @@ export function DailyQuests({ lang }: { lang: Lang }) {
                     {questTitle(lang, def)}
                   </p>
                   <span className="shrink-0 text-[10px] font-black text-amber-600 tabular-nums dark:text-amber-300">
-                    +{def.rewardXp} XP
+                    +{def.rewardXp} XP · +{COINS.quest[def.id] ?? 0} 🪙
                   </span>
                 </div>
                 <div className="mt-1 flex items-center gap-2">
@@ -154,7 +155,7 @@ export function DailyQuests({ lang }: { lang: Lang }) {
           >
             <ShieldMark className="size-5" />
             <span className="text-sm font-black text-amber-700 dark:text-amber-200">
-              {t(lang, "questsAllBonus")} +{ALL_BONUS_XP} XP — {t(lang, "questsShieldReward")}
+              {t(lang, "questsAllBonus")} +{ALL_BONUS_XP} XP · +{COINS.quest.allBonus} 🪙 — {t(lang, "questsShieldReward")}
             </span>
           </motion.button>
         )}

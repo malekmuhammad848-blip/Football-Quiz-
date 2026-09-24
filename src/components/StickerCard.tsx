@@ -4,6 +4,7 @@
  * أعلام رسمية بدقتها، شعارات أندية مميزة. مقاس موحّد في كل الأماكن.
  */
 
+import { memo } from "react";
 import { Lock } from "lucide-react";
 import { STICKERS, type Rarity, type Sticker } from "../domain/season";
 import { CREST_ART } from "./ClubCrests";
@@ -547,7 +548,8 @@ function BadgeArt({ sticker }: { sticker: Sticker }) {
  *  البطاقة الكاملة
  * ============================================================ */
 
-export function StickerArt({ sticker, className }: { sticker: Sticker; className?: string }) {
+/** فن الملصق — memo لأن الشبكة ترسم 60 بطاقة وكل بطاقة SVG عشرات العناصر */
+export const StickerArt = memo(function StickerArt({ sticker, className }: { sticker: Sticker; className?: string }) {
   return (
     <div className={cn("flex h-full w-full items-center justify-center", className)}>
       {sticker.art === "kit" && <KitArt sticker={sticker} />}
@@ -555,16 +557,19 @@ export function StickerArt({ sticker, className }: { sticker: Sticker; className
       {sticker.art === "badge" && <BadgeArt sticker={sticker} />}
     </div>
   );
-}
+});
 
 interface Props {
   sticker: Sticker;
   copies?: number;
   locked?: boolean;
   onClick?: () => void;
+  /** لغة العرض — الاسم يتبع اللغة (كان يظهر عربيًا دائمًا) */
+  lang?: "ar" | "en";
 }
 
-export function StickerCard({ sticker, copies = 0, locked = false, onClick }: Props) {
+/** بطاقة الملصق — memo: كسب/صرف العملات يعيد رسم الشاشة كاملة، والبطاقات لا تتغير */
+export const StickerCard = memo(function StickerCard({ sticker, copies = 0, locked = false, onClick, lang = "ar" }: Props) {
   const fr = RARITY_FRAME[sticker.rarity];
   const owned = copies > 0;
 
@@ -611,14 +616,14 @@ export function StickerCard({ sticker, copies = 0, locked = false, onClick }: Pr
       </span>
 
       <span className={cn("max-w-full truncate text-[10px] font-black leading-tight", !owned && "opacity-40")}>
-        {sticker.ar}
+        {lang === "ar" ? sticker.ar : sticker.en}
       </span>
     </button>
   );
-}
+});
 
 /** شبكة ألبوم كاملة */
-export function StickerAlbum({
+export const StickerAlbum = memo(function StickerAlbum({
   owned,
   lang,
 }: {
@@ -639,11 +644,11 @@ export function StickerAlbum({
           <p className="mb-2 text-xs font-black opacity-60">{g.title}</p>
           <div className="grid grid-cols-4 gap-2">
             {g.items.map((s) => (
-              <StickerCard key={s.id} sticker={s} copies={owned[s.id] ?? 0} locked={(owned[s.id] ?? 0) === 0} />
+              <StickerCard key={s.id} sticker={s} copies={owned[s.id] ?? 0} locked={(owned[s.id] ?? 0) === 0} lang={lang} />
             ))}
           </div>
         </div>
       ))}
     </div>
   );
-}
+});

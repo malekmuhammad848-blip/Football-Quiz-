@@ -7,6 +7,7 @@ import { createStore, type Store } from "../core/store";
 import { readJSON, writeJSON } from "../core/storage";
 import { STORE_KEYS } from "../core/config";
 import { ALL_BONUS_XP, QUEST_DEFS, allComplete, emptyQuests, rollover, type QuestId, type QuestState } from "../domain/quests";
+import { COINS } from "../domain/coinEconomy";
 import { progressStore } from "./progressStore";
 
 interface QuestsStore extends Store<QuestState> {
@@ -54,6 +55,9 @@ export const questsStore: QuestsStore = (() => {
       if (!def || (cur.progress[id] ?? 0) < def.target) return 0;
       this.replace({ ...cur, claimed: [...cur.claimed, id] });
       progressStore.addXp(def.rewardXp);
+      // مكافأة عملات المهمة
+      const questCoins = COINS.quest[id];
+      if (questCoins) progressStore.addCoins(questCoins);
       return def.rewardXp;
     },
     claimAllBonus() {
@@ -62,6 +66,7 @@ export const questsStore: QuestsStore = (() => {
       if (!allComplete(cur)) return 0;
       this.replace({ ...cur, claimed: [...cur.claimed, "streakGuard"] });
       progressStore.addXp(ALL_BONUS_XP);
+      progressStore.addCoins(COINS.quest.allBonus);
       return ALL_BONUS_XP;
     },
   };

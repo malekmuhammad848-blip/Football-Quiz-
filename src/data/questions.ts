@@ -9,6 +9,7 @@ import { QUESTIONS_WAVE_B } from "./questionsWaveB";
 import { QUESTIONS_WAVE_C } from "./questionsWaveC";
 import { QUESTIONS_WAVE_D } from "./questionsWaveD";
 import { QUESTIONS_WAVE_E } from "./questionsWaveE";
+import { QUESTIONS_WAVE_F } from "./questionsWaveF";
 
 /** البنك الأساسي (النسخة الأولى) */
 const CORE_QUESTIONS: Question[] = [
@@ -1374,7 +1375,7 @@ const CORE_QUESTIONS: Question[] = [
   },
 ];
 
-/** The unified mega bank: core + all waves */
+/** The unified mega bank: core + all waves (بما فيها الموجة البصرية F) */
 export const QUESTIONS: Question[] = [
   ...CORE_QUESTIONS,
   ...QUESTIONS_WAVE_A,
@@ -1382,4 +1383,5 @@ export const QUESTIONS: Question[] = [
   ...QUESTIONS_WAVE_C,
   ...QUESTIONS_WAVE_D,
   ...QUESTIONS_WAVE_E,
+  ...QUESTIONS_WAVE_F,
 ];

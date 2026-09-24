@@ -10,6 +10,7 @@ import { GAMEPLAY } from "../core/config";
 import { QUESTIONS } from "../data/questions";
 import { localizeQuestion } from "../domain/dailyEngine";
 import { fnv1a } from "../core/date";
+import { COINS } from "../domain/coinEconomy";
 import { sfx, buzz } from "../lib/feedback";
 import { stadium } from "../lib/stadium";
 import { progressStore } from "../stores/progressStore";
@@ -108,6 +109,7 @@ export function TrainingMode({ lang, soundOn, hapticsOn, onExit }: Props) {
     const correct = i === current.answer;
     if (correct) {
       setScore((s) => s + 1);
+      progressStore.addCoins(COINS.trainGoal); // عملات التدريب
       questsStore.track("trainMaster"); // تتبع مهمة التدريب
     }
     // إتقان الفئات — يغذي تقرير الكشّاف

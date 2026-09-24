@@ -45,6 +45,8 @@ export interface Progress {
   correctCount: number;
   playedCount: number;
   xp: number;
+  /** العملات — تُكسب من المهام والألعاب وتُصرف على حزم الملصقات */
+  coins: number;
   unlocked: string[];
   /** سجل الإجابات: مفتاح اليوم → فهرس الخيار المختار */
   history: Record<string, number>;

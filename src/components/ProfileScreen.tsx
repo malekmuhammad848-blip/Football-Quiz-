@@ -252,6 +252,12 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
           {[
             { label: t(lang, "totalXp"), value: `${progress.xp}`, tone: "text-gold" },
             {
+              label: lang === "ar" ? "العملات" : "Coins",
+              value: `${progress.coins}`,
+              suffix: "🪙",
+              tone: "text-amber-400",
+            },
+            {
               label: t(lang, "currentStreak"),
               value: `${progress.streak}`,
               suffix: t(lang, "days"),
