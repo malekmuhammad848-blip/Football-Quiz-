@@ -205,8 +205,10 @@ export function UnitedCrest() {
         <path d="M-10 10 Q0 18 10 10" stroke="#8b0000" strokeWidth="2.6" fill="none" strokeLinecap="round" />
       </g>
 
-      <path d="M58 176 H182" stroke="#fbe122" strokeWidth="2.4" opacity="0.7" />
-      <text x="120" y="206" textAnchor="middle" fontSize="19" fontWeight="900" fontFamily="serif" fill="#fbe122" letterSpacing="1">MANCHESTER</text>
+      {/* شريطا الاسم: MANCHESTER أعلى، UNITED أسفل — كما في الشعار الحقيقي */}
+      <rect x="66" y="168" width="108" height="15" rx="2" fill="none" stroke="#fbe122" strokeWidth="2" opacity="0.9" />
+      <text x="120" y="180" textAnchor="middle" fontSize="11.5" fontWeight="900" fontFamily="serif" fill="#fbe122" letterSpacing="1.5">UNITED</text>
+      <text x="120" y="216" textAnchor="middle" fontSize="12" fontWeight="900" fontFamily="serif" fill="#fbe122" letterSpacing="2.5">MANCHESTER</text>
     </svg>
   );
 }
@@ -241,15 +243,17 @@ export function BayernCrest() {
         </clipPath>
       </defs>
 
-      <circle cx="120" cy="120" r="106" fill="#ffffff" />
-      <circle cx="120" cy="120" r="101" fill="#0066b2" stroke="#ffffff" strokeWidth="3" />
-      <circle cx="120" cy="120" r="80" fill="#ffffff" />
-      <text x="120" y="46" textAnchor="middle" fontSize="16.5" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="3">FC BAYERN</text>
-      <text x="120" y="208" textAnchor="middle" fontSize="16.5" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="3">MÜNCHEN</text>
-      <text x="38" y="126" textAnchor="middle" fontSize="12" fontWeight="900" fontFamily="serif" fill="#ffffff" transform="rotate(-90 38 126)">1900</text>
-      <text x="203" y="126" textAnchor="middle" fontSize="12" fontWeight="900" fontFamily="serif" fill="#ffffff" transform="rotate(90 203 126)">MÜNCHEN</text>
+      {/* الحلقة الخارجية بيضاء بنص أزرق — كما في الشعار الرسمي */}
+      <circle cx="120" cy="120" r="106" fill="#ffffff" stroke="#0066b2" strokeWidth="3" />
+      <circle cx="120" cy="120" r="101" fill="none" stroke="#0066b2" strokeWidth="1.4" opacity="0.55" />
+      <text x="120" y="52" textAnchor="middle" fontSize="16" fontWeight="900" fontFamily="serif" fill="#0066b2" letterSpacing="3">FC BAYERN</text>
+      <text x="120" y="206" textAnchor="middle" fontSize="16" fontWeight="900" fontFamily="serif" fill="#0066b2" letterSpacing="3">MÜNCHEN</text>
+      <text x="40" y="126" textAnchor="middle" fontSize="12" fontWeight="900" fontFamily="serif" fill="#0066b2" transform="rotate(-90 40 126)">1900</text>
+      {/* معيّنتا بافاريا الصغيرتان على يمين الحلقة */}
+      <path d="M203 112 L209 120 L203 128 L197 120 Z" fill="#0066b2" />
+      <path d="M203 124 L207 130 L203 136 L199 130 Z" fill="#dc052d" />
 
-      <circle cx="120" cy="120" r="76" fill="#dc052d" stroke="#ffffff" strokeWidth="3" />
+      <circle cx="120" cy="120" r="78" fill="#dc052d" stroke="#ffffff" strokeWidth="3" />
       <circle cx="120" cy="120" r="62" fill="#ffffff" />
       <g clipPath={`url(#${c})`}>{lozenges}</g>
       <circle cx="120" cy="120" r="62" fill="none" stroke="#0066b2" strokeWidth="2.5" />
@@ -374,7 +378,8 @@ export function InterCrest() {
       <circle cx="120" cy="120" r="68" fill="#0068a8" stroke="#111111" strokeWidth="5" />
       <text x="120" y="142" textAnchor="middle" fontSize="62" fontWeight="900" fontFamily="serif" fill="#d9c07a" letterSpacing="-4">IM</text>
       <text x="120" y="176" textAnchor="middle" fontSize="14" fontWeight="900" fontFamily="serif" fill="#d9c07a" letterSpacing="2">1908</text>
-      {star5(120, 30, 14, "#0068a8", "#c8a24b", 2)}
+      {/* النجمة الذهبية العلوية — لقب أبطال أوروبا */}
+      {star5(120, 30, 14, "#c8a24b", "#8a6d20", 1.6)}
     </svg>
   );
 }
@@ -385,6 +390,7 @@ export function InterCrest() {
 export function MilanCrest() {
   const uid = safeId(useId());
   const c = `mlc-${uid}`;
+  // الترتيب الرسمي: يسار الصليب الأحمر لسان جورج، يمين الخطوط الحمراء على أسود
   return (
     <svg viewBox="0 0 240 240" className="h-full w-full" aria-hidden>
       <defs>
@@ -395,18 +401,22 @@ export function MilanCrest() {
       <circle cx="120" cy="120" r="107" fill="#ffffff" stroke="#111111" strokeWidth="5" />
       <ellipse cx="120" cy="120" rx="78" ry="92" fill="#ffffff" stroke="#111111" strokeWidth="3" />
       <g clipPath={`url(#${c})`}>
-        <rect x="42" y="28" width="78" height="184" fill="#b01c2e" />
-        {[50, 68, 86, 104].map((x) => (
-          <rect key={x} x={x} y="28" width="9" height="184" fill="#111111" />
+        {/* الربع العلوي الأيسر: صليب سان جورج الأحمر على أبيض */}
+        <rect x="42" y="28" width="78" height="92" fill="#ffffff" />
+        <rect x="72" y="28" width="18" height="92" fill="#b01c2e" />
+        <rect x="42" y="66" width="78" height="16" fill="#b01c2e" />
+        {/* الربع العلوي الأيمن: الخطوط الحمراء على أسود */}
+        <rect x="120" y="28" width="78" height="92" fill="#111111" />
+        {[128, 148, 168].map((x) => (
+          <rect key={x} x={x} y="28" width="9" height="92" fill="#b01c2e" />
         ))}
-        <rect x="120" y="28" width="78" height="184" fill="#ffffff" />
-        <rect x="154" y="40" width="11" height="140" fill="#b01c2e" />
-        <rect x="124" y="104" width="71" height="11" fill="#b01c2e" />
+        {/* القاع الأبيض الشامل — يحمل الاسم والسنة */}
+        <rect x="42" y="120" width="156" height="92" fill="#ffffff" />
       </g>
       <ellipse cx="120" cy="120" rx="78" ry="92" fill="none" stroke="#111111" strokeWidth="3" />
-      <rect x="93" y="184" width="54" height="19" rx="9.5" fill="#111111" />
-      <text x="120" y="198" textAnchor="middle" fontSize="12" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="2">ACM</text>
-      <text x="120" y="52" textAnchor="middle" fontSize="11" fontWeight="900" fontFamily="serif" fill="#b01c2e" letterSpacing="1">1899</text>
+      {/* ACM و1899 في الشريط الأبيض السفلي — كما في الرسمي */}
+      <text x="120" y="168" textAnchor="middle" fontSize="24" fontWeight="900" fontFamily="serif" fill="#b01c2e" letterSpacing="3">ACM</text>
+      <text x="120" y="196" textAnchor="middle" fontSize="13" fontWeight="900" fontFamily="serif" fill="#b01c2e" letterSpacing="2">1899</text>
     </svg>
   );
 }
@@ -648,6 +658,8 @@ export function PsgCrest() {
         <clipPath id={c}>
           <circle cx="120" cy="120" r="98" />
         </clipPath>
+        {/* قوس النص العلوي — اسم النادي يلتف كما في الشعار الرسمي */}
+        <path id={`pgt-${uid}`} d="M34 120 A86 86 0 0 1 206 120" fill="none" />
       </defs>
       <circle cx="120" cy="120" r="106" fill="#ffffff" />
       <circle cx="120" cy="120" r="99" fill="#004170" />
@@ -671,7 +683,9 @@ export function PsgCrest() {
         <rect x="-1.6" y="8" width="3.2" height="7" rx="1.4" />
       </g>
 
-      <text x="120" y="34" textAnchor="middle" fontSize="11" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="1.6">PARIS SAINT-GERMAIN</text>
+      <text fontSize="12.5" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="1.2">
+        <textPath href={`#pgt-${uid}`} startOffset="50%" textAnchor="middle">PARIS SAINT-GERMAIN</textPath>
+      </text>
       <text x="120" y="216" textAnchor="middle" fontSize="11" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="3">1970</text>
     </svg>
   );
@@ -687,12 +701,15 @@ export function DortmundCrest() {
       <circle cx="120" cy="120" r="90" fill="none" stroke="#111111" strokeWidth="15" />
       <circle cx="120" cy="120" r="72" fill="#fde100" stroke="#111111" strokeWidth="3" />
 
-      <text x="120" y="42" textAnchor="middle" fontSize="15" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="2">BORUSSIA</text>
+      {/* الاسم على الحلقة السوداء نفسها — أبيض على أسود */}
+      <text x="120" y="36" textAnchor="middle" fontSize="14" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="2">BORUSSIA</text>
+      <path d="M28 120 L36 116 L36 124 Z M212 120 L204 116 L204 124 Z" fill="#ffffff" />
       <text x="120" y="212" textAnchor="middle" fontSize="12.5" fontWeight="900" fontFamily="serif" fill="#ffffff" letterSpacing="1">DORTMUND</text>
 
-      <circle cx="107" cy="104" r="24" fill="none" stroke="#111111" strokeWidth="8" />
-      <circle cx="133" cy="104" r="24" fill="none" stroke="#111111" strokeWidth="8" />
-      <text x="120" y="166" textAnchor="middle" fontSize="22" fontWeight="900" fontFamily="serif" fill="#111111" letterSpacing="1">09</text>
+      {/* الشعار الداخلي: حلقتا 09 المتشابكتان — أكبر وأوضح */}
+      <circle cx="104" cy="108" r="27" fill="none" stroke="#111111" strokeWidth="9" />
+      <circle cx="136" cy="108" r="27" fill="none" stroke="#111111" strokeWidth="9" />
+      <text x="120" y="176" textAnchor="middle" fontSize="26" fontWeight="900" fontFamily="serif" fill="#111111" letterSpacing="1">09</text>
     </svg>
   );
 }
