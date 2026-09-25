@@ -1,12 +1,13 @@
 /** ============================================================
  *  SeasonScreen — الموسم التقييمي
- *  الحزم تُشترى بالعملات (بأيقونة مرسومة لا إيموجي)، والمكررات
- *  تُباع لعملات إضافية. كشف خفيف وسلس بلا طبقات أنيميشن متداخلة.
+ *  فتح الحزم سينمائي تلقائي: ترقّب مع اهتزاز وشرارات ← انفجار
+ *  ضوئي ← كل البطاقات تُقلب بتتابع سريع (CSS على GPU) ← ملخص.
+ *  لا نقر على كل بطاقة — لمسة واحدة تكشف الحزمة كاملة.
  *  ============================================================ */
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Coins as CoinsIcon, Lock, Sparkles, TrendingUp } from "lucide-react";
+import { Coins as CoinsIcon, Lock, Sparkles, TrendingUp, X } from "lucide-react";
 import {
   PACKS,
   TOTAL_STICKERS,
@@ -32,34 +33,57 @@ import { cn } from "../utils/cn";
 import { ProgressBar } from "./ui/primitives";
 import { StickerAlbum, StickerCard } from "./StickerCard";
 import { CoinMark, PackArt } from "./Icons";
+import type { Rarity } from "../domain/season";
 
 interface Props {
   lang: Lang;
 }
 
-type Reveal = { sticker: Sticker; isNew: boolean; seq?: number } | null;
+/** مراحل الفتح السينمائي */
+type OpenPhase = "idle" | "charging" | "burst" | "reveal" | "summary";
+
+const RARITY_ORDER: Record<Rarity, number> = { common: 0, rare: 1, epic: 2, legendary: 3 };
+
+const RARITY_NAME: Record<Rarity, { ar: string; en: string }> = {
+  common: { ar: "عادي", en: "Common" },
+  rare: { ar: "نادر", en: "Rare" },
+  epic: { ar: "ملحمي", en: "Epic" },
+  legendary: { ar: "أسطوري", en: "Legendary" },
+};
+
+/** تأخير ظهور كل بطاقة — الأغلى يظهر أولاً */
+function cardDelay(i: number, total: number, bestIndex: number): number {
+  // البطاقة الأعلى ندرة تُكشف أولاً (لحظة الذروة)، ثم الباقي بتتابع 140ms
+  if (i === bestIndex) return 0.12;
+  const order = i < bestIndex ? i : i - 1;
+  return 0.34 + order * 0.14 + (total > 4 ? 0 : 0.05);
+}
 
 export function SeasonScreen({ lang }: Props) {
   const [season, setSeason] = useState<SeasonState>(() => seedStarterPack(loadSeason()));
   // رصيد تفاعلي — كان يُقرأ مرة واحدة عبر getState فلا تُحدَّث الواجهة عند كسب/صرف العملات
   const coins = useStore(progressStore, (s) => s.coins);
   const [opening, setOpening] = useState<PackDef | null>(null);
-  const [revealQueue, setRevealQueue] = useState<Reveal[]>([]);
-  const [currentReveal, setCurrentReveal] = useState<Reveal>(null);
-  /** رقم تتابعي للكشف — مفتاح أنيميشن فريد حتى مع ملصقات مكررة في نفس الحزمة */
-  const revealSeqRef = useRef(0);
+  const [phase, setPhase] = useState<OpenPhase>("idle");
+  /** بطاقات الحزمة الجارية — مرتبة بحيث الأغلى أولاً */
+  const [pulls, setPulls] = useState<Sticker[]>([]);
+  const [pulledBefore, setPulledBefore] = useState<Set<string>>(new Set());
   const [soldToast, setSoldToast] = useState<string | null>(null);
   const soldTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** قفل إجراء الشراء — يمنع الخصم المزدوج على النقر السريع/المزدوج قبل تحديث الواجهة */
   const purchaseLockRef = useRef(false);
   const [needCoinsToast, setNeedCoinsToast] = useState<string | null>(null);
   const needCoinsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** مؤقتات الفتح — تُنظف عند الخروج من الشاشة */
+  const phaseTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  // تنظيف مؤقت رسالة البيع/نقص العملات عند الخروج من الشاشة (كان يُحدّث مكوّنًا مُلغى تركيبه)
+  // تنظيف المؤقتات عند الخروج (كان يُحدّث مكوّنًا مُلغى تركيبه)
   useEffect(() => {
     return () => {
       if (soldTimer.current) clearTimeout(soldTimer.current);
       if (needCoinsTimer.current) clearTimeout(needCoinsTimer.current);
+      for (const t of phaseTimers.current) clearTimeout(t);
+      phaseTimers.current = [];
     };
   }, []);
 
@@ -74,13 +98,34 @@ export function SeasonScreen({ lang }: Props) {
   const got = ownedCount(season);
   const score = collectionScore(season);
 
+  /** إضافة مؤقت مع تنظيف ذاتي */
+  const later = (fn: () => void, ms: number) => {
+    const id = setTimeout(fn, ms);
+    phaseTimers.current.push(id);
+  };
+
+  /** أفضل بطاقة (الأغلى ندرة) — تُكشف أولاً وتتوهج */
+  const bestIndex = useMemo(() => {
+    let bi = 0;
+    let best = -1;
+    pulls.forEach((p, i) => {
+      const r = RARITY_ORDER[p.rarity];
+      if (r > best) {
+        best = r;
+        bi = i;
+      }
+    });
+    return bi;
+  }, [pulls]);
+
+  const hasLegendary = pulls.some((p) => p.rarity === "legendary");
+  const hasEpic = pulls.some((p) => p.rarity === "epic");
+
   const doOpen = (pack: PackDef) => {
-    // حماية الشراء المزدوج: لا فتح أثناء كشف ملصق، ولا نقرات متزامنة على نفس الحزمة
-    if (purchaseLockRef.current || opening || currentReveal || revealQueue.length > 0) return;
+    if (purchaseLockRef.current || opening) return;
     purchaseLockRef.current = true;
 
     const cost = PACK_PRICES[pack.id] ?? pack.costXp;
-    // الشراء بالعملات — لا يلمس XP إطلاقًا؛ رسالة واضحة عند نقص الرصيد بدل الفشل الصامت
     if (!progressStore.spendCoins(cost)) {
       purchaseLockRef.current = false;
       setNeedCoinsToast(
@@ -93,15 +138,12 @@ export function SeasonScreen({ lang }: Props) {
       return;
     }
 
-    const pulled = openPack(pack.id);
-
     // نحسب من أحدث حالة محفوظة (وليس نسخة الرندر) — يمنع فقدان الملصقات
     const current = loadSeason();
-    const queue: Reveal[] = pulled.map((st) => ({
-      sticker: st,
-      isNew: (current.owned[st.id] ?? 0) === 0,
-      seq: revealSeqRef.current++,
-    }));
+    const pulled = openPack(pack.id);
+    const before = new Set<string>();
+    for (const st of pulled) if ((current.owned[st.id] ?? 0) === 0) before.add(st.id);
+
     const owned = { ...current.owned };
     let newCount = 0;
     for (const st of pulled) {
@@ -111,20 +153,62 @@ export function SeasonScreen({ lang }: Props) {
     const next = { ...current, owned };
     saveSeason(next);
     setSeason(next);
-    setRevealQueue(queue);
-    // مكافأة صغيرة لكل ملصق جديد يُكتشف (خارج setState — آمن مع StrictMode)
-    if (newCount > 0) progressStore.addCoins(COINS.newSticker * newCount);
 
+    // ——— التسلسل السينمائي ———
+    setPulls(pulled);
+    setPulledBefore(before);
     setOpening(pack);
-    setCurrentReveal(null);
+    setPhase("charging"); // 1. ترقّب: اهتزاز + شرارات + هالة
     if (prefsStore.getState().sound) stadium.packOpen();
-    // فُتحت الحزمة — نرفع القفل (تُكمل الحماية عبر opening/revealQueue)
+    if (prefsStore.getState().haptics && navigator.vibrate) navigator.vibrate([40, 60, 40, 60, 40]);
+
+    const chargeMs = 1500;
+    later(() => {
+      // 2. الانفجار: وميض أبيض + صوت الذروة
+      setPhase("burst");
+      const st = prefsStore.getState();
+      if (st.sound) {
+        if (hasLegendaryRefs.current) stadium.cheer(1.6, 0.18);
+        else if (hasEpicRefs.current) stadium.horn(0.6);
+        else chordBright();
+      }
+      if (st.haptics && navigator.vibrate) navigator.vibrate(hasLegendaryRefs.current ? [80, 40, 120] : 60);
+    }, chargeMs);
+
+    later(() => {
+      // 3. الكشف: البطاقات تطير وتنقلب تلقائيًا (CSS delays)
+      setPhase("reveal");
+    }, chargeMs + 520);
+
     purchaseLockRef.current = false;
+  };
+
+  /** مراجع تُقرأ لحظة الانفجار — تفادي حالة قديمة داخل setTimeout */
+  const hasLegendaryRefs = useRef(hasLegendary);
+  const hasEpicRefs = useRef(hasEpic);
+  useEffect(() => {
+    hasLegendaryRefs.current = hasLegendary;
+    hasEpicRefs.current = hasEpic;
+  }, [hasLegendary, hasEpic]);
+
+  const closeFlow = () => {
+    for (const t of phaseTimers.current) clearTimeout(t);
+    phaseTimers.current = [];
+    setOpening(null);
+    setPhase("idle");
+    setPulls([]);
+  };
+
+  /** النقر أثناء الكشف = تخطي كل التأخيرات (class على الحاوية) */
+  const revealWrapRef = useRef<HTMLDivElement | null>(null);
+  const skipReveal = () => {
+    if (phase !== "reveal") return;
+    revealWrapRef.current?.classList.add("pk-skip");
+    if (prefsStore.getState().sound) sfx.tap();
   };
 
   /** بيع كل النسخ الزائدة دفعة واحدة */
   const sellAllDupes = () => {
-    // نقرأ الحالة المحفوظة مباشرة — بلا side effects داخل setState (آمن مع StrictMode)
     const current = loadSeason();
     const owned = { ...current.owned };
     let earned = 0;
@@ -146,22 +230,6 @@ export function SeasonScreen({ lang }: Props) {
     if (prefsStore.getState().sound) sfx.unlock();
   };
 
-  const revealNext = () => {
-    if (revealQueue.length === 0) {
-      setCurrentReveal(null);
-      setOpening(null);
-      return;
-    }
-    const [head, ...rest] = revealQueue;
-    setCurrentReveal(head);
-    setRevealQueue(rest);
-    if (prefsStore.getState().sound) {
-      // صوت كشف واحد قصير (كان صفيران مكدسان: unlock + هدف كامل — مزعج)
-      if (head?.isNew) chordBright();
-      else sfx.tap();
-    }
-  };
-
   /** خريطة الحزمة → نوع الملصق (مطابقة لمحرك الفتح) */
   const packsProgress = useMemo(
     () =>
@@ -180,6 +248,8 @@ export function SeasonScreen({ lang }: Props) {
       }),
     [coins, season.owned],
   );
+
+  const newCount = pulls.filter((p) => pulledBefore.has(p.id)).length;
 
   return (
     <div className="space-y-4">
@@ -285,59 +355,162 @@ export function SeasonScreen({ lang }: Props) {
         <StickerAlbum owned={season.owned} lang={lang} />
       </section>
 
-      {/* ——— أنيميشن فتح الحزمة — طبقة واحدة خفيفة (كانت AnimatePresence متداخلة تُثقل) ——— */}
+      {/* ============================================================
+          التسلسل السينمائي لفتح الحزمة — طبقة واحدة، حركات CSS
+          ============================================================ */}
       <AnimatePresence>
-        {opening && (
+        {opening && phase !== "idle" && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.16 }}
-            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80"
-            onClick={revealNext}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-[70] flex items-center justify-center overflow-hidden bg-black/85"
+            onClick={() => {
+              if (phase === "reveal") skipReveal();
+              else if (phase === "summary") closeFlow();
+            }}
           >
-            {/* الحزمة قبل الكشف */}
-            {!currentReveal && (
-              <motion.div
-                initial={{ scale: 0.7 }}
-                animate={{ scale: 1, y: [0, -8, 0] }}
-                transition={{ duration: 0.45, y: { duration: 1.1, repeat: Infinity, ease: "easeInOut" } }}
-                className="text-center"
+            {/* زر إغلاق دائم أعلى الشاشة */}
+            {(phase === "reveal" || phase === "summary") && (
+              <button
+                onClick={closeFlow}
+                aria-label={lang === "ar" ? "إغلاق" : "Close"}
+                className="absolute top-4 end-4 z-20 rounded-full bg-white/10 p-2.5 text-white/80 backdrop-blur transition-colors hover:bg-white/20"
               >
-                <PackArt id={opening.id} className="mx-auto size-32 drop-shadow-2xl" />
-                <p className="mt-4 animate-pulse text-sm font-black text-white/80">
-                  {t(lang, "packTapToOpen")}
-                </p>
-              </motion.div>
+                <X className="size-5" />
+              </button>
             )}
 
-            {/* كشف الملصق — مبادلة مباشرة بلا exit (أسرع وأسلس على الأجهزة الضعيفة) */}
-            {currentReveal && (
-              <motion.div
-                key={currentReveal.seq ?? currentReveal.sticker.id}
-                initial={{ scale: 0.55, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 320, damping: 24, mass: 0.7 }}
-                className="flex flex-col items-center gap-3"
-              >
-                {currentReveal.isNew && (
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="flex items-center gap-1 rounded-full bg-grass-500 px-4 py-1 text-xs font-black text-white shadow-lg"
-                  >
-                    {lang === "ar" ? "جديد!" : "NEW!"}
-                    <CoinMark className="size-3.5" />+{COINS.newSticker}
-                  </motion.span>
-                )}
-                <div className="w-64">
-                  <StickerCard sticker={currentReveal.sticker} copies={1} lang={lang} />
+            {/* ——— 1) الترقّب: الحزمة تهتز وتتوهج والشرارات تصعد ——— */}
+            {phase === "charging" && (
+              <div className="relative flex flex-col items-center">
+                <div className="pk-aura" />
+                {/* شرارات حول الحزمة */}
+                {[...Array(8)].map((_, i) => (
+                  <span
+                    key={i}
+                    className="pk-spark"
+                    style={{
+                      left: `${12 + (i % 4) * 25}%`,
+                      top: `${20 + Math.floor(i / 4) * 45}%`,
+                      animationDelay: `${i * 0.13}s`,
+                    }}
+                  />
+                ))}
+                <div className="pk-shake relative">
+                  <PackArt id={opening.id} className="size-40 drop-shadow-2xl" />
                 </div>
-                <p className="text-lg font-black text-white">{lang === "ar" ? currentReveal.sticker.ar : currentReveal.sticker.en}</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-white/50">
-                  {currentReveal.sticker.rarity}
+                <p className="mt-8 animate-pulse text-sm font-black text-white/85">
+                  {lang === "ar" ? "افتح..." : "Opening..."}
                 </p>
-                <p className="mt-2 text-xs font-bold text-white/40">{t(lang, "packTapContinue")}</p>
+              </div>
+            )}
+
+            {/* ——— 2) الانفجار: وميض ضوئي ——— */}
+            {phase === "burst" && (
+              <div className="pk-flash" />
+            )}
+
+            {/* ——— 3) الكشف: كل البطاقات تطير وتنقلب تلقائيًا ——— */}
+            {phase === "reveal" && (
+              <div
+                ref={revealWrapRef}
+                className="flex max-h-full w-full max-w-sm flex-col items-center gap-3 overflow-y-auto px-4 py-10"
+              >
+                <p className="pk-card-in text-xs font-black uppercase tracking-[0.3em] text-gold" style={{ animationDelay: "0.05s" }}>
+                  {lang === "ar" ? "محتويات الحزمة" : "PACK CONTENTS"}
+                </p>
+                <div className="grid w-full grid-cols-2 gap-2.5">
+                  {pulls.map((st, i) => (
+                    <div
+                      key={`${st.id}-${i}`}
+                      className={cn("relative", i === bestIndex ? "pk-best" : "pk-card-in")}
+                      style={{ animationDelay: `${cardDelay(i, pulls.length, bestIndex)}s` }}
+                    >
+                      <StickerCard sticker={st} copies={1} lang={lang} />
+                      {pulledBefore.has(st.id) && (
+                        <span
+                          className="pk-new-tag absolute -top-1.5 -end-1.5 rounded-full bg-grass-500 px-2 py-0.5 text-[9px] font-black text-white shadow-lg"
+                          style={{ animationDelay: `${cardDelay(i, pulls.length, bestIndex) + 0.3}s` }}
+                        >
+                          {lang === "ar" ? "جديد" : "NEW"}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* أزرار الملخص تظهر بعد آخر بطاقة */}
+                <button
+                  onClick={() => {
+                    setPhase("summary");
+                    if (prefsStore.getState().sound) sfx.unlock();
+                  }}
+                  className="pk-card-in mt-3 rounded-2xl bg-gradient-to-l from-amber-500 to-gold px-8 py-3 text-sm font-black text-amber-950 shadow-xl transition-all hover:brightness-105 active:scale-95"
+                  style={{ animationDelay: `${cardDelay(pulls.length - 1, pulls.length, bestIndex) + 0.35}s` }}
+                >
+                  {lang === "ar" ? "المتابعة" : "Continue"}
+                </button>
+              </div>
+            )}
+
+            {/* ——— 4) الملخص النهائي ——— */}
+            {phase === "summary" && (
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 300, damping: 26 }}
+                className="mx-4 w-full max-w-sm rounded-3xl border border-gold/30 bg-gradient-to-b from-[#141c16] to-[#0a0f0b] p-6 text-center shadow-2xl"
+              >
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gold">
+                  {lang === "ar" ? "ملخص الحزمة" : "PACK SUMMARY"}
+                </p>
+                <p className="mt-2 text-4xl font-black text-white">{pulls.length}×</p>
+                <p className="text-xs font-bold text-white/50">{lang === "ar" ? "ملصقات" : "stickers"}</p>
+
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <div className="rounded-2xl bg-grass-500/15 p-3">
+                    <p className="text-2xl font-black text-grass-400">+{newCount}</p>
+                    <p className="text-[10px] font-bold text-white/60">{lang === "ar" ? "جديد" : "New"}</p>
+                  </div>
+                  <div className="rounded-2xl bg-gold/15 p-3">
+                    <p className="flex items-center justify-center gap-1 text-2xl font-black text-gold">
+                      +{COINS.newSticker * newCount}
+                      <CoinMark className="size-4" />
+                    </p>
+                    <p className="text-[10px] font-bold text-white/60">{lang === "ar" ? "عملات مكتسبة" : "Coins earned"}</p>
+                  </div>
+                </div>
+
+                {/* أندر بطاقة */}
+                {pulls[bestIndex] && (
+                  <div className="mt-4 flex items-center justify-center gap-3 rounded-2xl bg-white/5 p-3">
+                    <div className="size-16 shrink-0">
+                      <StickerCard sticker={pulls[bestIndex]!} copies={1} lang={lang} />
+                    </div>
+                    <div className="text-start">
+                      <p className="text-sm font-black text-white">
+                        {lang === "ar" ? pulls[bestIndex]!.ar : pulls[bestIndex]!.en}
+                      </p>
+                      <p
+                        className={cn(
+                          "text-[10px] font-black uppercase tracking-widest",
+                          hasLegendary ? "text-gold" : hasEpic ? "text-purple-400" : "text-white/50",
+                        )}
+                      >
+                        {RARITY_NAME[pulls[bestIndex]!.rarity][lang]}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={closeFlow}
+                  className="mt-5 w-full rounded-2xl bg-gradient-to-l from-amber-500 to-gold py-3 text-sm font-black text-amber-950 shadow-lg transition-all hover:brightness-105 active:scale-95"
+                >
+                  {lang === "ar" ? "رائع!" : "Awesome!"}
+                </button>
               </motion.div>
             )}
           </motion.div>
