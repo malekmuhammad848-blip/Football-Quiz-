@@ -26,9 +26,10 @@ interface Props {
 /** memo: الترويسة لا تحتاج إعادة رسم إلا عند تغيّر العملات/الأفاتار/اللغة/الثيم */
 export const AppHeader = memo(function AppHeader({ lang, isDark, onToggleLang, onOpenSettings, onOpenProfile }: Props) {
   const avatarId = useStore(prefsStore, (s) => s.avatarId);
-  // مُحدِّدات دقيقة: العملات فقط (كان useProgress الكامل يعيد الرسم عند كل تغيّر XP)
+  // مُحدِّدات دقيقة: العملات وXP الحقيقي — الإطار يعتمد على XP الكامل
+  // (كان يُقتطع كل 100 فبقى إطار الدوري برونزيًا خارج البروفايل دائمًا!)
   const coins = useStore(progressStore, (s) => s.coins);
-  const xp = useStore(progressStore, (s) => Math.floor(s.xp / 100)); // تُحدَّث كل 100 XP فقط
+  const xp = useStore(progressStore, (s) => Math.floor(s.xp));
 
   return (
     <header

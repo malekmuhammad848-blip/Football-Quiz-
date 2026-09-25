@@ -364,7 +364,9 @@ export function finishMatch(cup: CupState, myPkCorrect = 0): CupState {
     const { champion } = completeBracket({ ...next, bracket }, nr, nextMatches);
     return { ...next, bracket, round: nr, matchIndex: 0, champion, eliminated: true };
   }
-  return { ...next, round: nr, matchIndex: safeIdx };
+  // الإصلاح الجوهري: أرفق الشجرة الجديدة — كانت تُبنى ولا تُعاد
+  // فتبقى bracket[الدور التالي] فارغة وcurrentMatch تعيد null → شاشة فارغة بعد التأهل!
+  return { ...next, bracket, round: nr, matchIndex: safeIdx };
 }
 
 /* ============================================================

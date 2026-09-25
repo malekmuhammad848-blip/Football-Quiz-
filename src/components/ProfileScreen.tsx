@@ -22,7 +22,6 @@ import {
 } from "../lib/backend";
 import { FALLBACK_TAGS } from "../lib/backend";
 import { cupSummary } from "../domain/cupEngine";
-import { PlayerCard } from "./PlayerCard";
 import { t } from "../lib/i18n";
 import { supabaseConfigured } from "../lib/supabase";
 import { cn } from "../utils/cn";
@@ -231,10 +230,6 @@ export function ProfileScreen({ session, onClose, embedded = false }: Props) {
           )}
         </section>
 
-        {/* ——— بطاقة اللاعب FUT ——— */}
-        <section className="pt-1">
-          <PlayerCard name={displayName} avatarId={prefs.avatarId} xp={progress.xp} lang={lang} />
-        </section>
 
         {/* ——— سجل الكأس ——— */}
         {(() => {
