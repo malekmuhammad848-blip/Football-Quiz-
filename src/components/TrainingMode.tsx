@@ -16,10 +16,10 @@ import { stadium } from "../lib/stadium";
 import { progressStore } from "../stores/progressStore";
 import { questsStore } from "../stores/questsStore";
 import { t, type Lang } from "../lib/i18n";
-import type { LocalizedQuestion } from "../domain/types";
+import type { LocalizedQuestion, Question } from "../domain/types";
 import { cn } from "../utils/cn";
 import { Badge, Button } from "./ui/primitives";
-import { VisualQuestion, makeVisual, buildVisualQuestion } from "./VisualQuestion";
+import { VisualQuestion, makeVisual, buildVisualQuestion, visualPromptFor } from "./VisualQuestion";
 import { CheckBadge, CrossBadge, TrophyMark } from "./Icons";
 
 interface Props {
@@ -37,6 +37,8 @@ interface TrainQ {
   options: string[];
   answer: number;
   fact: string;
+  /** فن بصري مرفق (طقم/علم/شعار) — يُعرض فوق الخيارات */
+  visual?: Question["visual"];
 }
 
 function buildSet(lang: Lang, seed: number): TrainQ[] {
@@ -50,7 +52,7 @@ function buildSet(lang: Lang, seed: number): TrainQ[] {
   }
   return indices.slice(0, GAMEPLAY.trainSetSize).map((qi, k) => {
     const lq = localizeQuestion(QUESTIONS[qi]!, lang, seed + k * 7919);
-    return { id: lq.id, category: lq.category, q: lq.q, options: lq.options, answer: lq.answer, fact: lq.fact, difficulty: lq.difficulty };
+    return { id: lq.id, category: lq.category, q: lq.q, options: lq.options, answer: lq.answer, fact: lq.fact, difficulty: lq.difficulty, visual: lq.visual };
   });
 }
 
@@ -94,10 +96,15 @@ export function TrainingMode({ lang, soundOn, hapticsOn, onExit }: Props) {
     [generatedVisual, current],
   );
   const visualSticker = generatedVisual?.sticker ?? matchedVisual?.sticker ?? null;
-  const visualPrompt =
-    generatedVisual || matchedVisual?.answer === current?.answer
-      ? t(lang, "visualWhose")
-      : t(lang, "visualWhich");
+  // نص السؤال الصحيح حسب نوع الفن — علم لا يُسأل عنه كأنه طقم
+  // (كان العلم والشعار يظهران بعنوان «لمن هذا الطقم؟» — سؤال مضلل)
+  const visualPrompt = generatedVisual
+    ? visualPromptFor(generatedVisual.sticker.art, lang)
+    : matchedVisual
+      ? visualPromptFor(matchedVisual.sticker.art, lang)
+      : current?.visual
+        ? visualPromptFor(current.visual.kind, lang)
+        : "";
 
   if (!current) {
     return null;
@@ -191,6 +198,9 @@ export function TrainingMode({ lang, soundOn, hapticsOn, onExit }: Props) {
               <VisualQuestion sticker={visualSticker} prompt={visualPrompt} className="mb-4" />
             ) : (
               <p className="mb-3 text-base leading-7 font-extrabold sm:text-xl sm:leading-8">{current.q}</p>
+            )}
+            {!visualSticker && current.visual && (
+              <VisualQuestion spec={current.visual} prompt={visualPrompt} className="mb-4" />
             )}
             <div className="grid gap-2">
               {current.options.map((opt, i) => {

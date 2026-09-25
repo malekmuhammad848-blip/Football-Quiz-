@@ -238,7 +238,9 @@ const ar = {
   packTapContinue: "اضغط للمتابعة",
   visualWhose: "لمن هذا الطقم؟",
   visualWhich: "أي نادٍ أو منتخب هذا؟",
-  visualFact: "بطاقة رياضية من ألبوم الموسم — احفظ أطقم الأندية والمنتخبات المفضلة لديك لتتقن هذه الأسئلة بسرعة!",
+  visualFlagQ: "أي منتخب يمثله هذا العلم؟",
+  visualBadgeQ: "أي نادٍ يحمل هذا الشعار؟",
+  visualFact: "بطاقة من ألبوم الموسم — تابع أطقم الأندية وأعلام المنتخبات وشعاراتها وستتقن هذه الأسئلة سريعًا!",
   // تقرير الكشّاف
   scoutTitle: "تقرير الكشّاف",
   scoutDesc: "إتقانك لكل مجال — الكشّاف يراقب أداءك",
@@ -504,7 +506,9 @@ const en: Record<TKey, string> = {
   packTapContinue: "Tap to continue",
   visualWhose: "Whose kit is this?",
   visualWhich: "Which club or nation is this?",
-  visualFact: "A season-album card — memorize your favorite clubs' and nations' kits and you'll ace these in no time!",
+  visualFlagQ: "Which nation does this flag represent?",
+  visualBadgeQ: "Which club bears this crest?",
+  visualFact: "A season-album card — memorize club kits, national flags and crests and you'll ace these in no time!",
   // Scout report
   scoutTitle: "Scout Report",
   scoutDesc: "Your mastery per category — the scout is watching",

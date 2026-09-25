@@ -6,6 +6,7 @@
  *  ============================================================ */
 
 import type { Sticker } from "../domain/season";
+import { STICKERS } from "../domain/season";
 import { StickerArt } from "./StickerCard";
 import { VisualArt, type VisualSpec } from "./VisualArt";
 import { cn } from "../utils/cn";
@@ -47,6 +48,31 @@ export function VisualQuestion({ spec, sticker, prompt, className }: Props) {
 }
 
 /**
+ * نص السؤال الصحيح حسب نوع الفن — علم لا يُسأل عنه كأنه طقم!
+ * (كان «أي منتخب يمثله هذا العلم؟» يظهر بعنوان «لمن هذا الطقم؟»)
+ */
+export function visualPromptFor(
+  kind: "kit" | "flag" | "badge" | "sticker",
+  lang: "ar" | "en",
+): string {
+  const L = {
+    ar: {
+      kit: "لمن هذا الطقم؟",
+      flag: "أي منتخب يمثله هذا العلم؟",
+      badge: "أي نادٍ يحمل هذا الشعار؟",
+      sticker: "أي نادٍ أو منتخب هذا؟",
+    },
+    en: {
+      kit: "Whose kit is this?",
+      flag: "Which nation does this flag represent?",
+      badge: "Which club bears this crest?",
+      sticker: "Which club or nation is this?",
+    },
+  } as const;
+  return L[lang][kind];
+}
+
+/**
  * تحويل سؤال عادي إلى بصري — **آمنة تمامًا**: يعمل فقط عندما تكون
  * إجابة السؤال النصي نفسها صاحبة الملصق. لا يعرض أبدًا بطاقة لا تطابق الإجابة
  * (كان هذا سبب «أجيب ليفربول ويقول ريال مدريد خطأ»).
@@ -61,8 +87,6 @@ export function makeVisual(
   const st = STICKERS.find((s) => (lang === "ar" ? s.ar : s.en) === name);
   return st ? { sticker: st, options, answer: answerIndex } : null;
 }
-
-import { STICKERS } from "../domain/season";
 
 /** عشوائية مثبتة بالبذرة — نفس النتيجة دائمًا لنفس البذرة */
 function seededPick<T>(arr: readonly T[], seed: number): T {
