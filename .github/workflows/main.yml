@@ -76,6 +76,27 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
+      # حقن الإصدار من package.json — قالب Capacitor يكتب 1.0/1 ثابتين داخليًا،
+      # وهذا كان سبب رفض Uptodown (الملف الجديد بنفس رقم الملف المرفوض)
+      - name: Apply version from package.json
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          VERSION_CODE=$(node -p "const [a,b,c]=require('./package.json').version.split('.').map(Number); a*10000+b*100+c")
+          echo "Injecting versionName=$VERSION versionCode=$VERSION_CODE"
+          cat >> android/app/build.gradle << VEOF
+
+          android {
+              defaultConfig {
+                  versionName "$VERSION"
+                  versionCode $VERSION_CODE
+              }
+          }
+          VEOF
+
+          # تحقق نهائي
+          grep -A3 "versionName" android/app/build.gradle | tail -5
+          echo "✅ Version injected: $VERSION ($VERSION_CODE)"
+
       - name: Add permissions + deep link to AndroidManifest
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"

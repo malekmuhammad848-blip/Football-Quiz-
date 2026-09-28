@@ -3,6 +3,7 @@
  *  ============================================================ */
 
 import { Bell, BellOff, Languages, Moon, RotateCcw, Sun, Vibrate, Volume2, VolumeX } from "lucide-react";
+import { APP } from "../core/config";
 import type { Lang, Theme } from "../domain/types";
 import { t } from "../lib/i18n";
 import { isNative } from "../lib/notifications";
@@ -84,7 +85,7 @@ export function SettingsSheet({ open, onClose, onReset }: Props) {
           {t(lang, "resetProgress")}
         </Button>
 
-        <p className="text-center text-[11px] font-bold opacity-40">TiQ v3.0 — {t(lang, "madeBy")}</p>
+        <p className="text-center text-[11px] font-bold opacity-40">{APP.name} v{APP.version} — {t(lang, "madeBy")}</p>
       </div>
     </Sheet>
   );

@@ -12,7 +12,7 @@
 | **اسم التطبيق (عربي)** | TiQ — سؤال الكرة اليومي |
 | **اسم التطبيق (إنجليزي)** | TiQ — Daily Football Question |
 | **معرّف الحزمة** | `com.malek.tiq` |
-| **الإصدار** | 3.1.0 (versionCode يُدار تلقائيًا) |
+| **الإصدار** | 3.1.0 — **versionName من package.json** وversionCode = 30100 (يُحسب تلقائيًا في CI: major×10000 + minor×100 + patch) |
 | **التصنيف العمري** | PEGI 3 / Everyone — بلا عنف، بلا مقامرة، بلا محتوى حساس |
 | **الفئة** | رياضة / ألعاب كروية (Sports — Football Trivia) |
 | **المطوّر** | Malek |
@@ -98,6 +98,8 @@
 ## 📱 ملف الـ APK
 
 - استخدم **`app-release.apk`** من artifacts في GitHub Actions (وليس app-debug) — إصدار release موقّع بمفتاح `tiq-release.keystore`.
+- **versionName/versionCode يُحَقَنّان تلقائيًا من package.json** في كل بناء (خطوة "Apply version from package.json") — لم تعد بحاجة لتعديل يدوي داخل أندرويد.
+- ⚠️ **عند كل تحديث ترفعه لمتجر:** ارفع رقم الإصدار في `package.json` فقط (مثلاً 3.1.0 → 3.1.1)، وسيتبعه كل شيء تلقائيًا.
 - نفس SHA-1 ثابت في كل بناء → Google Sign-In يعمل دون انقطاع.
 - الحد الأدنى المدعوم: Android 6.0+ (Capacitor v7+ افتراضي).
 
