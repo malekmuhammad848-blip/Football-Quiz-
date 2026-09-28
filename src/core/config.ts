@@ -5,7 +5,7 @@
 
 export const APP = {
   name: "TiQ",
-  version: "3.0.0",
+  version: "3.1.0",
   developer: "Malek",
   tagline: { ar: "سؤال الكرة اليومي", en: "Daily Football Question" },
 } as const;

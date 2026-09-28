@@ -78,6 +78,7 @@ interface Props {
 
 export function WelcomeScreen({ lang, onDone }: Props) {
   const [termsOpen, setTermsOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
   const [busy, setBusy] = useState<"google" | "email" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showEmail, setShowEmail] = useState(false);
@@ -259,7 +260,7 @@ export function WelcomeScreen({ lang, onDone }: Props) {
               {t(lang, "terms")}
             </button>{" "}
             {t(lang, "and")}{" "}
-            <button onClick={() => setTermsOpen(true)} className="font-bold text-white/60 underline decoration-white/30 underline-offset-2 hover:text-white">
+            <button onClick={() => setPrivacyOpen(true)} className="font-bold text-white/60 underline decoration-white/30 underline-offset-2 hover:text-white">
               {t(lang, "privacy")}
             </button>
           </p>
@@ -272,6 +273,16 @@ export function WelcomeScreen({ lang, onDone }: Props) {
           {t(lang, "termsBody")}
         </p>
         <Button onClick={() => setTermsOpen(false)} className="mt-5 w-full">
+          {t(lang, "close")}
+        </Button>
+      </Sheet>
+
+      {/* نافذة الخصوصية — محتوى كامل مستقل */}
+      <Sheet open={privacyOpen} onClose={() => setPrivacyOpen(false)} title={t(lang, "privacyTitle")}>
+        <p className="whitespace-pre-line text-sm leading-7 text-white/70" dir={rtl ? "rtl" : "ltr"}>
+          {t(lang, "privacyBody")}
+        </p>
+        <Button onClick={() => setPrivacyOpen(false)} className="mt-5 w-full">
           {t(lang, "close")}
         </Button>
       </Sheet>

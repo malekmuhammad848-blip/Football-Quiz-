@@ -152,6 +152,7 @@ jobs:
           KTEOF
 
       # توقيع ثابت — نفس المفتاح في كل بناء حتى يبقى SHA-1 ثابتًا لـ Google Sign-In
+      # (debug + release كلاهما بنفس المفتاح — release مطلوب لمعايير Uptodown)
       - name: Apply stable signing key
         run: |
           cat >> android/app/build.gradle << 'SIGEOF'
@@ -169,20 +170,32 @@ jobs:
                   debug {
                       signingConfig signingConfigs.tiqKey
                   }
+                  release {
+                      signingConfig signingConfigs.tiqKey
+                      minifyEnabled false
+                      shrinkResources false
+                  }
               }
           }
           SIGEOF
           keytool -list -v -keystore tiq-release.keystore -alias tiq -storepass TiQ-Malek-2026 2>/dev/null | grep "SHA1:" | head -1 || true
-          echo "✅ Stable signing key applied"
+          echo "✅ Stable signing key applied (debug + release)"
 
       - name: Build APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug assembleRelease --stacktrace
 
-      - name: Upload APK
+      - name: Upload APK (debug)
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      # نسخة Release الموقّعة — هي المطلوبة للرفع في Uptodown
+      - name: Upload APK (release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: android/app/build/outputs/apk/release/app-release.apk
